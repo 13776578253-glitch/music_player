@@ -60,22 +60,20 @@ app.use(express.json());
 //具体解析数据待确认
 // route_1: 搜索歌曲 (调用 C 的 Trie 树查找逻辑)
 app.get('/api/search', async (req, res) => {
-    const query = req.query.q || ''; // 获取查询参数 q
+    const query = req.query.keyword || ''; 
     
     if (!query) {
-        return res.status(400).json({ status: 'error', message: 'Query parameter "q" is required.' });
+        return res.status(400).json({ status: 'error', message: 'Query parameter "keyword" is required.' });
     }
 
-    // 构造 C Core 命令
-    const command = `SEARCH ${query}`; 
-    console.log(`[Node.js] 🔍 收到搜索请求，发送命令: ${command}`);
+    const command = `SEARCH ${query}`;   // 拼接转发给C_Server
+    console.log(`get require, send: ${command}`);
 
     try {
-        const cCoreResult = await sendCommandToCServer(command);
-        // 将 C Core 的结果直接转发给前端
-        res.json(cCoreResult); 
+        const C_Server_Result = await sendCommandToCServer(command);
+        res.json(C_Server_Result); 
     } catch (error) {
-        console.error('[Node.js] ⚠️ 搜索失败:', error.message);
+        console.error('failed to get require:', error.message);
         res.status(503).json({ 
             status: 'error', 
             message: `Service Error: ${error.message}` 
@@ -86,14 +84,14 @@ app.get('/api/search', async (req, res) => {
 // route_2: 播放下一曲 (调用 C  的双向循环链表逻辑)
 app.post('/api/play/next', async (req, res) => {
     const command = 'PLAY NEXT'; // 构造播放指令
-    console.log(`[Node.js] ▶️ 收到下一曲请求，发送命令: ${command}`);
+    console.log(`get require, send: ${command}`);
     
     try {
         const cCoreResult = await sendCommandToCServer(command);
         // 将 C 的播放状态转发给前端
         res.json(cCoreResult);
     } catch (error) {
-        console.error('[Node.js] ⚠️ 播放失败:', error.message);
+        console.error('failed to run', error.message);
         res.status(503).json({ 
             status: 'error', 
             message: `Service Error: ${error.message}` 
@@ -110,8 +108,6 @@ app.get('/api/ping', async (req, res) => {
         res.status(503).json({ status: 'error', message: `C_Server Offline: ${error.message}` });
     }
 });
-
-
 
 app.listen(Web_Server_Port, () => {
     console.log(`Web Server is running, port: ${Web_Server_Port}`);

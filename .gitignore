@@ -1,0 +1,60 @@
+# Node.js 项目必屏蔽（最重要！）
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+.pnpm-debug.log
+
+# 环境变量（绝对不能上传！）
+.env
+.env.local
+.env.development
+.env.production
+
+# 打包输出
+dist/
+build/
+.out/
+
+# 日志文件
+logs/
+*.log
+
+# 依赖缓存
+.pnpm-store/
+.npm/
+
+# 编辑器缓存
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 数据库本地文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 阿里云/腾讯云密钥（防止泄露）
+*.pem
+*.key
+*.crt
+
+# Vercel / Railway / 其他部署缓存
+.vercel
+.railway
+.netlify
+
+# 你的前端打包缓存（如果有）
+.cache/
+public/build/
+
+# Git Desktop 自己生成的垃圾
+.gitignore~   
