@@ -17,12 +17,9 @@
 void execute_command(const char* command, char* response_buffer) {
     char cmd_type[MAX_COMMAND_LENGTH + 1] = {0};  
     const char* payload = NULL;   // 命令附带的负载数据，如"LOAD_DATA [1,2,3]"中负载数据[1,2,3]
-
+    
     if (sscanf(command, "%s", cmd_type) != 1) {
-        strcpy(response_buffer, "{
-            \"status\":\"error\",
-            \"message\":\"Invalid empty command\"
-        }");  //  读取传来指令，若为空返回错误
+        strncpy(response_buffer, "{\"status\":\"error\",\"message\":\"Invalid empty command\"}");  //  读取传来指令，若为空返回错误
         return;
     }
 
@@ -35,40 +32,26 @@ void execute_command(const char* command, char* response_buffer) {
     }
     
     if (strcmp(cmd_type, "PING") == 0) {
-        strcpy(response_buffer, "{
-            \"status\":\"PONG\", 
-            \"message\":\"C_Server is running\"
-        }");
+        strncpy(response_buffer, "{\"status\":\"PONG\", \"message\":\"C_Server is running\"}");
 
     } else if (strcmp(cmd_type, "LOAD_DATA") == 0) {
         if (payload && strlen(payload) > 0) {   // 检查负载是否存在且非空
             cJSON *json_array = cJSON_Parse(payload); // 解析 payload 中的 JSON 字符串
         
             if (json_array == NULL) {
-                strcpy(response_buffer, "{
-                    \"status\":\"error\", 
-                    \"message\":\"Failed to parse JSON payload\"
-                }");
+                strcpy(response_buffer, "{\"status\":\"error\", \"message\":\"Failed to parse JSON payload\"}");
             } else {
                 int array_size = cJSON_GetArraySize(json_array); // 获取 JSON 数组的元素个数
-            
-                cJSON_Delete(json_array); // 释放 cJSON 解析后的内存（必须！否则内存泄漏）
-                snprintf(response_buffer, BUFFER_SIZE, "{
-                    \"status\":\"ok\",
-                    \"message\":\"Successfully indexed %d songs\"
-                }", array_size);  //  构建成功响应：告诉调用方成功索引了多少首歌曲
+                // 添加 数据结构 插入逻辑（后续业务逻辑）
+                cJSON_Delete(json_array); // 释放 cJSON 解析后内存
+                snprintf(response_buffer, BUFFER_SIZE, "{\"status\":\"ok\",\"message\":\"Successfully indexed %d songs\"}", array_size);  //  构建成功响应：告诉调用方成功索引了多少首歌曲
             }
         } else {
-            strcpy(response_buffer, "{
-                \"status\":\"error\",
-                \"message\":\"LOAD_DATA command requires data\"
-            }");  //  有 LOAD_DATA 命令，但无负载（比如只传了 "LOAD_DATA" 没传 JSON）
+            strncpy(response_buffer, "{\"status\":\"error\",\"message\":\"LOAD_DATA command requires data\"}");  //  有 LOAD_DATA 命令，但无负载（json文件）
         }
+    } else {
+        snprintf(response_buffer, BUFFER_SIZE, "{\"status\":\"error\", \"message\":\"Unknown Command: %s\"}", cmd_type);  //  未知指令，返回
     }
-
-
-
-
 }
 
 // 客户端请求处理函数
@@ -76,30 +59,39 @@ void handle_client_request(SOCKET client_socket) {
     char buffer[BUFFER_SIZE] = {0};   // 定义接收缓冲区：存储客户端发来的命令（初始化为0）
     char response[BUFFER_SIZE] = {0};  // 定义响应缓冲区：存储要返回给客户端的结果（初始化为0）
 
-    while(1) { 
-        int valread = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);   //存储recv()函数的返回值：实际接收到的字节数; recv()参数：客户端Socket、接收缓冲区、缓冲区大小-1（留1个字节存'\0'）、flags=0（默认模式）
-        if(valread >0) {
-            buffer[valread] = '\0'; 
-            printf("Received command: %s\n", buffer);
+    int timeout = 5000;
+    setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));  //  设置socket超时
 
-            // 执行核心逻辑
-            execute_command(buffer, response);
+    int bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0); 
 
-            send(client_socket, response, strlen(response), 0);
+    if (bytes_received > 0) {
+
+        buffer[bytes_received] = '\0'; 
+        printf("Received command: %s\n", buffer);  // 测试
+
+        execute_command(buffer, response_buffer);
+
         
-            memset(buffer, 0, BUFFER_SIZE);
-            memset(response, 0, BUFFER_SIZE);
-
-        } else if(valread == 0) {
-            printf("Client disconnected gracefully.\n");
-            break;
-        } else {
-            printf("Receive error. Error: %d\n", WSAGetLastError());
-            break;
-        }    
+        const char* send_ptr = response_buffer; // 指向要发送的数据起始位置
+        int total_to_send = strlen(response_buffer); // 要发送的总字节数（JSON响应长度）
+        int total_sent = 0; // 已发送的字节数，初始为0
+        while (total_sent < total_to_send) {
+            // 每次发送"未发完的剩余数据"
+            int bytes_sent = send(client_socket, send_ptr + total_sent, total_to_send - total_sent, 0);
+            if (bytes_sent == SOCKET_ERROR) {
+                // 发送失败：打印Windows Socket错误码，方便定位问题（比如网络断开）
+                printf("Send failed with error: %d\n", WSAGetLastError());
+                break; // 发送失败，退出循环
+            }
+            total_sent += bytes_sent; // 累加已发送字节数
+        }
+        
+    } else {
+        printf("Client disconnected or error during recv: %d\n", WSAGetLastError());
     }
-    closesocket(client_socket);  
-    printf("complete\n");
+
+    closesocket(client_socket); 
+    printf("Connection closed.\n"); 
 }
 
 int main() {
