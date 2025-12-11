@@ -7,7 +7,7 @@ const net = require('net');
 const config = require('./config'); 
 // const Web_Server_Port = 3000; 
 // const C_Server_Port = 8080;   
-// const C_Server_Host = '127.0.0.1';   //IP 地址，本机
+// const C_Server_Host = '127.0.0.1';   
 
 const { initializeDatabase, loadDataToCServer } = require('./sqlite');
 

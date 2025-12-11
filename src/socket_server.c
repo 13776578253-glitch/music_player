@@ -174,7 +174,7 @@ int main() {
         
         //处理客户端请求
         handle_client_request(new_socket);
-
+        
         closesocket(new_socket); 
         printf("Connection closed.\n");
     }

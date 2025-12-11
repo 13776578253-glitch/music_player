@@ -57,4 +57,4 @@ Thumbs.db
 public/build/
 
 # Git Desktop 自己生成的垃圾
-.gitignore~   
+.gitignore   
