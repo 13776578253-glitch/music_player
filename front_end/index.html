@@ -3,144 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MuseFlow - 沉浸式音乐</title>
+    <title>MuseFlow</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body class="bg-slate-900 text-white font-sans overflow-hidden h-screen flex flex-col">
+    
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    </style>
 
-    <nav class="h-16 flex items-center justify-between px-6 bg-slate-900/90 backdrop-blur-md border-b border-white/5 z-20">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
-                <i class="fa-solid fa-music text-white"></i>
-            </div>
-            <h1 class="text-xl font-bold tracking-tight">MuseFlow</h1>
+</head>
+<body class="bg-slate-900 text-white font-sans h-screen flex flex-col overflow-hidden">
+
+    <nav class="h-16 bg-slate-900/95 border-b border-white/5 flex items-center justify-between px-6 shrink-0 z-20">
+        <div class="flex items-center gap-2 font-bold text-xl">
+            <i class="fa-solid fa-music text-indigo-500"></i> MuseFlow
         </div>
-        <div class="hidden md:flex gap-6 text-slate-400 text-sm font-medium">
-            <a href="#" class="text-white hover:text-indigo-400 transition">发现</a>
-            <a href="#" class="hover:text-indigo-400 transition">排行榜</a>
-            <a href="#" class="hover:text-indigo-400 transition">我的歌单</a>
+        <div class="flex gap-6 text-sm">
+            <button onclick="loadPage('home')" class="hover:text-indigo-400 transition">发现</button>
+            <button onclick="loadPage('rank')" class="hover:text-indigo-400 transition">排行榜</button>
+            <button onclick="loadPage('my')" class="hover:text-indigo-400 transition">我的</button>
         </div>
-        <div class="flex items-center gap-4">
-            <div class="relative">
-                <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-500 text-xs"></i>
-                <input type="text" placeholder="搜索音乐..." class="bg-slate-800 rounded-full pl-8 pr-4 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 w-48 transition-all">
-            </div>
-            <button class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center hover:bg-slate-600 transition">
-                <i class="fa-regular fa-user text-xs"></i>
-            </button>
-        </div>
+        <div class="w-20"></div>
     </nav>
 
-    <main id="main-content" class="flex-1 overflow-y-auto p-6 pb-32 scroll-smooth">
-        <section class="mb-10">
-            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 flex items-center shadow-lg shadow-indigo-900/20">
-                <div class="space-y-4">
-                    <span class="bg-white/20 text-xs px-2 py-1 rounded backdrop-blur-sm">每日推荐</span>
-                    <h2 class="text-4xl font-bold">感受赛博朋克的律动</h2>
-                    <p class="text-indigo-100 max-w-lg text-sm">根据你的听歌习惯生成的智能列表，包含 Synthwave 与 Electronic 风格。</p>
-                    <button class="bg-white text-indigo-900 px-6 py-2 rounded-full font-bold text-sm hover:bg-indigo-50 transition shadow-lg mt-2 flex items-center gap-2">
-                        <i class="fa-solid fa-play"></i> 立即播放
-                    </button>
-                </div>
-            </div>
-        </section>
+    <!-- 容器 -->
+    <main id="dynamic-content" class="flex-1 overflow-y-auto relative scroll-smooth">
+        </main>
 
-        <section>
-            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                热门推荐 <i class="fa-solid fa-chevron-right text-xs text-slate-500"></i>
-            </h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6" id="playlist-container">
-                </div>
-        </section>
-        
-        <footer class="mt-20 border-t border-white/5 pt-10 pb-10 text-center text-slate-500 text-xs">
-            <p>&copy; 2024 MuseFlow Project. Connected to Python Backend.</p>
-        </footer>
-    </main>
-
-    <div id="mini-player" class="fixed bottom-0 left-0 w-full h-20 bg-slate-800/90 backdrop-blur-xl border-t border-white/10 flex items-center justify-between px-6 z-40 transition-all cursor-pointer hover:bg-slate-800">
-        <div class="flex items-center gap-4 w-1/4">
-            <img id="mini-cover" src="https://placehold.co/600x600/1e1e2e/FFF?text=Music" class="w-12 h-12 rounded bg-slate-700 object-cover shadow-md">
-            <div class="flex flex-col">
-                <span id="mini-title" class="text-sm font-bold text-white truncate">等待播放...</span>
-                <span id="mini-artist" class="text-xs text-slate-400 truncate">--</span>
+    <div id="player-bar" class="h-20 bg-slate-800 border-t border-white/5 flex items-center justify-between px-6 shrink-0 z-50">
+        <div class="flex items-center gap-3 w-1/4">
+            <img id="p-cover" src="" class="w-12 h-12 bg-slate-700 rounded object-cover hidden">
+            <div>
+                <div id="p-title" class="text-sm font-bold">听你想听</div>
+                <div id="p-artist" class="text-xs text-slate-400">--</div>
             </div>
         </div>
-
-        <div class="flex flex-col items-center gap-1 w-1/2" onclick="event.stopPropagation()">
-            <div class="flex items-center gap-6">
-                <button class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-backward-step"></i></button>
-                <button id="play-pause-btn" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-900 hover:scale-105 transition shadow-lg">
-                    <i class="fa-solid fa-play ml-0.5"></i>
+        <div class="flex flex-col items-center w-1/2">
+            <div class="flex gap-4 mb-1 text-slate-300">
+                <button class="hover:text-white"><i class="fa-solid fa-backward-step"></i></button>
+                <button onclick="Player.toggle()" class="w-8 h-8 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition">
+                    <i id="p-btn-icon" class="fa-solid fa-play ml-0.5"></i>
                 </button>
-                <button class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-forward-step"></i></button>
+                <button class="hover:text-white"><i class="fa-solid fa-forward-step"></i></button>
             </div>
-            <div class="w-full max-w-md flex items-center gap-2 text-[10px] text-slate-400">
-                <span>0:00</span>
-                <div class="flex-1 h-1 bg-slate-600 rounded-full overflow-hidden relative group cursor-pointer">
-                    <div class="w-0 h-full bg-indigo-500 rounded-full absolute top-0 left-0 transition-all" id="progress-bar"></div>
-                </div>
-                <span>3:45</span>
+            <div class="w-full max-w-md h-1 bg-slate-600 rounded-full cursor-pointer relative group">
+                <div id="p-progress" class="h-full bg-indigo-500 w-0 rounded-full"></div>
             </div>
         </div>
-
-        <div class="w-1/4 flex justify-end items-center gap-4" onclick="event.stopPropagation()">
-            <i class="fa-solid fa-volume-high text-slate-400 text-xs"></i>
-            <div class="w-20 h-1 bg-slate-600 rounded-full">
-                <div class="w-1/2 h-full bg-slate-400 rounded-full"></div>
-            </div>
-            <button class="text-slate-400 hover:text-white ml-2" id="expand-btn">
-                <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
-            </button>
-        </div>
+        <div class="w-1/4 text-right pr-4"><i class="fa-solid fa-volume-low text-xs text-slate-500"></i></div>
     </div>
 
-    <div id="full-player" class="fixed inset-0 bg-slate-900 z-50 transform translate-y-full transition-transform duration-500 ease-in-out flex flex-col">
-        <div class="h-16 flex items-center justify-between px-6">
-            <button id="collapse-btn" class="text-slate-400 hover:text-white text-xl">
-                <i class="fa-solid fa-chevron-down"></i>
-            </button>
-            <span class="text-xs tracking-widest text-slate-500 uppercase">Now Playing</span>
-            <button class="text-slate-400 hover:text-white">
-                <i class="fa-solid fa-ellipsis"></i>
-            </button>
-        </div>
+    <script src="./src/js/api.js"></script>    
+    <script src="./src/js/player.js"></script> 
+    <script src="./src/js/router.js"></script>
+    <script src="./src/js/store.js"></script>  
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPage('home');
+        });
+    </script>
 
-        <div class="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-8">
-            <img id="full-cover" src="https://placehold.co/600x600/1e1e2e/FFF?text=Music" class="w-72 h-72 md:w-96 md:h-96 rounded-2xl shadow-2xl shadow-indigo-500/20 object-cover">
-            
-            <div class="space-y-2">
-                <h2 id="full-title" class="text-3xl font-bold">等待播放...</h2>
-                <p id="full-artist" class="text-indigo-400 text-lg">--</p>
-            </div>
-
-            <div class="w-full max-w-2xl space-y-2">
-                <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden cursor-pointer">
-                    <div id="full-progress-bar" class="w-0 h-full bg-indigo-500 rounded-full relative"></div>
-                </div>
-                <div class="flex justify-between text-xs text-slate-500 font-mono">
-                    <span>0:42</span>
-                    <span>3:45</span>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-10">
-                <button class="text-2xl text-slate-500 hover:text-white"><i class="fa-solid fa-shuffle"></i></button>
-                <button class="text-4xl text-white hover:text-indigo-400 transition"><i class="fa-solid fa-backward-step"></i></button>
-                <button id="full-play-btn" class="w-20 h-20 bg-indigo-500 rounded-full flex items-center justify-center text-white text-3xl shadow-lg shadow-indigo-500/50 hover:scale-110 transition">
-                    <i class="fa-solid fa-play ml-1"></i>
-                </button>
-                <button class="text-4xl text-white hover:text-indigo-400 transition"><i class="fa-solid fa-forward-step"></i></button>
-                <button class="text-2xl text-slate-500 hover:text-white"><i class="fa-solid fa-repeat"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <script src="src/api.js"></script>
-    <script src="src/player.js"></script>
-    <script src="src/ui.js"></script>
-    <script src="app.js"></script>
 </body>
 </html>
