@@ -1,42 +1,29 @@
+
 <div class="p-8 pb-32">
     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 mb-8 shadow-lg">
-        <h2 class="text-3xl font-bold mb-2">欢迎回来</h2>
-        <p class="text-indigo-100 opacity-80">今日推荐算法已准备就绪</p>
+        <h2 class="text-3xl font-bold mb-2 text-white">欢迎回来</h2>
+        <p class="text-indigo-100 opacity-80">已准备就绪</p>
     </div>
 
     <h3 class="text-xl font-bold mb-4">每日推荐</h3>
+    
     <div id="home-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-        <div class="h-40 bg-slate-800 rounded animate-pulse"></div> </div>
+    </div>
 </div>
 
-<script>
-    (async function initHome() {
-        console.log("首页脚本开始执行...");
-        const container = document.getElementById('home-list');
-        
-        // 1. 调用 API
-        const songs = await API.getRecommend();
-
-        // 2. 渲染列表
-        container.innerHTML = songs.map(song => `
-            <div class="group cursor-pointer p-3 rounded-xl hover:bg-white/5 transition"
-                 onclick='playSong(${JSON.stringify(song)})'>
-                <div class="relative mb-3 overflow-hidden rounded-lg">
-                    <img src="${song.cover}" class="w-full aspect-square object-cover group-hover:scale-105 transition duration-500">
-                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                        <i class="fa-solid fa-play text-white text-2xl"></i>
-                    </div>
-                </div>
-                <div class="font-bold text-sm truncate">${song.title}</div>
-                <div class="text-xs text-slate-400 truncate">${song.artist}</div>
+<!-- 模板 -->
+<template id="song-card-template">
+    <div class="group cursor-pointer p-3 rounded-xl hover:bg-white/5 transition song-item">
+        <div class="relative mb-3 overflow-hidden rounded-lg">
+            <img class="song-cover w-full aspect-square object-cover group-hover:scale-105 transition duration-500">
+            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                <i class="fa-solid fa-play text-white text-2xl"></i>
             </div>
-        `).join('');
+        </div>
+        <div class="song-title font-bold text-sm truncate"></div>
+        <div class="song-artist text-xs text-slate-400 truncate"></div>
+    </div>
+</template>
 
-        // 3. 定义局部播放函数
-        // 注意：因为 onclick 是在全局作用域执行的，我们需要把数据传给全局 Player
-        window.playSong = (songData) => {
-            Player.play(songData);
-        };
-
-    })();
-</script>
+<!-- SPA中需保证API/Player已全局存在 -->
+<script src="home.js"></script>
