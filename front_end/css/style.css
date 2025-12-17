@@ -1,0 +1,30 @@
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0f172a; 
+}
+::-webkit-scrollbar-thumb {
+    background: #334155; 
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #475569; 
+}
+
+/* 玻璃拟态辅助类 */
+.glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 唱片旋转动画（留作扩展） */
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+    animation: spin-slow 10s linear infinite;
+}
