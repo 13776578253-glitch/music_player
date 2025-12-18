@@ -1,15 +1,14 @@
 
-const homeView = {
-    
+const home_page = {
     async init(_params) {
-        console.log("[Home] 开始初始化...");
+        //console.log("[Home] 开始初始化...");
         const container = document.getElementById('home-list');
         const template = document.getElementById('song-card-template');
 
         if (!this.validate(container, template)) return;
 
+        //核心！
         try {
-            // 从全局 API 获取数据
             const songs = await API.getRecommend(); 
             this.render(container, template, songs);
         } catch (error) {
@@ -17,20 +16,19 @@ const homeView = {
         }
     },
 
-    // 2. 检查 DOM 环境
     validate(container, template) {
         if (!container || !template) {
-            console.warn('[Home] 缺少必要的 DOM 元素');
+            console.warn(' — 缺少 DOM 元素 —');
             return false;
         }
         return true;
     },
 
-    // 3. 核心渲染逻辑 (数据驱动 UI)
+    // 核心渲染逻辑！
     render(container, template, data) {
-        container.innerHTML = ''; // 清空加载状态
+        container.innerHTML = ''; 
         
-        const fragment = document.createDocumentFragment(); // 使用文档片段减少性能损耗
+        const fragment = document.createDocumentFragment();  // 使用文档片段减少性能损耗
 
         data.forEach(song => {
             const clone = template.content.cloneNode(true);
@@ -48,15 +46,15 @@ const homeView = {
         });
 
         container.appendChild(fragment);
-        console.log("[Home] 渲染完成");
+        console.log("— 渲染完成 —");
     },
 
     handleError(container, error) {
-        console.error('[Home] 加载失败:', error);
+        console.error('— 加载失败: —', error);
         container.innerHTML = `<div class="text-red-500">内容加载失败，请检查后端服务。</div>`;
     }
 };
 
-// 注册到全局路由处理器
+
 window.PageHandlers = window.PageHandlers || {};
-window.PageHandlers.home = (_params) => homeView.init(_params);
+window.PageHandlers.home = (_params) => home_page.init(_params);

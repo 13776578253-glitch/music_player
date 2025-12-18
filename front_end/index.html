@@ -3,56 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MuseFlow</title>
+    <title>MuseFlow - 赛博律动</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <link rel="stylesheet" href="src/css/style.css">
-    <link rel="stylesheet" href="src/css/other.css">
     
 </head>
+
 <body class="bg-slate-900 text-white font-sans h-screen flex flex-col overflow-hidden">
 
-    <nav class="h-16 bg-slate-900/95 border-b border-white/5 flex items-center justify-between px-6 shrink-0 z-20">
-        <div class="flex items-center gap-2 font-bold text-xl">
-            <i class="fa-solid fa-music text-indigo-500"></i> MuseFlow
+    <div id="full-player" class="fixed inset-0 bg-slate-950 z-[100] transition-all duration-700 translate-y-full flex flex-col overflow-hidden">
+        <canvas id="particle-canvas" class="absolute inset-0 opacity-30"></canvas>
+        
+        <div class="relative h-20 flex items-center px-8 z-10">
+            <button onclick="Player.toggleFullPlayer()" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10 transition">
+                <i class="fa-solid fa-chevron-down text-2xl text-slate-400"></i>
+            </button>
         </div>
-        <div class="flex gap-6 text-sm">
+
+        <div class="relative flex-1 flex items-center justify-around px-20 z-10">
+            <div class="w-1/2 flex justify-center items-center">
+                <div class="relative w-[450px] h-[450px] group">
+                    <div class="absolute inset-0 bg-black rounded-full border-[12px] border-slate-800 shadow-[0_0_50px_rgba(0,0,0,0.8)]"></div>
+                    <img id="fp-cover" src="" class="absolute inset-[65px] w-[320px] h-[320px] rounded-full object-cover animate-spin-slow shadow-inner" style="animation-play-state: paused;">
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-slate-900 rounded-full border-4 border-slate-800 z-20"></div>
+                </div>
+            </div>
+
+            <div class="w-1/3 h-[550px] flex flex-col">
+                <div class="mb-8">
+                    <h1 id="fp-title" class="text-5xl font-bold mb-4 truncate text-white">等待播放</h1>
+                    <div id="fp-meta" class="flex items-center gap-3 text-lg">
+                        <span id="fp-artist" class="text-indigo-400 font-medium">--</span>
+                        <span class="text-slate-700">|</span>
+                        <span id="fp-album" class="text-slate-400">--</span>
+                    </div>
+                    <div id="fp-playlist-info" class="mt-2 text-sm text-slate-500">
+                        来自歌单：<span id="fp-playlist-name">--</span>
+                    </div>
+                </div>
+                
+                <div class="flex-1 bg-white/5 rounded-3xl p-10 backdrop-blur-xl border border-white/5 overflow-y-auto no-scrollbar lyrics-mask">
+                    <div id="fp-lyrics-content" class="space-y-6 text-slate-400 text-xl text-center">
+                        <p>MuseFlow 智能内核已就绪</p>
+                        <p class="text-white font-bold text-2xl">请选择一首动听的音乐</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="fp-control-bar" class="relative h-40 px-10 flex flex-col items-center justify-center gap-6 z-10 bg-gradient-to-t from-black/80">
+            <div class="w-2/3 flex items-center gap-6">
+                <span id="fp-current" class="text-sm text-slate-500 font-mono w-12 text-right">00:00</span>
+                <div id="fp-progress-container" class="flex-1 h-1.5 bg-white/10 rounded-full cursor-pointer relative group">
+                    <div id="fp-progress" class="absolute h-full bg-indigo-500 w-0 rounded-full transition-all duration-100">
+                        <div class="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-xl scale-0 group-hover:scale-100 transition-transform"></div>
+                    </div>
+                </div>
+                <span id="fp-duration" class="text-sm text-slate-500 font-mono w-12">00:00</span>
+            </div>
+            
+            <div class="flex items-center gap-12">
+                <button class="text-slate-400 hover:text-white text-2xl transition"><i class="fa-solid fa-backward-step"></i></button>
+                <button onclick="Player.toggle()" class="w-20 h-20 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+                    <i id="fp-play-icon" class="fa-solid fa-play text-3xl ml-1"></i>
+                </button>
+                <button class="text-slate-400 hover:text-white text-2xl transition"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="h-16 bg-slate-900/95 border-b border-white/5 flex items-center px-6 shrink-0 z-20">
+        <div class="flex items-center gap-8 text-sm font-medium">
+            <div class="flex items-center gap-2 font-bold text-xl mr-4">
+                <i class="fa-solid fa-music text-indigo-500"></i> MuseFlow
+            </div>
             <button onclick="loadPage('home')" class="hover:text-indigo-400 transition">发现</button>
             <button onclick="loadPage('rank')" class="hover:text-indigo-400 transition">排行榜</button>
             <button onclick="loadPage('my')" class="hover:text-indigo-400 transition">我的</button>
             <button onclick="loadPage('about')" class="hover:text-indigo-400 transition">关于</button>
         </div>
-        <div class="w-20"></div>
+        <div class="flex-1"></div>
+        <div class="flex items-center gap-4">
+            <div class="relative w-64">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                <input type="text" placeholder="搜索音乐、歌手..." class="w-full bg-slate-800/50 border border-white/5 rounded-full py-1.5 pl-9 pr-4 text-xs focus:outline-none focus:border-indigo-500/50 transition-all">
+            </div>
+            <button class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center border border-white/10 hover:scale-110 transition">
+                <i class="fa-solid fa-user text-[10px]"></i>
+            </button>
+        </div>
     </nav>
 
-    <!-- 容器 -->
-    <main id="dynamic-content" class="flex-1 overflow-y-auto relative scroll-smooth">
-        </main>
+    <main id="dynamic-content" class="flex-1 overflow-y-auto relative scroll-smooth"></main>
+    
+    <div id="player-bar" class="h-24 bg-slate-900/90 border-t border-white/5 backdrop-blur-xl flex items-center justify-between px-6 shrink-0 z-50">
+        <div class="flex items-center gap-4 w-1/3">
+            <div class="relative group cursor-pointer shrink-0">
+                <img id="p-cover" src="" class="w-14 h-14 bg-slate-800 rounded-lg object-cover shadow-lg group-hover:brightness-50 transition-all hidden">
+                <i class="fa-solid fa-chevron-up absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-white pointer-events-none"></i>
+            </div>
+            <div class="overflow-hidden min-w-[120px]">
+                <div id="p-title" class="text-sm font-bold truncate text-white">等待播放</div>
+                <div id="p-artist" class="text-xs text-slate-400 truncate mt-1">--</div>
+            </div>
+            <div class="flex gap-3 ml-2">
+                <button class="text-slate-500 hover:text-red-500 transition-all active:scale-90"><i class="fa-regular fa-heart text-lg"></i></button>
+                <button class="text-slate-500 hover:text-indigo-400 transition-all active:scale-90"><i class="fa-solid fa-shuffle text-base"></i></button>
+            </div>
+        </div>
 
-    <div id="player-bar" class="h-20 bg-slate-800 border-t border-white/5 flex items-center justify-between px-6 shrink-0 z-50">
-        <div class="flex items-center gap-3 w-1/4">
-            <img id="p-cover" src="" class="w-12 h-12 bg-slate-700 rounded object-cover hidden">
-            <div>
-                <div id="p-title" class="text-sm font-bold">听你想听</div>
-                <div id="p-artist" class="text-xs text-slate-400">--</div>
-            </div>
-        </div>
-        <div class="flex flex-col items-center w-1/2">
-            <div class="flex gap-4 mb-1 text-slate-300">
-                <button class="hover:text-white"><i class="fa-solid fa-backward-step"></i></button>
-                <button onclick="Player.toggle()" class="w-8 h-8 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition">
-                    <i id="p-btn-icon" class="fa-solid fa-play ml-0.5"></i>
+        <div class="flex flex-col items-center w-1/3 max-w-xl">
+            <div class="flex items-center gap-8 mb-2">
+                <button class="text-slate-400 hover:text-white transition-all"><i class="fa-solid fa-backward-step text-lg"></i></button>
+                <button onclick="Player.toggle()" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+                    <i id="p-btn-icon" class="fa-solid fa-play ml-0.5 text-lg"></i>
                 </button>
-                <button class="hover:text-white"><i class="fa-solid fa-forward-step"></i></button>
+                <button class="text-slate-400 hover:text-white transition-all"><i class="fa-solid fa-forward-step text-lg"></i></button>
             </div>
-            <div class="w-full max-w-md h-1 bg-slate-600 rounded-full cursor-pointer relative group">
-                <div id="p-progress" class="h-full bg-indigo-500 w-0 rounded-full"></div>
+            <div class="w-full flex items-center gap-3">
+                <span id="p-current-time" class="text-[10px] text-slate-500 w-8 text-right font-mono">0:00</span>
+                <div id="p-progress-container" class="flex-1 h-1 bg-slate-700 rounded-full cursor-pointer relative group">
+                    <div id="p-progress" class="h-full bg-indigo-500 w-0 rounded-full relative transition-all duration-100">
+                        <div class="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full scale-0 group-hover:scale-100 transition-transform"></div>
+                    </div>
+                </div>
+                <span id="p-duration" class="text-[10px] text-slate-500 w-8 font-mono">0:00</span>
             </div>
         </div>
-        <div class="w-1/4 text-right pr-4"><i class="fa-solid fa-volume-low text-xs text-slate-500"></i></div>
+
+        <div class="flex items-center justify-end gap-5 w-1/3">
+            <div class="flex items-center gap-3 group">
+                <i class="fa-solid fa-volume-low text-slate-500 group-hover:text-indigo-400 transition-colors"></i>
+                <div class="w-24 h-1 bg-slate-700 rounded-full cursor-pointer relative overflow-hidden">
+                    <div class="absolute h-full bg-slate-400 w-2/3 group-hover:bg-indigo-400 transition-colors"></div>
+                </div>
+            </div>
+            <button class="text-slate-500 hover:text-white transition text-sm"><i class="fa-solid fa-list-ul"></i></button>
+        </div>
     </div>
 
     <script src="./src/js/api.js"></script>    
@@ -64,6 +153,15 @@
             loadPage('home');
         });
     </script>
-
+    <!-- 测试 -->
+    <!-- <script>
+        // 模拟点击了歌曲列表
+        window.onload = () => {
+            console.log("页面已加载，3秒后将自动填充数据进行测试...");
+            setTimeout(() => {
+                handlePlay("1"); // 自动触发 id 为 1 的歌曲
+            }, 3000);
+        }
+    </script> -->
 </body>
 </html>

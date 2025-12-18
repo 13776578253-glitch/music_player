@@ -60,3 +60,17 @@ function executePageScripts(container) {
 }
 
 window.loadPage = loadPage;
+
+async function handlePlay(songId) {
+    console.log("准备播放歌曲 ID:", songId);
+    
+    // 1. 调用你写好的 API 获取数据
+    const songData = await API.getSongDetail(songId);
+    
+    // 2. 将获取到的数据直接传给 Player 的 play 方法
+    if (songData) {
+        Player.play(songData);
+    } else {
+        console.error("未找到歌曲数据");
+    }
+}

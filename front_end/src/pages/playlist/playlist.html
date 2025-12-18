@@ -1,20 +1,22 @@
-<div class="p-8">
-    <div id="playlist-header" class="flex gap-6 mb-8">
-        <img id="pl-cover" class="w-48 h-48 rounded-lg shadow-2xl">
+<div class="p-8 pb-32">
+    <div class="flex items-center gap-4 mb-8">
+        <button onclick="loadPage('home')" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+            <i class="fa-solid fa-arrow-left text-white"></i>
+        </button>
         <div>
-            <h2 id="pl-title" class="text-4xl font-bold mt-4">加载中...</h2>
-            <p class="text-slate-400 mt-2">歌单详情介绍</p>
+            <h2 id="pl-title" class="text-4xl font-bold text-white">加载中...</h2>
+            <p id="pl-desc" class="text-slate-400 mt-1">歌单详情</p>
         </div>
     </div>
 
-    <div class="bg-slate-800/50 rounded-xl p-4">
+    <div class="bg-slate-800/30 rounded-2xl overflow-hidden backdrop-blur-md border border-white/5">
         <table class="w-full text-left">
-            <thead class="text-slate-500 border-b border-white/5 text-sm">
+            <thead class="text-xs uppercase text-slate-500 border-b border-white/5">
                 <tr>
-                    <th class="pb-3 pl-4">#</th>
-                    <th class="pb-3">标题</th>
-                    <th class="pb-3">歌手</th>
-                    <th class="pb-3 text-right pr-4">操作</th>
+                    <th class="px-6 py-4 font-medium">#</th>
+                    <th class="px-6 py-4 font-medium">标题</th>
+                    <th class="px-6 py-4 font-medium">歌手</th>
+                    <th class="px-6 py-4 font-medium text-right">操作</th>
                 </tr>
             </thead>
             <tbody id="song-list-body">
@@ -23,29 +25,17 @@
     </div>
 </div>
 
-<script>
-    (async function initPlaylist() {
-        // 1. 从全局获取传过来的 ID
-        const playlistId = window.currentPageParams.id;
-        
-        // 2. 请求后端获取该歌单详情
-        const data = await API.getPlaylistDetail(playlistId);
+<template id="song-row-template">
+    <tr class="song-row group hover:bg-white/5 transition-colors cursor-pointer border-b border-white/5">
+        <td class="px-6 py-4 text-slate-500 index-num">1</td>
+        <td class="px-6 py-4 font-medium text-white song-name">歌曲名</td>
+        <td class="px-6 py-4 text-slate-400 song-artist">歌手名</td>
+        <td class="px-6 py-4 text-right">
+            <button class="play-this-btn text-indigo-400 opacity-0 group-hover:opacity-100 transition">
+                <i class="fa-solid fa-play"></i>
+            </button>
+        </td>
+    </tr>
+</template>
 
-        // 3. 渲染头部
-        document.getElementById('pl-title').textContent = data.title;
-        document.getElementById('pl-cover').src = data.cover;
-
-        // 4. 渲染歌曲列表
-        const tbody = document.getElementById('song-list-body');
-        tbody.innerHTML = data.songs.map((song, index) => `
-            <tr class="hover:bg-white/5 group transition cursor-pointer" onclick='Player.play(${JSON.stringify(song)})'>
-                <td class="py-3 pl-4 text-slate-500">${index + 1}</td>
-                <td class="py-3 font-medium">${song.title}</td>
-                <td class="py-3 text-slate-400 text-sm">${song.artist}</td>
-                <td class="py-3 text-right pr-4">
-                    <i class="fa-solid fa-play opacity-0 group-hover:opacity-100 text-indigo-400"></i>
-                </td>
-            </tr>
-        `).join('');
-    })();
-</script>
+<script src="src/pages/playlist/playlist.js"></script>

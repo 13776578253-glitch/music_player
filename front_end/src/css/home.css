@@ -1,0 +1,31 @@
+
+
+/* 定义卡片入场动画 */
+@keyframes fadeInUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* 动画应用类 */
+.animate-card {
+    animation: fadeInUp 0.6s ease backwards;
+    /* 可选：添加动画兼容性前缀，提升浏览器兼容 */
+    -webkit-animation: fadeInUp 0.6s ease backwards;
+    -moz-animation: fadeInUp 0.6s ease backwards;
+    -ms-animation: fadeInUp 0.6s ease backwards;
+    -o-animation: fadeInUp 0.6s ease backwards;
+}
+
+/* 可选：防止动画闪烁，优化渲染性能 */
+.animate-card {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
