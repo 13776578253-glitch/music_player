@@ -53,24 +53,51 @@
             </div>
         </div>
 
-        <div id="fp-control-bar" class="relative h-40 px-10 flex flex-col items-center justify-center gap-6 z-10 bg-gradient-to-t from-black/80">
-            <div class="w-2/3 flex items-center gap-6">
-                <span id="fp-current" class="text-sm text-slate-500 font-mono w-12 text-right">00:00</span>
-                <div id="fp-progress-container" class="flex-1 h-1.5 bg-white/10 rounded-full cursor-pointer relative group">
-                    <div id="fp-progress" class="absolute h-full bg-indigo-500 w-0 rounded-full transition-all duration-100">
-                        <div class="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-xl scale-0 group-hover:scale-100 transition-transform"></div>
+        <div id="fp-control-bar" class="relative h-56 px-16 pb-12 flex flex-col items-center justify-end gap-8 z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+    
+        <div class="w-full max-w-5xl flex items-center gap-5 mb-2">
+            <span id="fp-current" class="text-[10px] text-slate-500 font-mono w-10 text-right">00:00</span>
+            <div id="fp-progress-container" class="flex-1 h-1 bg-white/10 rounded-full cursor-pointer relative group">
+                <div id="fp-progress" class="absolute h-full bg-indigo-500 w-0 rounded-full transition-all duration-100 shadow-[0_0_12px_rgba(99,102,241,0.5)]">
+                    <div class="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg scale-0 group-hover:scale-100 transition-transform border-[3px] border-indigo-500"></div>
+                </div>
+            </div>
+            <span id="fp-duration" class="text-[10px] text-slate-500 font-mono w-10">00:00</span>
+        </div>
+        
+        <div class="w-full max-w-6xl flex items-center justify-between px-4">
+            
+            <div class="flex items-center gap-10 w-1/4">
+                <button class="text-slate-500 hover:text-red-500 transition-all active:scale-90" title="喜欢">
+                    <i class="fa-regular fa-heart text-base"></i>
+                </button>
+                <button class="text-slate-500 hover:text-indigo-400 transition-all" title="播放模式">
+                    <i class="fa-solid fa-shuffle text-xs"></i>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-10">
+                <button class="text-slate-500 hover:text-white text-xl transition-all active:scale-90"><i class="fa-solid fa-backward-step"></i></button>
+                
+                <button onclick="Player.toggle()" class="w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:scale-105 hover:bg-indigo-500 active:scale-95 transition-all shadow-[0_8px_25px_rgba(79,70,229,0.4)]">
+                    <i id="fp-play-icon" class="fa-solid fa-play text-2xl ml-1"></i>
+                </button>
+                
+                <button class="text-slate-500 hover:text-white text-xl transition-all active:scale-90"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+
+            <div class="flex items-center justify-end gap-10 w-1/4">
+                <div class="flex items-center gap-3 group">
+                    <i class="fa-solid fa-volume-low text-[10px] text-slate-500 group-hover:text-white"></i>
+                    <div class="w-20 h-0.5 bg-white/10 rounded-full cursor-pointer relative overflow-hidden">
+                        <div class="absolute h-full bg-indigo-500 w-2/3"></div>
                     </div>
                 </div>
-                <span id="fp-duration" class="text-sm text-slate-500 font-mono w-12">00:00</span>
-            </div>
-            
-            <div class="flex items-center gap-12">
-                <button class="text-slate-400 hover:text-white text-2xl transition"><i class="fa-solid fa-backward-step"></i></button>
-                <button onclick="Player.toggle()" class="w-20 h-20 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-                    <i id="fp-play-icon" class="fa-solid fa-play text-3xl ml-1"></i>
+                <button class="text-slate-500 hover:text-white transition-all">
+                    <i class="fa-solid fa-list-ul text-xs"></i>
                 </button>
-                <button class="text-slate-400 hover:text-white text-2xl transition"><i class="fa-solid fa-forward-step"></i></button>
             </div>
+        </div>
         </div>
     </div>
 
@@ -81,20 +108,10 @@
             </div>
             <button onclick="loadPage('home')" class="hover:text-indigo-400 transition">发现</button>
             <button onclick="loadPage('rank')" class="hover:text-indigo-400 transition">排行榜</button>
-            <button onclick="loadPage('my')" class="hover:text-indigo-400 transition">我的</button>
+            <button onclick="loadPage('user')" class="hover:text-indigo-400 transition">我的</button>
             <button onclick="loadPage('about')" class="hover:text-indigo-400 transition">关于</button>
         </div>
-        <!-- <div class="flex-1"></div>
-        <div class="flex items-center gap-4">
-            <div class="relative w-64">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                <input type="text" placeholder="搜索音乐、歌手..." class="w-full bg-slate-800/50 border border-white/5 rounded-full py-1.5 pl-9 pr-4 text-xs focus:outline-none focus:border-indigo-500/50 transition-all">
-            </div>
-            <button onclick="toggleSettings()" class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center border border-white/10 hover:scale-110 transition">
-                <i class="fa-solid fa-user text-[10px]"></i>
-            </button>
-        </div> -->
-
+    
         <div class="flex-1"></div>
         <div class="flex items-center gap-4">
             <div class="relative w-64">
@@ -110,124 +127,54 @@
     </nav>
 
     <main id="dynamic-content" class="flex-1 overflow-y-auto relative scroll-smooth"></main>
-    
-    <div id="player-bar" class="h-24 bg-slate-900/90 border-t border-white/5 backdrop-blur-xl flex items-center justify-between px-6 shrink-0 z-50">
-        <div class="flex items-center gap-4 w-1/3">
-            <div class="relative group cursor-pointer shrink-0">
-                <img id="p-cover" src="" class="w-14 h-14 bg-slate-800 rounded-lg object-cover shadow-lg group-hover:brightness-50 transition-all hidden">
-                <i class="fa-solid fa-chevron-up absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-white pointer-events-none"></i>
-            </div>
-            <div class="overflow-hidden min-w-[120px]">
-                <div id="p-title" class="text-sm font-bold truncate text-white">等待播放</div>
-                <div id="p-artist" class="text-xs text-slate-400 truncate mt-1">--</div>
-            </div>
-            <div class="flex gap-3 ml-2">
-                <button class="text-slate-500 hover:text-red-500 transition-all active:scale-90"><i class="fa-regular fa-heart text-lg"></i></button>
-                <button class="text-slate-500 hover:text-indigo-400 transition-all active:scale-90"><i class="fa-solid fa-shuffle text-base"></i></button>
-            </div>
-        </div>
 
-        <div class="flex flex-col items-center w-1/3 max-w-xl">
-            <div class="flex items-center gap-8 mb-2">
-                <button class="text-slate-400 hover:text-white transition-all"><i class="fa-solid fa-backward-step text-lg"></i></button>
-                <button onclick="Player.toggle()" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
-                    <i id="p-btn-icon" class="fa-solid fa-play ml-0.5 text-lg"></i>
-                </button>
-                <button class="text-slate-400 hover:text-white transition-all"><i class="fa-solid fa-forward-step text-lg"></i></button>
-            </div>
-            <div class="w-full flex items-center gap-3">
-                <span id="p-current-time" class="text-[10px] text-slate-500 w-8 text-right font-mono">0:00</span>
-                <div id="p-progress-container" class="flex-1 h-1 bg-slate-700 rounded-full cursor-pointer relative group">
-                    <div id="p-progress" class="h-full bg-indigo-500 w-0 rounded-full relative transition-all duration-100">
-                        <div class="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full scale-0 group-hover:scale-100 transition-transform"></div>
-                    </div>
-                </div>
-                <span id="p-duration" class="text-[10px] text-slate-500 w-8 font-mono">0:00</span>
-            </div>
+    <div id="player-bar" class="h-24 glass-panel border-t border-white/5 flex items-center justify-between px-6 shrink-0 z-50">
+    <div class="flex items-center gap-4 w-1/3">
+        <div class="relative group cursor-pointer shrink-0">
+            <img id="p-cover" src="" class="w-14 h-14 dynamic-input rounded-lg object-cover shadow-lg group-hover:brightness-50 transition-all hidden">
+            <i class="fa-solid fa-chevron-up absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-white pointer-events-none"></i>
         </div>
-
-        <div class="flex items-center justify-end gap-5 w-1/3">
-            <div class="flex items-center gap-3 group">
-                <i class="fa-solid fa-volume-low text-slate-500 group-hover:text-indigo-400 transition-colors"></i>
-                <div class="w-24 h-1 bg-slate-700 rounded-full cursor-pointer relative overflow-hidden">
-                    <div class="absolute h-full bg-slate-400 w-2/3 group-hover:bg-indigo-400 transition-colors"></div>
-                </div>
-            </div>
-            <button class="text-slate-500 hover:text-white transition text-sm"><i class="fa-solid fa-list-ul"></i></button>
+        <div class="overflow-hidden min-w-[120px]">
+            <div id="p-title" class="text-sm font-bold truncate">等待播放</div>
+            <div id="p-artist" class="text-xs text-slate-500 truncate mt-1">--</div>
+        </div>
+        <div class="flex gap-3 ml-2">
+            <button class="text-slate-500 hover:text-red-500 transition-all active:scale-90"><i class="fa-regular fa-heart text-lg"></i></button>
+            <button class="text-slate-500 hover:text-indigo-400 transition-all active:scale-90"><i class="fa-solid fa-shuffle text-base"></i></button>
         </div>
     </div>
 
-    <!-- <div id="user-settings-modal" class="fixed inset-0 z-[110] hidden">
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="toggleSettings()"></div>
-        
-        <div class="absolute right-0 top-0 h-full w-[400px] bg-slate-900 border-l border-white/5 shadow-2xl p-8 flex flex-col overflow-y-auto transform transition-transform duration-300 translate-x-full" id="settings-panel">
-            
-            <div class="flex items-center justify-between mb-10">
-                <h2 class="text-2xl font-bold tracking-tight">用户设置</h2>
-                <button onclick="toggleSettings()" class="text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-
-            <section class="mb-10">
-                <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">登录与身份</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-sm text-slate-400 mb-2 block">用户 UID</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="uid-input" placeholder="输入 UID" 
-                                class="flex-1 bg-slate-800 border border-white/5 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-indigo-500 transition">
-                            <button onclick="handleLogin()" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm transition font-medium">进入</button>
-                        </div>
-                    </div>
-                    <div class="p-4 bg-white/5 rounded-xl border border-white/5">
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-slate-400">当前 Cookie 状态</span>
-                            <span id="cookie-status" class="text-emerald-400 font-mono text-xs">未激活</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="mb-10">
-                <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">基础个性化</h3>
-                <div class="space-y-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium">主题模式</p>
-                            <p class="text-xs text-slate-500">深色模式更适合长时间聆听</p>
-                        </div>
-                        <div class="flex bg-slate-800 p-1 rounded-full border border-white/5">
-                            <button class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-xs"><i class="fa-solid fa-moon"></i></button>
-                            <button class="w-8 h-8 rounded-full flex items-center justify-center text-xs text-slate-500 hover:text-white"><i class="fa-solid fa-sun"></i></button>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium">智能推荐</p>
-                            <p class="text-xs text-slate-500">基于播放历史推荐歌曲</p>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" checked class="sr-only peer">
-                            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                        </label>
-                    </div>
-                </div>
-            </section>
-
-            <section class="mt-auto pt-10 border-t border-white/5">
-                <div class="flex items-center justify-between text-sm">
-                    <span class="text-slate-500">版本版本 Version</span>
-                    <span class="font-mono text-slate-300">1.0.4-stable</span>
-                </div>
-                <a href="https://github.com/your-username" target="_blank" 
-                class="mt-4 flex items-center justify-center gap-2 w-full p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl transition text-sm">
-                    <i class="fa-brands fa-github text-lg"></i>
-                    <span>访问作者 GitHub</span>
-                </a>
-            </section>
+    <div class="flex flex-col items-center w-1/3 max-w-xl">
+        <div class="flex items-center gap-8 mb-2">
+            <button class="player-ctrl-btn"><i class="fa-solid fa-backward-step text-lg"></i></button>
+            <button onclick="Player.toggle()" class="w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg">
+                <i id="p-btn-icon" class="fa-solid fa-play ml-0.5 text-lg"></i>
+            </button>
+            <button class="player-ctrl-btn"><i class="fa-solid fa-forward-step text-lg"></i></button>
         </div>
-    </div> -->
+        <div class="w-full flex items-center gap-3">
+            <span id="p-current-time" class="text-[10px] text-slate-500 w-8 text-right font-mono">0:00</span>
+            <div id="p-progress-container" class="flex-1 h-1 bg-slate-200 dark:bg-slate-700 rounded-full cursor-pointer relative group">
+                <div id="p-progress" class="h-full bg-indigo-500 w-0 rounded-full relative transition-all duration-100">
+                    <div class="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white border border-indigo-500 rounded-full scale-0 group-hover:scale-100 transition-transform shadow-md"></div>
+                </div>
+            </div>
+            <span id="p-duration" class="text-[10px] text-slate-500 w-8 font-mono">0:00</span>
+        </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-5 w-1/3">
+        <div class="flex items-center gap-3 group">
+            <i class="fa-solid fa-volume-low text-slate-500"></i>
+            <div class="w-24 h-1 bg-slate-200 dark:bg-slate-700 rounded-full cursor-pointer relative overflow-hidden">
+                <div class="absolute h-full bg-slate-400 w-2/3 group-hover:bg-indigo-400 transition-colors"></div>
+            </div>
+        </div>
+        <button class="text-slate-500 hover:text-indigo-500 transition text-sm"><i class="fa-solid fa-list-ul"></i></button>
+    </div>
+    </div>
+
+    
 
     <div id="user-settings-modal" class="fixed inset-0 z-[110] hidden">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleSettings()"></div>
@@ -246,11 +193,7 @@
             <div class="space-y-6">
                 <div>
                     <label class="text-xs text-slate-500 mb-2 block font-medium">通过 UID 获取新凭证</label>
-                    <!-- <div class="flex gap-2">
-                        <input type="text" id="uid-input" placeholder="输入用户 UID" 
-                            class="flex-1 bg-slate-800/50 border border-white/5 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-indigo-500 transition text-slate-200">
-                        <button onclick="fetchNewCookie()" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-xs transition text-white">获取</button>
-                    </div> -->
+                    
                     <div class="flex gap-2">
                         <input type="text" id="uid-input" placeholder="输入用户 UID" 
                             class="dynamic-input flex-1 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-indigo-500 transition">
@@ -261,11 +204,7 @@
 
                 <div>
                     <label class="text-xs text-slate-500 mb-2 block font-medium">使用 Cookie 凭证登录</label>
-                    <!-- <div class="flex flex-col gap-2">
-                        <input type="password" id="cookie-input" placeholder="输入您的凭证 (Cookie)" 
-                            class="w-full bg-slate-800/50 border border-white/5 rounded-lg px-4 py-2 text-sm font-mono focus:outline-none focus:border-emerald-500 transition text-emerald-400">
-                        <button onclick="handleCookieLogin()" class="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-sm transition font-bold text-white shadow-lg shadow-indigo-500/20">验证并登录</button>
-                    </div> -->
+                    
                     <div class="flex flex-col gap-2">
                         <input type="password" id="cookie-input" placeholder="输入您的凭证 (Cookie)" 
                             class="dynamic-input w-full rounded-lg px-4 py-2 text-sm font-mono focus:outline-none focus:border-emerald-500 transition text-emerald-400">
@@ -286,13 +225,7 @@
         <section class="mb-6">
             <h3 class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-4">个性化与支持</h3>
             <div class="space-y-4">
-                <!-- <div class="flex items-center justify-between p-3 dynamic-input rounded-xl mb-4"> -->
-                <!-- <div class="flex items-center justify-between p-3 dynamic-input rounded-xl mb-4"></div> -->
                 <div class="flex items-center justify-between p-3 dynamic-input rounded-xl mb-4">
-                    <!-- <div>
-                        <p class="text-sm font-medium text-white">主题模式</p>
-                        <p class="text-[10px] text-slate-500">自适应视觉风格</p>
-                    </div> -->
                     <div>
                         <p class="text-sm font-medium">主题模式</p>
                         <p class="text-[10px] text-slate-500">自适应视觉风格</p>
@@ -307,17 +240,6 @@
                         <div id="theme-slider" class="absolute top-1 left-1 w-10 h-8 bg-indigo-600 rounded-md transition-all duration-300 ease-out shadow-sm"></div>
                     </div>
                 </div>
-                <!-- <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
-                    <div>
-                        <p class="text-sm font-medium text-white">智能推荐</p>
-                        <p class="text-[10px] text-slate-500">基于播放历史推荐歌曲</p>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" checked class="sr-only peer">
-                        <div class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-                    </label>
-                </div> -->
-                
                 <div class="flex items-center justify-between p-3 dynamic-input rounded-xl mb-4">
                 <div>
                     <p class="text-sm font-medium">智能推荐</p>
@@ -331,7 +253,6 @@
                     peer-checked:after:translate-x-full"></div>
                 </label>
                 </div>
-                
                 <a href="https://github.com/your-username" target="_blank" 
                    class="flex items-center justify-between p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all group border border-white/5">
                     <div class="flex items-center gap-3">
@@ -350,12 +271,6 @@
             <p class="text-[10px] text-slate-600 font-mono tracking-widest">MUSEFLOW KERNEL V1.0.4-STABLE</p>
         </div>
     </div>
-    </div>
-
-    <!-- <div class="mt-auto text-center">
-        <p class="text-[10px] text-slate-600 font-mono">MUSEFLOW KERNEL V1.0.4-STABLE</p>
-    </div> -->
-    </div>
 
     <script src="./src/js/api.js"></script>    
     <script src="./src/js/player.js"></script> 
@@ -367,6 +282,7 @@
             loadPage('home');
         });
     </script>
+
     <!-- 测试 -->
     <script>
         // 模拟点击了歌曲列表

@@ -1,0 +1,31 @@
+/* 极简歌单卡片基础样式 */
+.playlist-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.playlist-card p {
+    color: var(--text-primary); /* 自动适配亮/暗模式 */
+}
+
+/* 亮色模式下的卡片细节优化 */
+.light-mode .playlist-card:hover {
+    transform: translateY(-4px);
+}
+
+.light-mode .playlist-card .aspect-square {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* 沉浸式动态阴影 (根据封面颜色自适应效果，此处示例统一阴影) */
+.dark .playlist-card .aspect-square {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* 滚动条极简处理 */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}

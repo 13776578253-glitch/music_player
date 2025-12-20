@@ -93,10 +93,6 @@ function toggleSettings() {
     }
 }
 
-/**
- * 主题切换逻辑
- * @param {string} mode - 'dark' | 'light'
- */
 function setTheme(mode) {
     const slider = document.getElementById('theme-slider');
     const darkBtn = document.getElementById('btn-dark');

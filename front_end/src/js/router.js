@@ -2,7 +2,7 @@
 const pageRoutes = {
     home: 'src/pages/home/home.html',
     rank: 'src/pages/rank/rank.html',
-    my:   'src/pages/my/my.html',
+    user:   'src/pages/user/user.html',
     playlist: 'src/pages/playlist/playlist.html'
 };
 

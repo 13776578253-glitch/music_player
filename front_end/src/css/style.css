@@ -344,3 +344,233 @@ nav, #player-bar {
 .light-mode #btn-get-uid {
     color: #475569 !important;
 }
+
+/* 播放栏基础文字颜色适配 */
+#p-title {
+    color: var(--text-primary) !important;
+}
+
+/* 控制按钮极简样式 */
+.player-ctrl-btn {
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.player-ctrl-btn:hover {
+    color: var(--accent-primary);
+    transform: scale(1.1);
+}
+
+/* 亮色模式下的播放进度条背景优化 */
+.light-mode #p-progress-container {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* 播放条磨砂玻璃质感补强 */
+.light-mode #player-bar {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(30px);
+    border-top: 1px solid rgba(0, 0, 0, 0.03) !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.02);
+}
+
+/* --- 核心变量定义 --- */
+:root {
+    --bg-main: #0f172a;        /* 暗色背景 */
+    --text-primary: #ffffff;
+    --nav-bg: rgba(15, 23, 42, 0.95);
+    --border-alpha: rgba(255, 255, 255, 0.05);
+}
+
+.light-mode {
+    --bg-main: #f1f5f9;        /* 亮色背景 (slate-100) */
+    --text-primary: #0f172a;   /* 深蓝文字 */
+    --nav-bg: rgba(255, 255, 255, 0.8);
+    --border-alpha: rgba(0, 0, 0, 0.05);
+}
+
+/* --- 强制覆盖 Tailwind 的背景类 --- */
+body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-primary) !important;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* 导航栏适配 */
+nav {
+    background-color: var(--nav-bg) !important;
+    border-color: var(--border-alpha) !important;
+    transition: all 0.4s ease;
+}
+
+/* 播放条适配 */
+#player-bar {
+    background-color: var(--nav-bg) !important;
+    border-color: var(--border-alpha) !important;
+}
+
+/* 全屏播放器在亮色模式下通常保持暗色（高级感），或者也变亮 */
+.light-mode #full-player {
+    background-color: #ffffff;
+}
+
+/* 之前说的“没有变化”的文字颜色 */
+.light-mode #p-title, 
+.light-mode #p-artist {
+    color: #1e293b !important;
+}
+
+/* 播放栏高级感补强 */
+.glass-panel {
+    /* 暗色模式：极深的半透明 */
+    background: rgba(15, 23, 42, 0.7) !important;
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+}
+
+.light-mode .glass-panel {
+    /* 亮色模式：乳白色的半透明 */
+    background: rgba(255, 255, 255, 0.75) !important;
+    backdrop-filter: blur(30px) saturate(180%);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.03); /* 顶部淡淡的阴影，增加浮动感 */
+}
+
+/* 进度条轨道动画 */
+.progress-track {
+    transition: height 0.2s ease;
+}
+.progress-track:hover {
+    height: 6px; /* 悬浮时进度条变粗 */
+}
+
+/* 功能按钮样式 */
+.player-action-btn {
+    color: var(--text-secondary);
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+.player-action-btn:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+/* 强制修正文字在亮色下的可见度 */
+.light-mode #p-title { color: #0f172a !important; }
+.light-mode #p-artist { color: #64748b !important; }
+
+/* 全屏播放器背景增强 */
+#full-player {
+    /* 核心背景：由深色底色 + 动态模糊组成 */
+    background: radial-gradient(circle at 50% -20%, #1e1b4b 0%, #020617 100%) !important;
+}
+
+/* 歌词区域的渐变遮罩优化，使其过渡更自然 */
+.lyrics-mask {
+    mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        black 15%,
+        black 85%,
+        transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        black 15%,
+        black 85%,
+        transparent 100%
+    );
+}
+
+/* 控制栏的模糊渐变，让功能区浮动在背景上 */
+#fp-control-bar {
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* 亮色模式下的全屏播放器适配 (极简白) */
+.light-mode #full-player {
+    background: radial-gradient(circle at 50% -20%, #f1f5f9 0%, #ffffff 100%) !important;
+}
+.light-mode #fp-control-bar {
+    background: linear-gradient(to top, rgba(255,255,255,0.9), transparent);
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+.light-mode #fp-title { color: #0f172a !important; }
+.light-mode #fp-control-bar button { color: #64748b; }
+.light-mode #fp-control-bar button:hover { color: #6366f1; }
+
+/* 1. 消除诡异渐变：使用更柔和的黑胶氛围感 */
+#fp-control-bar {
+    /* 增加底部的内边距，让按钮看起来是“沉入”底部的 */
+    padding-bottom: 3rem;
+    /* 背景使用三段式渐变，确保上方与歌词区衔接极其自然 */
+    background: linear-gradient(
+        to top,
+        rgba(2, 6, 23, 0.9) 0%,
+        rgba(2, 6, 23, 0.4) 50%,
+        transparent 100%
+    ) !important;
+}
+
+/* 2. 按钮与图标微调 */
+#fp-control-bar i {
+    /* 默认图标颜色变淡，只有悬浮时才亮起，体现高级感 */
+    transition: color 0.3s ease;
+}
+
+/* 3. 亮色模式特别适配 */
+.light-mode #fp-control-bar {
+    background: linear-gradient(
+        to top,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(255, 255, 255, 0.3) 60%,
+        transparent 100%
+    ) !important;
+    border-top: none; /* 移除硬边框，使用渐变过渡 */
+}
+
+/* 亮色模式下播放按钮需要更强的投影 */
+.light-mode #fp-control-bar button.bg-indigo-600 {
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4) !important;
+}
+
+/* 4. 进度条在亮色模式下的轨道背景 */
+.light-mode #fp-progress-container {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* 进度条动画 */
+#fp-progress {
+    transition: width 0.1s linear;
+}
+
+/* 亮色模式下的文字颜色强制适配 */
+.light-mode #fp-title-bottom {
+    color: #0f172a !important; /* 亮色下变深色 */
+}
+
+.light-mode #fp-artist-bottom {
+    color: #6366f1 !important; /* 作者名使用 Indigo 色，呼应主题 */
+}
+
+/* 增加背景渐变的平滑度，避免歌名背后的背景太死板 */
+#fp-control-bar {
+    background: linear-gradient(
+        to top,
+        rgba(2, 6, 23, 0.95) 0%,
+        rgba(2, 6, 23, 0.6) 40%,
+        rgba(2, 6, 23, 0.2) 70%,
+        transparent 100%
+    ) !important;
+}
+
+/* 亮色模式渐变 */
+.light-mode #fp-control-bar {
+    background: linear-gradient(
+        to top,
+        rgba(255, 255, 255, 0.98) 0%,
+        rgba(255, 255, 255, 0.7) 40%,
+        rgba(255, 255, 255, 0) 100%
+    ) !important;
+}
