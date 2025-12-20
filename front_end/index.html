@@ -84,13 +84,26 @@
             <button onclick="loadPage('my')" class="hover:text-indigo-400 transition">我的</button>
             <button onclick="loadPage('about')" class="hover:text-indigo-400 transition">关于</button>
         </div>
-        <div class="flex-1"></div>
+        <!-- <div class="flex-1"></div>
         <div class="flex items-center gap-4">
             <div class="relative w-64">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
                 <input type="text" placeholder="搜索音乐、歌手..." class="w-full bg-slate-800/50 border border-white/5 rounded-full py-1.5 pl-9 pr-4 text-xs focus:outline-none focus:border-indigo-500/50 transition-all">
             </div>
-            <button class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center border border-white/10 hover:scale-110 transition">
+            <button onclick="toggleSettings()" class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center border border-white/10 hover:scale-110 transition">
+                <i class="fa-solid fa-user text-[10px]"></i>
+            </button>
+        </div> -->
+
+        <div class="flex-1"></div>
+        <div class="flex items-center gap-4">
+            <div class="relative w-64">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                <input type="text" placeholder="搜索音乐、歌手..." 
+                    class="dynamic-input w-full rounded-full py-1.5 pl-9 pr-4 text-xs focus:outline-none focus:border-indigo-500/50 transition-all shadow-sm">
+            </div>
+            <button onclick="toggleSettings()" 
+                    class="dynamic-button-primary w-8 h-8 rounded-full flex items-center justify-center border border-white/10 hover:scale-110 transition text-white shadow-md">
                 <i class="fa-solid fa-user text-[10px]"></i>
             </button>
         </div>
@@ -144,9 +157,210 @@
         </div>
     </div>
 
+    <!-- <div id="user-settings-modal" class="fixed inset-0 z-[110] hidden">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="toggleSettings()"></div>
+        
+        <div class="absolute right-0 top-0 h-full w-[400px] bg-slate-900 border-l border-white/5 shadow-2xl p-8 flex flex-col overflow-y-auto transform transition-transform duration-300 translate-x-full" id="settings-panel">
+            
+            <div class="flex items-center justify-between mb-10">
+                <h2 class="text-2xl font-bold tracking-tight">用户设置</h2>
+                <button onclick="toggleSettings()" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <section class="mb-10">
+                <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">登录与身份</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm text-slate-400 mb-2 block">用户 UID</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="uid-input" placeholder="输入 UID" 
+                                class="flex-1 bg-slate-800 border border-white/5 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-indigo-500 transition">
+                            <button onclick="handleLogin()" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm transition font-medium">进入</button>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-400">当前 Cookie 状态</span>
+                            <span id="cookie-status" class="text-emerald-400 font-mono text-xs">未激活</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mb-10">
+                <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">基础个性化</h3>
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium">主题模式</p>
+                            <p class="text-xs text-slate-500">深色模式更适合长时间聆听</p>
+                        </div>
+                        <div class="flex bg-slate-800 p-1 rounded-full border border-white/5">
+                            <button class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-xs"><i class="fa-solid fa-moon"></i></button>
+                            <button class="w-8 h-8 rounded-full flex items-center justify-center text-xs text-slate-500 hover:text-white"><i class="fa-solid fa-sun"></i></button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium">智能推荐</p>
+                            <p class="text-xs text-slate-500">基于播放历史推荐歌曲</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" checked class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mt-auto pt-10 border-t border-white/5">
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-slate-500">版本版本 Version</span>
+                    <span class="font-mono text-slate-300">1.0.4-stable</span>
+                </div>
+                <a href="https://github.com/your-username" target="_blank" 
+                class="mt-4 flex items-center justify-center gap-2 w-full p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl transition text-sm">
+                    <i class="fa-brands fa-github text-lg"></i>
+                    <span>访问作者 GitHub</span>
+                </a>
+            </section>
+        </div>
+    </div> -->
+
+    <div id="user-settings-modal" class="fixed inset-0 z-[110] hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleSettings()"></div>
+    
+    <div id="settings-panel" class="absolute right-0 top-0 h-full w-[400px] bg-slate-900 border-l border-white/5 shadow-2xl p-8 flex flex-col overflow-y-auto transform transition-transform duration-300 translate-x-full">
+        
+        <div class="flex items-center justify-between mb-10">
+            <h2 class="text-2xl font-bold tracking-tight text-white">账户与偏好</h2>
+            <button onclick="toggleSettings()" class="text-slate-400 hover:text-white transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <section class="mb-10">
+            <h3 class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-4">身份识别身份识别 IDENTITY</h3>
+            <div class="space-y-6">
+                <div>
+                    <label class="text-xs text-slate-500 mb-2 block font-medium">通过 UID 获取新凭证</label>
+                    <!-- <div class="flex gap-2">
+                        <input type="text" id="uid-input" placeholder="输入用户 UID" 
+                            class="flex-1 bg-slate-800/50 border border-white/5 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-indigo-500 transition text-slate-200">
+                        <button onclick="fetchNewCookie()" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-xs transition text-white">获取</button>
+                    </div> -->
+                    <div class="flex gap-2">
+                        <input type="text" id="uid-input" placeholder="输入用户 UID" 
+                            class="dynamic-input flex-1 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-indigo-500 transition">
+                        <button onclick="fetchNewCookie()" id="btn-get-uid" 
+                            class="btn-secondary px-3 py-2 rounded-lg text-xs transition-all font-medium">获取</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs text-slate-500 mb-2 block font-medium">使用 Cookie 凭证登录</label>
+                    <!-- <div class="flex flex-col gap-2">
+                        <input type="password" id="cookie-input" placeholder="输入您的凭证 (Cookie)" 
+                            class="w-full bg-slate-800/50 border border-white/5 rounded-lg px-4 py-2 text-sm font-mono focus:outline-none focus:border-emerald-500 transition text-emerald-400">
+                        <button onclick="handleCookieLogin()" class="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-sm transition font-bold text-white shadow-lg shadow-indigo-500/20">验证并登录</button>
+                    </div> -->
+                    <div class="flex flex-col gap-2">
+                        <input type="password" id="cookie-input" placeholder="输入您的凭证 (Cookie)" 
+                            class="dynamic-input w-full rounded-lg px-4 py-2 text-sm font-mono focus:outline-none focus:border-emerald-500 transition text-emerald-400">
+                        <button onclick="handleCookieLogin()" 
+                                class="dynamic-button-primary w-full py-2 rounded-lg text-sm transition font-bold text-white shadow-lg">验证并登录</button>
+                    </div>
+                </div>
+
+                <div id="login-status-box" class="p-4 bg-white/5 rounded-xl border border-white/5 transition-all">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-500">当前会话状态</span>
+                        <span id="current-session-label" class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-400">未登录</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-6">
+            <h3 class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-4">个性化与支持</h3>
+            <div class="space-y-4">
+                <!-- <div class="flex items-center justify-between p-3 dynamic-input rounded-xl mb-4"> -->
+                <!-- <div class="flex items-center justify-between p-3 dynamic-input rounded-xl mb-4"></div> -->
+                <div class="flex items-center justify-between p-3 dynamic-input rounded-xl mb-4">
+                    <!-- <div>
+                        <p class="text-sm font-medium text-white">主题模式</p>
+                        <p class="text-[10px] text-slate-500">自适应视觉风格</p>
+                    </div> -->
+                    <div>
+                        <p class="text-sm font-medium">主题模式</p>
+                        <p class="text-[10px] text-slate-500">自适应视觉风格</p>
+                    </div>
+                    <div class="flex toggle-base p-1 rounded-lg relative transition-all duration-300">
+                        <button onclick="setTheme('dark')" id="btn-dark" class="relative z-10 w-10 h-8 flex items-center justify-center rounded-md text-white">
+                        <i class="fa-solid fa-moon text-xs"></i>
+                        </button>
+                        <button onclick="setTheme('light')" id="btn-light" class="relative z-10 w-10 h-8 flex items-center justify-center rounded-md text-slate-500">
+                        <i class="fa-solid fa-sun text-xs"></i>
+                        </button>
+                        <div id="theme-slider" class="absolute top-1 left-1 w-10 h-8 bg-indigo-600 rounded-md transition-all duration-300 ease-out shadow-sm"></div>
+                    </div>
+                </div>
+                <!-- <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                    <div>
+                        <p class="text-sm font-medium text-white">智能推荐</p>
+                        <p class="text-[10px] text-slate-500">基于播放历史推荐歌曲</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" checked class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                </div> -->
+                
+                <div class="flex items-center justify-between p-3 dynamic-input rounded-xl mb-4">
+                <div>
+                    <p class="text-sm font-medium">智能推荐</p>
+                    <p class="text-[10px] text-slate-500">基于播放历史推荐歌曲</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="recommend-checkbox" checked class="sr-only peer">
+                    <div class="switch-track w-9 h-5 bg-slate-300 dark:bg-slate-700 rounded-full transition-all 
+                    after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
+                    after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all 
+                    peer-checked:after:translate-x-full"></div>
+                </label>
+                </div>
+                
+                <a href="https://github.com/your-username" target="_blank" 
+                   class="flex items-center justify-between p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all group border border-white/5">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-brands fa-github text-xl text-slate-400 group-hover:text-white"></i>
+                        <div>
+                            <p class="text-sm font-medium text-white">开源项目</p>
+                            <p class="text-[10px] text-slate-500">访问 GitHub 仓库</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-600 group-hover:text-indigo-400"></i>
+                </a>
+            </div>
+        </section>
+
+        <div class="mt-auto pt-6 text-center">
+            <p class="text-[10px] text-slate-600 font-mono tracking-widest">MUSEFLOW KERNEL V1.0.4-STABLE</p>
+        </div>
+    </div>
+    </div>
+
+    <!-- <div class="mt-auto text-center">
+        <p class="text-[10px] text-slate-600 font-mono">MUSEFLOW KERNEL V1.0.4-STABLE</p>
+    </div> -->
+    </div>
+
     <script src="./src/js/api.js"></script>    
     <script src="./src/js/player.js"></script> 
     <script src="./src/js/router.js"></script>
+    <script src="./src/pages/setting.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {

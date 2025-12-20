@@ -32,6 +32,7 @@ const API = {
                 artist: "C-Master",
                 album: "The Algorithm",
                 playlistName: "算法进阶指南",
+                //
                 cover: "https://picsum.photos/400/400?1",
                 url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
                 lyrics: "正在通过 AVL 树检索数据...\n左旋处理中...\n右旋处理中...\n平衡因子已恢复正常。\n数据结构大作业万岁！",
