@@ -1,14 +1,18 @@
-// src/js/player.js
+
 const Player = {
     audio: new Audio(),
     isPlaying: false,
     currentSong: null,
     isFullPlayerOpen: false,
 
+    queue: [],         // 当前播放队列
+    currentIndex: -1,  // 当前播放歌曲在队列中的位置
+
     init() {
         // 1. 核心事件监听
         this.audio.ontimeupdate = () => this.handleTimeUpdate();
         this.audio.onloadedmetadata = () => this.handleMetadata();
+
         this.audio.onended = () => this.next();
 
         // 2. 进度条点击跳转逻辑 (封装通用函数)
@@ -26,7 +30,7 @@ const Player = {
     },
 
     // 播放入口：接收后端返回的完整对象
-    async play(song) {
+    async play(song, list = []) {
         if (!song || !song.url) return;
 
         // 模拟歌曲点击数增加 (实际应发请求给后端)

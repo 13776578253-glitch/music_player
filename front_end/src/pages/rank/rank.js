@@ -1,8 +1,4 @@
 
-/**
- * 渲染排行榜单行
- * 严格对应 JSON 字段: song.song_id, song.url, song.title, song.artist (数组)
- */
 function createRankRow(song, index) {
     // 处理歌手数组，转为字符串展示
     const artistDisplay = Array.isArray(song.artist) ? song.artist.join(', ') : song.artist;
@@ -39,10 +35,9 @@ function createRankRow(song, index) {
     `;
 }
 
-/**
- * 排行榜初始化函数
- * playlistId 可以根据业务逻辑传，比如 '1' 是热度榜，'2' 是偏好榜
- */
+
+//  playlistId 根据业务逻辑，如 '1' 是热度榜，'2' 是偏好榜
+
 async function initRankPage() {
     try {
         // 同时发起两个请求（假设热度榜ID为1，偏好榜ID为2）

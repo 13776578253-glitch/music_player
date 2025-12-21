@@ -86,5 +86,44 @@ const API = {
                 "position": i + 1
             }))
         };
+    },
+
+    /**
+ * src/js/api.js 补充
+ */
+
+    // ... 之前的 getPlaylistSongs ...
+
+    /**
+     * 获取单首歌曲的详细播放信息
+     * 接口说明：/song_detail/:id GET
+     */
+    async getSongDetail(songId) {
+        try {
+            const response = await fetch(`/song_detail/${songId}`);
+            if (!response.ok) throw new Error('获取歌曲失败');
+            return await response.json(); 
+            /* 约定返回格式示例：
+            {
+                "song_id": "1",
+                "title": "歌曲名",
+                "artist": ["歌手"],
+                "url": "封面地址",
+                "filepath": "mp3真实地址",
+                "lyrics": "[00:00.00]歌词..."
+            }
+            */
+        } catch (error) {
+            console.error("API Error:", error);
+            // 模拟返回
+            return {
+                "song_id": songId,
+                "title": "模拟播放歌曲",
+                "artist": ["测试歌手"],
+                "url": "https://picsum.photos/400",
+                "filepath": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+                "lyrics": "[00:00.00]第一句歌词\n[00:04.00]第二句歌词"
+            };
+        }
     }
 };
