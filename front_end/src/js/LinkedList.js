@@ -1,4 +1,3 @@
-// src/js/linked-list.js (或者直接放在 player.js 顶部)
 
 class Node {
     constructor(data) {

@@ -41,8 +41,10 @@ async function loadPage(pageName, params = {}) {
 
     } catch (err) {
         console.error("加载失败:", err);
+        container.innerHTML = `<div class="p-10 text-center text-red-500">页面加载失败: ${err.message}</div>`;
     }
 }
+
 
 function executePageScripts(container) {
     const scripts = container.querySelectorAll('script');

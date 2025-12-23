@@ -13,7 +13,7 @@
 
 <body class="bg-slate-900 text-white font-sans h-screen flex flex-col overflow-hidden">
 
-    <div id="full-player" class="fixed inset-0 bg-slate-950 z-[100] transition-all duration-700 translate-y-full flex flex-col overflow-hidden">
+    <div id="full-player" class="fixed inset-0 bg-slate-950 z-[100] transition-all duration-700 translate-y-full flex flex-col overflow-hidden pointer-events-none">
         <canvas id="particle-canvas" class="absolute inset-0 opacity-30"></canvas>
         
         <div class="relative h-20 flex items-center px-8 z-10">
@@ -67,7 +67,7 @@
         
         <div class="w-full max-w-6xl flex items-center justify-between px-4">
             
-            <div class="flex items-center gap-10 w-1/4">
+            <!-- <div class="flex items-center gap-10 w-1/4">
                 <button class="text-slate-500 hover:text-red-500 transition-all active:scale-90" title="喜欢">
                     <i class="fa-regular fa-heart text-base"></i>
                 </button>
@@ -84,6 +84,29 @@
                 </button>
                 
                 <button class="text-slate-500 hover:text-white text-xl transition-all active:scale-90"><i class="fa-solid fa-forward-step"></i></button>
+            </div> -->
+
+            <div class="flex items-center gap-10 w-1/4">
+                <button class="player-action-btn btn-like text-slate-500 hover:text-red-500 transition-all active:scale-90" title="喜欢">
+                    <i class="fa-regular fa-heart text-base"></i>
+                </button>
+                <button class="player-action-btn btn-mode text-slate-500 hover:text-indigo-400 transition-all" title="播放模式">
+                    <i class="fa-solid fa-shuffle text-xs"></i>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-10">
+                <button class="btn-prev text-slate-500 hover:text-white text-xl transition-all active:scale-90">
+                    <i class="fa-solid fa-backward-step"></i>
+                </button>
+                
+                <button onclick="Player.toggle()" class="btn-toggle w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:scale-105 hover:bg-indigo-500 active:scale-95 transition-all shadow-[0_8px_25px_rgba(79,70,229,0.4)]">
+                    <i id="fp-play-icon" class="fa-solid fa-play text-2xl ml-1"></i>
+                </button>
+                
+                <button class="btn-next text-slate-500 hover:text-white text-xl transition-all active:scale-90">
+                    <i class="fa-solid fa-forward-step"></i>
+                </button>
             </div>
 
             <div class="flex items-center justify-end gap-10 w-1/4">
@@ -138,20 +161,42 @@
             <div id="p-title" class="text-sm font-bold truncate">等待播放</div>
             <div id="p-artist" class="text-xs text-slate-500 truncate mt-1">--</div>
         </div>
-        <div class="flex gap-3 ml-2">
+        <!--  -->
+        <!-- <div class="flex gap-3 ml-2">
             <button class="text-slate-500 hover:text-red-500 transition-all active:scale-90"><i class="fa-regular fa-heart text-lg"></i></button>
             <button class="text-slate-500 hover:text-indigo-400 transition-all active:scale-90"><i class="fa-solid fa-shuffle text-base"></i></button>
+        </div> -->
+        <div class="flex gap-3 ml-2">
+            <button class="btn-like text-slate-500 hover:text-red-500 transition-all active:scale-90">
+                <i class="fa-regular fa-heart text-lg"></i>
+            </button>
+            <button class="btn-mode text-slate-500 hover:text-indigo-400 transition-all active:scale-90">
+                <i class="fa-solid fa-shuffle text-base"></i>
+            </button>
         </div>
     </div>
 
     <div class="flex flex-col items-center w-1/3 max-w-xl">
-        <div class="flex items-center gap-8 mb-2">
+        <!-- <div class="flex items-center gap-8 mb-2">
             <button class="player-ctrl-btn"><i class="fa-solid fa-backward-step text-lg"></i></button>
             <button onclick="Player.toggle()" class="w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg">
                 <i id="p-btn-icon" class="fa-solid fa-play ml-0.5 text-lg"></i>
             </button>
             <button class="player-ctrl-btn"><i class="fa-solid fa-forward-step text-lg"></i></button>
+        </div> -->
+
+        <div class="flex items-center gap-8 mb-2">
+            <button class="btn-prev player-ctrl-btn">
+                <i class="fa-solid fa-backward-step text-lg"></i>
+            </button>
+            <button onclick="Player.toggle()" class="btn-toggle w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg">
+                <i id="p-btn-icon" class="fa-solid fa-play ml-0.5 text-lg"></i>
+            </button>
+            <button class="btn-next player-ctrl-btn">
+                <i class="fa-solid fa-forward-step text-lg"></i>
+            </button>
         </div>
+
         <div class="w-full flex items-center gap-3">
             <span id="p-current-time" class="text-[10px] text-slate-500 w-8 text-right font-mono">0:00</span>
             <div id="p-progress-container" class="flex-1 h-1 bg-slate-200 dark:bg-slate-700 rounded-full cursor-pointer relative group">
@@ -272,6 +317,7 @@
         </div>
     </div>
 
+    <script src="./src/js/LinkedList.js"></script>
     <script src="./src/js/api.js"></script>    
     <script src="./src/js/player.js"></script> 
     <script src="./src/js/router.js"></script>
