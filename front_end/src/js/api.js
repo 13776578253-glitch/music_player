@@ -95,7 +95,7 @@ const API = {
             console.warn("后端未响应，加载测试歌单歌曲...");
             return {
                 id: id,
-                count: 1,
+                count: 3,
                 songs: [
                     { 
                         song_id: 1, 
@@ -106,39 +106,100 @@ const API = {
                         url: "./assets/cover/test1.jpg",
                         type: "normal",
                         position: 1 
-                    },    
+                    },   
+                    { 
+                        song_id: 2, 
+                        title: "模拟歌曲B", 
+                        artist: ["歌手A"], 
+                        album: "专辑A",
+                        duration: "04:30", 
+                        url: "./assets/cover/test1.jpg",
+                        type: "normal",
+                        position: 1 
+                    },
+                    { 
+                        song_id: 3, 
+                        title: "模拟歌曲c", 
+                        artist: ["歌手A"], 
+                        album: "专辑A",
+                        duration: "04:30", 
+                        url: "./assets/cover/test1.jpg",
+                        type: "normal",
+                        position: 1 
+                    },   
                 ]
             };
         }
     },
 
-    //  单首歌曲详情
+    //  歌曲详情列表   //重点改接口了！！！
     getSongDetail: async (id) => {
         try {
             //后端对接
-            const res = await fetch(`${BASE_URL}/songs/${id}`);
+            const res = await fetch(`${BASE_URL}/songslists/${id}`);
             if (!res.ok) throw new Error();
             return await res.json();
         } catch (error) {
             console.warn("后端未响应，加载预制歌曲详情...");
             return {
-                id: id,
-                title: "man",
-                artist: ["man"],
-                album: "man",
-                lyricist: "",
-                composer: "",
-                language: "",
-                genre: "",
-                record_company: "",
-                duration: "",
-                filepath: "./assets/music/test1.mp3",   // 音乐地址
-                url: "./assets/cover/test1.jpg",   // 封面图地址
-                lyrics: "预制歌词第一句\n预制歌词第二句",
-                is_deleted:"",  // 软删除
-                created_at:""
+                songs: [
+                    {
+                        id: id,
+                        title: "man",
+                        artist: ["man"],
+                        album: "man",
+                        lyricist: "",
+                        composer: "",
+                        language: "",
+                        genre: "",
+                        record_company: "",
+                        duration: "",
+                        filepath: "./assets/music/test1.mp3",   // 音乐地址
+                        url: "./assets/cover/test1.jpg",   // 封面图地址
+                        lyrics: "预制歌词第一句\n预制歌词第二句",
+                        is_deleted:"",  // 软删除
+                        created_at:""
+                    },
+                    {
+                        id: id,
+                        title: "man ba",
+                        artist: ["man"],
+                        album: "man",
+                        lyricist: "",
+                        composer: "",
+                        language: "",
+                        genre: "",
+                        record_company: "",
+                        duration: "",
+                        filepath: "./assets/music/test2.mp3",   // 音乐地址
+                        url: "./assets/cover/test1.jpg",   // 封面图地址
+                        lyrics: "预制歌词第一句\n预制歌词第二句",
+                        is_deleted:"",  // 软删除
+                        created_at:""
+                    },
+                    {
+                        id: id,
+                        title: "man ba out",
+                        artist: ["man"],
+                        album: "man",
+                        lyricist: "",
+                        composer: "",
+                        language: "",
+                        genre: "",
+                        record_company: "",
+                        duration: "",
+                        filepath: "./assets/music/test3.mp3",   // 音乐地址
+                        url: "./assets/cover/test1.jpg",   // 封面图地址
+                        lyrics: "预制歌词第一句\n预制歌词第二句",
+                        is_deleted:"",  // 软删除
+                        created_at:""
+                    }
+                ]
+                
 
             };
         }
     },   
+
+
 };

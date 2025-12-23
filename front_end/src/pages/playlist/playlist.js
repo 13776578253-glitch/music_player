@@ -129,20 +129,30 @@
                     console.log(`[点击] 播放: ${song.title}, ID: ${song.song_id || song.id}`);
                     
                     try {
-                        // 如果 song 对象里本身就有 filepath (Mock数据通常有)，就不用再请求详情了
-                        // 这里做一个兼容判断，减少 API 请求
-                        let songToPlay = song;
                         
-                        if (!song.filepath) {
-                             // 如果列表数据太简单，没有播放地址，才去请求详情
-                             songToPlay = await API.getSongDetail(song.song_id || song.id);
-                        }
+                        // let songToPlay = song;
+                        
+                        // if (!song.filepath) {
+                        //      // 如果列表数据太简单，没有播放地址，才去请求详情
+                        //      songToPlay = await API.getSongDetail(song.song_id || song.id);
+                        // }
+
+                        // 1. 调用新接口，拿到包含 songs 数组的集合对象
+                        const response = await API.getSongDetail(currentId);
+                        
+                        // 2. 验证数据：确保 response.songs 存在
+                        if (response && response.songs && Array.isArray(response.songs)) {
+                            const fullList = response.songs; // 这是后端给你的最新完整列表
+                            
+                            // 3. 在这个集合中找到用户点的那首歌作为“启动锚点”
+                            const targetSong = fullList.find(s => (s.id == currentId || s.song_id == currentId)) || fullList[0]; // 找不到就播第一首
 
                         if (window.Player) {
-                            // 关键：把 songToPlay (当前这首) 和 songs (整个列表) 传进去
-                            // 这样 Player.js 里的链表逻辑才能生效
-                            Player.play(songToPlay, songs);
+                                // 4. 传给播放器。Player 会在内部构建双向循环链表
+                                // 参数1：要播的歌；参数2：整个集合数组
+                                Player.play(targetSong, fullList);
                         }
+                }
                     } catch (err) {
                         console.error("播放请求失败:", err);
                     }

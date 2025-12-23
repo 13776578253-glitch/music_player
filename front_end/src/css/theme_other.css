@@ -1,0 +1,50 @@
+/* theme-light.css */
+
+/* 1. 基础背景覆盖 */
+.light-mode body {
+    background-color: #f1f5f9 !important; /* 浅灰色背景 */
+    color: #0f172a !important;            /* 深色文字 */
+}
+
+/* 2. 侧边栏和底部播放栏适配 */
+.light-mode aside, 
+.light-mode #player-bar {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border-color: rgba(0, 0, 0, 0.05) !important;
+    color: #1e293b !important;
+}
+
+/* 3. 动态内容区域（歌单列表等）的面板适配 */
+.light-mode .glass-panel,
+.light-mode .bg-slate-800\/30,
+.light-mode .bg-slate-900\/50 {
+    background: #ffffff !important;
+    border-color: rgba(0, 0, 0, 0.05) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* 4. 文字颜色深度修复 (针对 Tailwind 硬编码的 text-slate-400 等) */
+.light-mode .text-white,
+.light-mode .text-slate-100,
+.light-mode .text-slate-200 {
+    color: #0f172a !important;
+}
+
+.light-mode .text-slate-400,
+.light-mode .text-slate-500 {
+    color: #64748b !important;
+}
+
+/* 5. 播放队列侧边栏适配 (你刚才加的大工程) */
+.light-mode #queue-drawer {
+    background: rgba(248, 250, 252, 0.95) !important;
+    border-left: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.light-mode #queue-drawer h3 {
+    color: #0f172a !important;
+}
+
+.light-mode .queue-item:hover {
+    background: rgba(99, 102, 241, 0.1) !important;
+}

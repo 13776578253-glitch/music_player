@@ -7,11 +7,13 @@ const PlayMode = {
 
 const Player = {
     audio: new Audio(),
-    playlist: new DoublyCircularLinkedList(),
+    playlist: null, // 链表实例
+    // playlist: new DoublyCircularLinkedList(),
     mode: PlayMode.LOOP,
     isPlaying: false,
     currentSong: null,
     isFullPlayerOpen: false,
+    isQueueOpen: false, // 侧边栏状态
 
     init() {
         // 核心事件监听
@@ -26,6 +28,11 @@ const Player = {
         const miniCover = document.getElementById('p-cover');
         if (miniCover) miniCover.onclick = () => this.toggleFullPlayer();
 
+        // 特殊——初始化
+        if (typeof DoublyCircularLinkedList !== 'undefined') {
+            this.playlist = new DoublyCircularLinkedList();
+        }
+
         // 初始化按钮监听 (使用事件委托)
         this.initControlListeners();
 
@@ -36,10 +43,14 @@ const Player = {
     async play(song, list = []) {
         if (!song) return;
 
-        // 1. 构建链表
-        this.playlist = new DoublyCircularLinkedList();
+        //  构建链表
+        // this.playlist = new DoublyCircularLinkedList();
         if (list && list.length > 0) {
+            console.log("初始化播放列表...", list.length);
+            this.playlist = new DoublyCircularLinkedList();
             list.forEach(s => this.playlist.append(s));
+
+            this.renderQueue();
             // 尝试定位当前歌曲
             const found = this.playlist.setCurrentById(song.song_id || song.id);
             if (!found) {
@@ -47,6 +58,9 @@ const Player = {
                 this.playlist.append(song);
                 this.playlist.setCurrentById(song.song_id || song.id);
             }
+
+            //  待确定逻辑
+            await this.loadAndPlayCurrent();
         } else {
             this.playlist.append(song);
             this.playlist.current = this.playlist.head;
@@ -55,6 +69,92 @@ const Player = {
         // 2. 获取数据并播放
         const dataToPlay = this.playlist.getCurrentData();
         this.loadSong(dataToPlay);
+    },
+
+    renderQueue() {
+        const container = document.getElementById('queue-list-container');
+        const countEl = document.getElementById('queue-count');
+        if (!container || !this.playlist.head) return;
+
+        container.innerHTML = ''; // 清空旧列表
+        
+        // 遍历链表 (因为是双向循环，需要技巧)
+        let current = this.playlist.head;
+        let count = 0;
+        
+        do {
+            const songData = current.data;
+            const nodeRef = current; // 保存当前节点的引用，闭包用
+
+            // 创建 DOM 元素
+            const div = document.createElement('div');
+            // 如果是正在播放的歌，加上 active 样式
+            const isActive = (this.playlist.current === nodeRef);
+            div.className = `queue-item p-3 rounded-lg flex items-center gap-3 hover:bg-white/5 cursor-pointer group mb-1 transition-colors ${isActive ? 'bg-white/10 active' : ''}`;
+            
+            div.innerHTML = `
+                <div class="w-10 h-10 rounded bg-slate-800 bg-cover bg-center shrink-0" style="background-image: url('${songData.url || songData.cover || ''}')"></div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-white truncate ${isActive ? 'text-indigo-400' : ''}">${songData.title}</div>
+                    <div class="text-xs text-slate-500 truncate">${Array.isArray(songData.artist) ? songData.artist.join('/') : songData.artist}</div>
+                </div>
+                <i class="fa-solid fa-chart-simple text-indigo-500 text-xs ${isActive ? 'block' : 'hidden'}"></i>
+            `;
+
+            // 【关键交互】点击队列里的歌，切歌
+            div.onclick = () => {
+                this.playlist.current = nodeRef; // 仅仅更新指针
+                this.loadAndPlayCurrent();       // 播放
+                // 重新渲染一下高亮状态 (性能优化版只改样式，这里为了简单直接重绘)
+                this.renderQueue(); 
+            };
+
+            container.appendChild(div);
+
+            current = current.next;
+            count++;
+        } while (current !== this.playlist.head); // 循环直到回到头部
+
+        // 更新总数
+        if (countEl) countEl.innerText = `${count} 首歌曲`;
+    },
+
+    async loadAndPlayCurrent() {
+        if (!this.playlist.current) return;
+        const song = this.playlist.current.data;
+
+        this.audio.src = song.filepath; 
+        
+        try {
+            await this.audio.play();
+            this.isPlaying = true;
+            this.updateUI(song);
+            this.updatePlayBtnState(true);
+            
+            // 每次切歌，都要更新队列的高亮状态
+            // 这样你打开列表时，就能看到当前播放的是哪首
+            this.renderQueue(); 
+
+        } catch (err) {
+            console.error("播放失败:", err);
+        }
+    },
+    
+    toggleQueue() {
+        const drawer = document.getElementById('queue-drawer');
+        const overlay = document.getElementById('queue-overlay');
+        
+        this.isQueueOpen = !this.isQueueOpen;
+
+        if (this.isQueueOpen) {
+            drawer.classList.remove('translate-x-full');
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            // 打开时最好刷新一下高亮，防止状态不同步
+            this.renderQueue();
+        } else {
+            drawer.classList.add('translate-x-full');
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+        }
     },
 
     loadSong(song) {
