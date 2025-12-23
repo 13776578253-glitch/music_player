@@ -1,21 +1,24 @@
 
-<link rel="stylesheet" href="../../css/home.css">
+<link rel="stylesheet" href="src/css/home.css">
 
 <div class="p-8 pb-32">
-    <div class="relative bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-800 rounded-2xl p-10 mb-8 shadow-2xl overflow-hidden group">
-        <div class="absolute right-0 top-0 w-1/2 h-full opacity-20 pointer-events-none">
-            <i class="fa-solid fa-compact-disc text-[200px] translate-x-1/2 -translate-y-1/4 animate-spin-slow"></i>
-        </div>
+    <div class="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 rounded-3xl p-10 mb-8 shadow-xl overflow-hidden group border border-white/10">
+    <div class="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+    
+    <div class="absolute right-0 top-0 w-1/2 h-full opacity-10 pointer-events-none text-white">
+        <i class="fa-solid fa-compact-disc text-[200px] translate-x-1/2 -translate-y-1/4 animate-spin-slow"></i>
+    </div>
 
-        <div class="relative z-10">
-            <span class="bg-white/20 text-white text-[10px] uppercase tracking-widest px-2 py-1 rounded mb-4 inline-block backdrop-blur-md">每日推荐</span>
-            <h2 class="text-4xl font-bold mb-2">感受赛博朋克的律动</h2>
-            <p class="text-indigo-100 opacity-70 mb-6 max-w-md">根据你的听歌习惯生成的智能列表，包含 Synthwave 与 Electronic 风格。</p>
-            
-            <button id="banner-play-btn" class="bg-white text-black px-6 py-2.5 rounded-full font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition shadow-lg">
-                <i class="fa-solid fa-play"></i> 立即播放
-            </button>
-        </div>
+    <div class="relative z-10">
+        <span class="bg-white/20 text-white text-[10px] uppercase tracking-widest px-2 py-1 rounded mb-4 inline-block backdrop-blur-md border border-white/10">每日推荐</span>
+        <h2 class="text-4xl font-bold mb-2 text-white !important">感受音乐的律动</h2>
+        <!-- 待确定，风格是否从后端传 -->
+        <p class="text-indigo-100/80 mb-6 max-w-md">根据你的听歌习惯生成的智能列表，包含 Synthwave 与 Electronic 风格。</p>
+        
+        <button id="banner-play-btn" class="bg-white text-indigo-900 px-6 py-2.5 rounded-full font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition shadow-2xl">
+            <i class="fa-solid fa-play"></i> 立即播放
+        </button>
+    </div>
     </div>
 
     <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
@@ -42,14 +45,5 @@
     </div>
 </template>
 
-<!-- <template id="song-card-template">
-    <div class="group cursor-pointer p-3 rounded-xl hover:bg-white/5 transition playlist-item">
-        <div class="relative mb-3 overflow-hidden rounded-lg">
-            <img class="pl-cover w-full aspect-square object-cover">
-        </div>
-        <div class="pl-title font-bold text-sm truncate text-white"></div>
-    </div>
-</template> -->
-
-<script src="src/pages/home/home.js"></script>
+<script src="/music_player/front_end/src/pages/home/home.js"></script>
 

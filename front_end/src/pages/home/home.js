@@ -9,14 +9,16 @@ const home_page = {
 
         //核心！
         try {
-            const songs = await API.getRecommend(); 
-            this.render(container, template, songs);
+            //const songs = await API.getRecommend();
+            const Playlists = await API.getPopularPlaylists();
+            this.render(container, template, Playlists);
         } catch (error) {
             this.handleError(container, error);
         }
     },
 
-    validate(container, template) {
+    validate(container, template, data) {
+
         if (!container || !template) {
             console.warn(' — 缺少 DOM 元素 —');
             return false;
@@ -34,7 +36,7 @@ const home_page = {
             const clone = template.content.cloneNode(true);
             
             // 数据映射
-            clone.querySelector('.pl-cover').src = song.cover;
+            clone.querySelector('.pl-cover').src = song.url;
             clone.querySelector('.pl-title').textContent = song.title;
             
             // 事件绑定

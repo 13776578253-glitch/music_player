@@ -1,66 +1,144 @@
-const API_BASE = "http://localhost:5000"; // Python 后端地址
+const BASE_URL = "http://localhost:5000"; // Python 后端地址
 
 const API = {
-    // 模拟：获取首页推荐
-    getRecommend: async () => {
-        // 真实代码: const res = await fetch(`${API_BASE}/recommend`); return await res.json();
-        
-        // 模拟数据
-        return [
-            { id: 1, title: "Python学习伴侣", artist: "Coding Beats", cover: "https://picsum.photos/200?1", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
-            { id: 2, title: "深夜调试", artist: "Bug Hunter", cover: "https://picsum.photos/200?2", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
-            { id: 3, title: "提交成功", artist: "Git Push", cover: "https://picsum.photos/200?3", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
-            { id: 3, title: "提交成功", artist: "Git Push", cover: "https://picsum.photos/200?3", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
-            { id: 3, title: "提交成功", artist: "Git Push", cover: "https://picsum.photos/200?3", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
-            // { id: 3, title: "提交成功", artist: "Git Push", cover: "https://picsum.photos/200?3", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
-            // { id: 3, title: "提交成功", artist: "Git Push", cover: "https://picsum.photos/200?3", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
-            // { id: 3, title: "提交成功", artist: "Git Push", cover: "https://picsum.photos/200?3", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
-            // { id: 3, title: "提交成功", artist: "Git Push", cover: "https://picsum.photos/200?3", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
-            // { id: 5, title: "wzm", artist: "Git Push", cover: "https://picsum.photos/200?3", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
-        ];
+    // getRecommend: async () => {
+    //     try {
+    //         const res = await fetch(`${BASE_URL}/recommendations/daily`);
+    //         if (!res.ok) throw new Error();
+    //         const data = await res.json();
+    //         return data.songs; 
+    //     } catch (error) {
+    //         console.warn("后端未响应，加载测试歌曲...");
+    //         return [
+    //             { 
+    //                 id: 1, 
+    //                 title: "test1", 
+    //                 artist: ["Coding Beats"], 
+    //                 album: "码农节拍",
+    //                 url: "./assets/cover/test1.jpg", // 封面图
+    //                 //cover: "./assets/cover/test.jpg", //测试
+    //                 filepath: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", // MP3地址
+    //                 duration: "04:12"
+    //             },
+    //             { 
+    //                 id: 2, 
+    //                 title: "test2", 
+    //                 artist: ["Bug Hunter"], 
+    //                 album: "Memory Leak",
+    //                 url: "./assets/cover/test1.jpg", 
+    //                 filepath: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    //                 duration: "03:45"
+    //             }
+    //         ];
+    //     }
+    // },
+
+    //  热门推荐歌单 对应接口 /recommendations/popular
+    getPopularPlaylists: async () => {
+        try {
+            //后端对接
+            const res = await fetch(`${BASE_URL}/recommendations/popular`);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            return data.playlists;
+
+        } catch (error) {
+            console.warn("后端未响应，加载测试歌单...");
+            const mockResponse = {
+                count: 4, 
+                playlists: [
+                    { 
+                        id: 101, 
+                        title: "大手子致敬", 
+                        creater_id: 101,
+                        type: "a",
+                        url: "./assets/cover/test1.jpg",
+                        collect_count: 10,
+                        play_count: 10,
+                        song_count: 1
+                    },
+                    { 
+                        id: 101, 
+                        title: "大手子致敬", 
+                        creater_id: 101,
+                        type: "a",
+                        url: "./assets/cover/test1.jpg",
+                        collect_count: 10,
+                        play_count: 10,
+                        song_count: 1
+                    },
+                    { 
+                        id: 101, 
+                        title: "大手子致敬", 
+                        creater_id: 101,
+                        type: "a",
+                        url: "./assets/cover/test1.jpg",
+                        collect_count: 10,
+                        play_count: 10,
+                        song_count: 1
+                    }
+                   
+                ]
+            };
+            return mockResponse.playlists;
+        }
     },
 
-    getSongDetail: async (songId) => {
-        // 模拟网络延迟
-        await new Promise(resolve => setTimeout(resolve, 200));
+    //  热门推荐歌单中的歌曲列表
+    getPlaylistSongs: async (id) => {
+        try {
+            //后端对接
+            const res = await fetch(`${BASE_URL}/playlist_songs/${id}`);
+            if (!res.ok) throw new Error();
+            return await res.json();
+        } catch (error) {
+            console.warn("后端未响应，加载测试歌单歌曲...");
+            return {
+                id: id,
+                count: 1,
+                songs: [
+                    { 
+                        song_id: 1, 
+                        title: "模拟歌曲A", 
+                        artist: ["歌手A"], 
+                        album: "专辑A",
+                        duration: "04:30", 
+                        url: "./assets/cover/test1.jpg",
+                        type: "normal",
+                        position: 1 
+                    },    
+                ]
+            };
+        }
+    },
 
-        // 预制数据用于测试
-        const mockSongs = {
-            "1": {
-                id: "1",
-                title: "AVL Tree Rotation",
-                artist: "C-Master",
-                album: "The Algorithm",
-                playlistName: "算法进阶指南",
-                cover: "https://picsum.photos/400/400?1",
-                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-                lyrics: "正在通过 AVL 树检索数据...\n左旋处理中...\n右旋处理中...\n平衡因子已恢复正常。\n数据结构大作业万岁！",
-                playCount: 999
-            },
-            "2": {
-                id: "2",
-                title: "Link List Blues",
-                artist: "Pointer Hunter",
-                album: "Memory Leak",
-                playlistName: "深夜调试BGM",
-                cover: "https://picsum.photos/400/400?2",
-                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-                lyrics: "寻找头结点...\n遍历每一个元素...\n不要丢失你的 next 指针。\n小心野指针的陷阱。",
-                playCount: 450
-            }
-        };
-        return mockSongs[songId] || mockSongs["1"];
-    }
+    //  单首歌曲详情
+    getSongDetail: async (id) => {
+        try {
+            //后端对接
+            const res = await fetch(`${BASE_URL}/songs/${id}`);
+            if (!res.ok) throw new Error();
+            return await res.json();
+        } catch (error) {
+            console.warn("后端未响应，加载预制歌曲详情...");
+            return {
+                id: id,
+                title: "man",
+                artist: ["man"],
+                album: "man",
+                lyricist: "",
+                composer: "",
+                language: "",
+                genre: "",
+                record_company: "",
+                duration: "",
+                filepath: "./assets/music/test1.mp3",   // 音乐地址
+                url: "./assets/cover/test1.jpg",   // 封面图地址
+                lyrics: "预制歌词第一句\n预制歌词第二句",
+                is_deleted:"",  // 软删除
+                created_at:""
+
+            };
+        }
+    },   
 };
-
-// async function handlePlay(songId) {
-//     // 1. 从 API 获取数据（这就是你 api.js 里的 mockSongs 数据）
-//     const songData = await API.getSongDetail(songId);
-    
-//     if (songData) {
-//         // 2. 调用 Player 的播放入口
-//         // 这一步执行后，Player.js 里的 syncUI() 就会被触发
-//         // 从而把 songData 里的 title, artist, lyrics 等填充到 HTML 中
-//         Player.play(songData); 
-//     }
-// }
