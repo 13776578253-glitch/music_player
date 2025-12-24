@@ -1,0 +1,17 @@
+{
+    "song_genre": {
+        "ballad": 0,
+        "electronic": 1,
+        "folk": 2,
+        "hip-hop": 3,
+        "pop": 4,
+        "rock": 5
+    },
+    "song_language": {
+        "Chinese": 0,
+        "English": 1,
+        "Instrumental": 2,
+        "Japanese": 3,
+        "Korean": 4
+    }
+}

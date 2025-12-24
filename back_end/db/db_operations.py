@@ -84,8 +84,8 @@ class SongTable:
                 cursor = await conn.cursor()
                 await cursor.execute(insert_sql, values)
                 song_id = cursor.lastrowid
-            # await SongStatsTable.init_song_stats(song_id) # 初始化歌曲统计数据
             logger.info(f"新增歌曲成功，ID：{song_id}")
+            await SongStatsTable.init_song_stats(song_id) # 初始化歌曲统计数据
             return song_id
         except aiosqlite.IntegrityError as e:
             logger.error(f"新增歌曲失败：文件路径{file_path}已存在，错误：{e}")
@@ -191,6 +191,19 @@ class SongStatsTable:
             logger.error(f"table[song_stats]创建失败：{e}")
             raise
 
+    # 歌曲id是否存在
+    @classmethod
+    async def exists(cls, song_id, conn=None):
+        sql = "SELECT 1 FROM song_stats WHERE song_id = ? LIMIT 1"
+
+        if conn is None:
+            async with db_context() as conn:
+                cursor = await conn.execute(sql, (song_id,))
+                return await cursor.fetchone() is not None
+        else:
+            cursor = await conn.execute(sql, (song_id,))
+            return await cursor.fetchone() is not None
+
     # 初始化歌曲统计数据
     @classmethod
     async def init_song_stats(cls, song_id, conn=None):
@@ -215,10 +228,13 @@ class SongStatsTable:
         if count_type not in valid_stats:
             logger.error(f"无效的歌曲更新统计类型：{count_type}，可选类型：{valid_stats}")
             return False
+        if not await cls.exists(song_id): 
+            logger.error(f"歌曲{song_id}不存在")
+            raise ValueError(f"歌曲{song_id}不存在")
         
         sql = f"""
         UPDATE song_stats 
-        SET play_count = play_count + ? AND {count_type} = {count_type} + ?, last_played = CURRENT_TIMESTAMP 
+        SET play_count = play_count + ?, {count_type} = {count_type} + ?, last_played = CURRENT_TIMESTAMP 
         WHERE song_id = ?
         """
         try:
@@ -227,9 +243,9 @@ class SongStatsTable:
                 await cursor.execute(sql, (add_count, add_count, song_id))
                 if cursor.rowcount == 0:
                     # 若统计记录不存在，先初始化再更新
-                    await cls.init_song_stats(song_id)
-                    await cursor.execute(sql, (add_count, song_id))
-            logger.info(f"歌曲{song_id}的{count_type}增加{add_count}")
+                    await cls.init_song_stats(song_id, conn=conn)
+                    await cursor.execute(sql, (add_count, add_count, song_id))
+            logger.info(f"歌曲{song_id}的play_count和{count_type}增加{add_count}")
             return True
         except aiosqlite.Error as e:
             logger.error(f"更新歌曲统计数据失败：{e}")
@@ -310,6 +326,7 @@ class UserTable:
                 await cursor.execute(sql, (username, cookie))
                 user_id = cursor.lastrowid
             logger.info(f"新增用户成功，ID：{user_id}")
+            await PlaylistTable.add_playlist(user_id, '喜欢', 'loved')
             return user_id
         except aiosqlite.Error as e:
             logger.error(f"新增用户失败：{e}")
@@ -393,6 +410,15 @@ class PlayEventTable:
             logger.error(f"table[play_events]创建失败：{e}")
             raise
 
+    @classmethod
+    async def if_update_song_stats(cls, song_id, event_type):
+        if event_type == 'skip':
+            await SongStatsTable.update_song_stats(song_id, 'skip_count')
+        elif event_type == 'complete':
+            await SongStatsTable.update_song_stats(song_id, 'complete_count')
+        else:
+            return
+
     # 新增播放行为日志
     @classmethod
     async def add_play_event(cls, user_id, song_id, event_type, position, duration):
@@ -408,6 +434,7 @@ class PlayEventTable:
                 await cursor.execute(sql, (user_id, song_id, event_type, position, duration))
                 event_id = cursor.lastrowid
             logger.info(f"新增播放日志成功，ID：{event_id}")
+            await cls.if_update_song_stats(song_id, event_type)
             return event_id
         except aiosqlite.Error as e:
             logger.error(f"新增播放日志失败：{e}")
@@ -496,6 +523,7 @@ class PlaylistTable:
         type TEXT DEFAULT 'private',
         url TEXT DEFAULT '',
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (creator_id, name),
         FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
     );
     """
@@ -647,6 +675,7 @@ class UserPlaylistTable:
         try:
             if position is None:
                 max_pos = await cls.get_max_position(user_id)
+                if not max_pos: max_pos = 0
                 position = max_pos + 1
 
             async with db_context() as conn:
@@ -909,6 +938,7 @@ class Analytics:
             logger.error(f"get_playlist_songs提取信息失败：{e}")
             raise
 
+
     # 生成正样本候选与强负的user_song聚合行-训练所有用户的样本行
     @classmethod
     async def get_user_song_aggregation(cls):
@@ -926,6 +956,7 @@ class Analytics:
             s.language
         FROM play_events p
         JOIN songs s ON p.song_id = s.id
+        WHERE p.created_at >= DATE('now', '-30 days')
         GROUP BY p.user_id, p.song_id;
         """
 
@@ -947,6 +978,9 @@ class Analytics:
         sql = """
         SELECT
             s.id AS song_id,
+            s.duration AS song_duration,
+            s.genre AS song_genre,
+            s.language AS song_language,
             COALESCE(ss.play_count, 0) AS song_play_count,
             CASE WHEN COALESCE(ss.play_count,0) > 0 THEN COALESCE(ss.complete_count,0) * 1.0 / ss.play_count ELSE 0 END AS song_complete_rate
         FROM songs s
@@ -977,6 +1011,7 @@ class Analytics:
             SUM(CASE WHEN p.event_type = 'complete' THEN 1 ELSE 0 END) AS user_total_complete,
             SUM(CASE WHEN p.event_type = 'complete' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS user_complete_rate
         FROM play_events p
+        WHERE p.created_at >= DATE('now', '-30 days')
         GROUP BY p.user_id;
         """
 
@@ -992,29 +1027,6 @@ class Analytics:
             logger.error(f"get_user_level_stats提取信息失败：{e}")
             raise
 
-
-# 初始化所有表的入口函数
-async def init_all_tables():
-    await SongTable.create_table()
-    await UserTable.create_table()
-    await PlaylistTable.create_table()
-    await UserPlaylistTable.create_table()
-    await PlaylistSongTable.create_table()
-    await PlayEventTable.create_table()
-    await SongStatsTable.create_table()
-    await UserModelTable.create_table()
-    logger.info("所有数据库表初始化完成！")
-
-async def init_user():
-    await UserTable.add_user('cqy', '123456')
-    await UserTable.add_user('cpp', '123456')
-    a = await UserTable.get_user_by_id(1)
-    b = await UserTable.get_user_by_id('2')
-    print(a, b)
-
-async def init_1():
-    await init_all_tables()
-    await init_user()
 
 if __name__ == "__main__":
     from core.logger import setup_logging

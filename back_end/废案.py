@@ -176,127 +176,129 @@ class UserModelTable:
 #     df_all = pd.concat([df, df_neg], ignore_index=True)
 
 
+
 # # 生成正和强负样本训练数据
-# def build_positive_strong_negative_data(df_us, df_song, df_user, positive_threshold=0.6, strong_negative_play_min=3, strong_negative_ratio_max=0.2):
-#     """
-#     从已有user-song聚合构造正样本与强负样本，并且输出统一schema。
-#     """
-#     rows = []
-#     # 按行遍历已有聚合
-#     for _, r in df_us.iterrows():
-#         user_id = r['user_id']
-#         song_id = r['song_id']
-#         us_play = int(r.get('us_play_count', 0))
-#         us_complete = int(r.get('us_complete_count', 0))
-#         us_skip = int(r.get('us_skip_count', 0))
-#         us_avg_play_ratio = float(r.get('us_avg_play_ratio', 0.0))
-#         us_complete_ratio = (us_complete / us_play) if us_play > 0 else 0.0
-        
-#         is_positive = us_play > 0 and (us_complete_ratio >= positive_threshold) # 判定正/强负
-#         is_strong_negative = (us_play >= strong_negative_play_min) and (us_complete_ratio <= strong_negative_ratio_max)
-        
-#         if not (is_positive or is_strong_negative): continue # 只保留正样本和强负样本（减少噪声）
+#     @classmethod
+#     def build_positive_strong_negative_data(cls, df_us, df_song, df_user):
+#         rows = []
 
-#         # 获取song/user信息，同时处理空数据
-#         song_row = df_song[df_song['song_id'] == song_id]
-#         song_info = song_row.iloc[0].to_dict() if not song_row.empty else {}
-#         user_row = df_user[df_user['user_id'] == user_id]
-#         user_info = user_row.iloc[0].to_dict() if not user_row.empty else {}
+#         for _, r in df_us.iterrows():
+#             us_play = r['us_play_count']
+#             us_complete = r['us_complete_count']
+#             us_skip = r['us_skip_count']
 
-#         row = {
-#             'user_id': user_id,
-#             'song_id': song_id,
-#             'us_play_count': us_play,
-#             'us_complete_count': us_complete,
-#             'us_skip_count': us_skip,
-#             'us_complete_ratio': us_complete_ratio,
-#             'us_avg_play_ratio': us_avg_play_ratio,
-#             'song_duration': song_info.get('song_duration', 0),
-#             'song_genre': song_info.get('genre', None),
-#             'song_language': song_info.get('language', None),
-#             'song_play_count': song_info.get('song_play_count', 0),
-#             'song_complete_rate': song_info.get('song_complete_rate', 0.0),
-#             'user_total_plays': user_info.get('user_total_plays', 0),
-#             'user_complete_rate': user_info.get('user_complete_rate', 0.0),
-#             'is_new_pair': 0,  # 有历史
-#             'y': 1 if is_positive else 0,
-#             'sample_weight': POSITIVE_WEIGHT if is_positive else STRONG_NEG_WEIGHT
-#         }
-#         rows.append(row)
+#             us_complete_ratio = us_complete / us_play if us_play > 0 else 0
+#             is_positive = us_complete_ratio >= 0.6
+#             is_strong_negative = us_play >= 3 and us_complete_ratio <= 0.2
 
-#     df_posneg = pd.DataFrame(rows, columns=SAMPLE_COLUMNS)
-#     if df_posneg.empty: df_posneg = pd.DataFrame(columns=SAMPLE_COLUMNS) # 保证列存在（如果 dataframe 为空也创建列）
-#     return df_posneg
+#             if not (is_positive or is_strong_negative): continue  # 中间态样本可丢弃，减少噪声
+#             # print(df_song)
+#             # print(r)
 
-# # 生成弱负样本训练数据
-# def build_weak_negative_samples(df_us, df_song, df_user, sample_k=SAMPLE_NEG_PER_USER):
-#     """
-#     为每个用户从未听过的歌曲中随机采样若干弱负样本。
-#     这些弱负标为软标签WEAK_NEG_LABEL，权重较低。
-#     """
-#     rows = []
-#     all_songs = set(df_song['song_id'].tolist())
-#     users = df_us['user_id'].unique().tolist()
+#             song = df_song[(df_song['song_id']) == int(r['song_id'])].iloc[0].to_dict()
+#             user = df_user[(df_user['user_id']) == int(r['user_id'])].iloc[0].to_dict()
+#             print(song, user)
 
-#     # 为那些在df_us中没有记录的用户，只对有记录的用户采样
-#     for user_id in users:
-#         heard = set(df_us[df_us['user_id'] == user_id]['song_id'].tolist())
-#         candidates = list(all_songs - heard)
-#         if not candidates:
-#             continue
-#         k = min(sample_k, len(candidates))
-#         sampled = random.sample(candidates, k)
+#             rows.append({
+#                 'user_id': r['user_id'],
+#                 'song_id': r['song_id'],
+#                 'us_play_count': us_play,
+#                 'us_complete_count': us_complete,
+#                 'us_skip_count': us_skip,
+#                 'us_complete_ratio': us_complete_ratio,
+#                 'us_avg_play_ratio': r['us_avg_play_ratio'],
+#                 'song_duration': song['song_duration'],
+#                 'song_genre': song['genre'],
+#                 'song_language': song['language'],
+#                 'song_play_count': song['song_play_count'],
+#                 'song_complete_rate': song['song_complete_rate'],
+#                 'user_total_plays': user['user_total_plays'],
+#                 'user_complete_rate': user['user_complete_rate'],
+#                 'is_new_pair': 0,
+#                 'y': 1 if is_positive else 0,
+#                 'sample_weight': cls.POSITIVE_WEIGHT if is_positive else cls.STRONG_NEG_WEIGHT
+#             })
 
-#         user_row = df_user[df_user['user_id'] == user_id]
-#         user_info = user_row.iloc[0].to_dict() if not user_row.empty else {}
+#         return pd.DataFrame(rows)
 
-#         for song_id in sampled:
-#             song_row = df_song[df_song['song_id'] == song_id]
-#             song_info = song_row.iloc[0].to_dict() if not song_row.empty else {}
+#     # 生成弱负样本训练数据
+#     @classmethod
+#     def build_weak_negative_data(cls, df_us, df_song, df_user, sample_k=5):
+#         """
+#         df_us: user-song聚合-正样本+强负
+#         df_song: 歌曲级信息-提供内容特征
+#         df_user: 用户级信息-提供偏好特征
+#         为每个用户采样若干未听过的歌曲，构造弱负样本
+#         """
+#         neg_rows = []
+#         grouped = df_us.groupby('user_id') # 按照user_id分组
+#         all_songs = set(df_song['song_id']) # 负采样为每个user抽取若干未听过的歌曲作为弱负（去重）
 
-#             row = {
-#                 'user_id': user_id,
-#                 'song_id': song_id,
-#                 'us_play_count': 0,
-#                 'us_complete_count': 0,
-#                 'us_skip_count': 0,
-#                 'us_complete_ratio': 0.0,
-#                 'us_avg_play_ratio': 0.0,
-#                 'song_duration': song_info.get('song_duration', 0),
-#                 'song_genre': song_info.get('genre', None),
-#                 'song_language': song_info.get('language', None),
-#                 'song_play_count': song_info.get('song_play_count', 0),
-#                 'song_complete_rate': song_info.get('song_complete_rate', 0.0),
-#                 'user_total_plays': user_info.get('user_total_plays', 0),
-#                 'user_complete_rate': user_info.get('user_complete_rate', 0.0),
-#                 'is_new_pair': 1,
-#                 'y': WEAK_NEG_LABEL,
-#                 'sample_weight': WEAK_NEG_WEIGHT
-#             }
-#             rows.append(row)
+#         for user_id, group in grouped:
+#             heard = set(group['song_id'])
+#             candidates = list(all_songs - heard) # 用户未听过的歌曲
 
-#     df_weakneg = pd.DataFrame(rows, columns=SAMPLE_COLUMNS)
-#     if df_weakneg.empty:
-#         df_weakneg = pd.DataFrame(columns=SAMPLE_COLUMNS)
-#     return df_weakneg
+#             if not candidates:  continue
 
+#             k = min(sample_k, len(candidates))
+#             sampled = random.sample(candidates, k) # 随机提取k个未歌
+#             user = df_user[df_user['user_id'] == user_id] # 对应用户数据
+#             user = user.iloc[0].to_dict() if not user.empty else {} # 取第一条记录作为字典，同时处理空数据
 
-# # 生成训练数据
-# async def build_train_dataset(sample_k=5):
-#     """
-#     sample_k控制采样多少未听过歌曲
-#     这样训练集会既有“已有历史的正/负”也有“未听过的弱负”，模型能学会基于 content+user 做判断
-#     """
-#     df_us = pd.DataFrame(await db_operations.Analytics.get_user_song_aggregation)
-#     df_song = pd.DataFrame(await db_operations.Analytics.get_song_level_stats)
-#     df_user = pd.DataFrame(await db_operations.Analytics.get_user_level_stats)
-#     # df_user['user_complete_rate'] = df_user['user_total_complete'] / df_user['user_total_plays']
+#             for song_id in sampled: # 用song-level+user-level填充交互特征为0
+#                 song = df_song[df_song['song_id'] == song_id].iloc[0].to_dict() # 对应歌曲数据
+#                 neg_rows.append({
+#                     'user_id': user_id,
+#                     'song_id': song_id,
+#                     'us_play_count': 0,
+#                     'us_complete_count': 0,
+#                     'us_skip_count': 0,
+#                     'us_complete_ratio': 0.0,
+#                     'us_avg_play_ratio': 0,
+#                     'song_duration': song['song_duration'],
+#                     'song_genre': song['genre'],
+#                     'song_language': song['language'],
+#                     'song_play_count': song['song_play_count'],
+#                     'song_complete_rate': song['song_complete_rate'],
+#                     'user_total_plays': user.get('user_total_plays', 0),
+#                     'user_complete_rate': user.get('user_complete_rate', 0),
+#                     'is_new_pair': 1,
+#                     'y': cls.WEAK_NEG_LABEL,
+#                     'sample_weight': cls.WEAK_NEG_WEIGHT
+#                 }) # 构造弱负数据
 
-#     df_pos_neg = build_positive_strong_negative_data(df_us, df_song, df_user)
-#     df_weak_neg = build_weak_negative_data(df_us, df_song, df_user, sample_k)
-#     df_all = pd.concat([df_pos_neg, df_weak_neg], ignore_index=True) # 将df_pos_neg和df_weak_neg垂直堆叠，ignore_index重置行索引，避免索引重复
+#     # 生成训练数据
+#     @classmethod
+#     async def build_train_data(cls, sample_k=5):
+#         """
+#         sample_k控制采样多少未听过歌曲
+#         这样训练集会既有已有历史的正/负也有未听过的弱负，模型能学会基于content+user做判断
+#         """
+#         columns_us = ['user_id', 'song_id', 'us_play_count', 'us_complete_count', 'us_skip_count', 'us_avg_play_ratio', 'last_played', 'song_duration', 'genre', 'language']
+#         df_us = await db_operations.Analytics.get_user_song_aggregation()
+#         df_us = pd.DataFrame(df_us, columns=columns_us)
 
-#     return df_all
+#         columns_song = ['song_id', 'song_play_count', 'song_complete_rate']
+#         df_song = await db_operations.Analytics.get_song_level_stats()
+#         df_song = pd.DataFrame(df_song, columns=columns_song)
+
+#         columns_user = ['user_id', 'user_total_plays', 'user_total_complete', 'user_complete_rate']
+#         df_user = await db_operations.Analytics.get_user_level_stats()
+#         df_user = pd.DataFrame(df_user, columns=columns_user)
+#         # df_user['user_complete_rate'] = df_user['user_total_complete'] / df_user['user_total_plays']
+
+#         df_pos_neg = cls.build_positive_strong_negative_data(df_us, df_song, df_user)
+#         df_weak_neg = cls.build_weak_negative_data(df_us, df_song, df_user, sample_k)
+#         df_all = pd.concat([df_pos_neg, df_weak_neg], ignore_index=True, sort=False) # 将df_pos_neg和df_weak_neg垂直堆叠，ignore_index重置行索引，避免索引重复
+
+#         # 确保所有列存在，按 schema 填充默认值
+#         for col in cls.SAMPLE_COLUMNS:
+#             if col not in df_all.columns:
+#                 df_all[col] = 0 if 'count' in col or 'duration' in col or 'weight' in col else 0.0
+
+#         train_data = df_all[cls.SAMPLE_COLUMNS]
+#         print(train_data)
+
 
 
 
@@ -314,5 +316,124 @@ class UserModelTable:
     # df_all['is_new_pair'] = df_all['is_new_pair'].fillna(0).astype(int)
     # df_all['y'] = df_all['y'].fillna(0.0).astype(float)
     # df_all['sample_weight'] = df_all['sample_weight'].fillna(1.0).astype(float)
+
+
+
+# # 生成正和强负样本训练数据
+#     @classmethod
+#     def build_positive_strong_negative_data(cls, df_us, df_song, df_user):
+#         df_song_new = df_song.drop(columns=['song_duration', 'song_genre', 'song_language'])
+#         # 将df_us与df_song, df_user合并
+#         df = df_us.merge(df_song_new, on='song_id', how='left')
+#         df = df.merge(df_user, on='user_id', how='left')
+#         # df.to_csv('df.csv', index=False, encoding='utf-8-sig')
+
+#         us_complete_ratio = df['us_complete_count'] / df['us_play_count'] # 向量化计算标签
+#         df['us_complete_ratio'] = us_complete_ratio.fillna(0) # 填充空值
+        
+#         # 定义正样本和强负样本条件
+#         is_positive = df['us_complete_ratio'] >= 0.6
+#         is_strong_negative = (df['us_play_count'] >= 3) & (df['us_complete_ratio'] <= 0.2)
+        
+#         df = df[is_positive | is_strong_negative].copy() # 筛选有效样本
+
+#         # 构造输出列
+#         df['y'] = is_positive.astype(int)
+#         df['sample_weight'] = df['y'].apply(lambda x: cls.POSITIVE_WEIGHT if x == 1 else cls.STRONG_NEG_WEIGHT)
+#         df['is_new_pair'] = 0
+
+#         # 重命名列名
+#         result_df = df.rename(columns={
+#             'genre': 'song_genre',
+#             'language': 'song_language'
+#         })
+
+#         return result_df
+
+    
+#     # 生成弱负样本训练数据
+#     @classmethod
+#     def build_weak_negative_data(cls, df_us, df_song, df_user, sample_k):
+#         neg_rows = []
+#         # 构建ID到特征的快速映射字典
+#         user_feature_map = df_user.set_index('user_id').to_dict('index')
+#         song_feature_map = df_song.set_index('song_id').to_dict('index')
+#         all_songs = set(df_song['song_id']) # 去重，总结出所有歌曲
+        
+#         user_heard_dict = df_us.groupby('user_id')['song_id'].apply(set).to_dict() # 按用户分组，获取每个用户听过的歌
+
+#         # 负采样循环
+#         for user_id, heard_songs in user_heard_dict.items():
+#             candidates = list(all_songs - heard_songs) # 用户未听过的歌曲
+#             if not candidates: continue
+#             k = min(sample_k, len(candidates))
+#             sampled_ids = random.sample(candidates, k)
+
+#             user_info = user_feature_map.get(user_id, {}) # 获取对应用户数据
+
+#             for s_id in sampled_ids:
+#                 song_info = song_feature_map.get(s_id, {}) # 获取对应歌曲统计数据
+                
+#                 # 构造弱负样本行
+#                 neg_rows.append({
+#                     'user_id': user_id,
+#                     'song_id': s_id,
+#                     'us_play_count': 0,
+#                     'us_complete_count': 0,
+#                     'us_skip_count': 0,
+#                     'us_complete_ratio': 0.0,
+#                     'us_avg_play_ratio': 0.0,
+#                     'song_duration': song_info.get('song_duration', 0),
+#                     'song_genre': song_info.get('song_genre', 'unknown'),
+#                     'song_language': song_info.get('song_language', 'unknown'),
+#                     'song_play_count': song_info.get('song_play_count', 0),
+#                     'song_complete_rate': song_info.get('song_complete_rate', 0.0),
+#                     'user_total_plays': user_info.get('user_total_plays', 0),
+#                     'user_complete_rate': user_info.get('user_complete_rate', 0.0),
+#                     'is_new_pair': 1,
+#                     'y': cls.WEAK_NEG_LABEL,
+#                     'sample_weight': cls.WEAK_NEG_WEIGHT
+#                 })# 构造弱负数据
+
+#         return pd.DataFrame(neg_rows)
+    
+
+
+# # 生成正和强负样本训练数据
+#     @classmethod
+#     def build_positive_strong_negative_data(cls, df_us, df_song, df_user):
+#         df_song_new = df_song.drop(columns=['song_duration', 'song_genre', 'song_language'])
+#         # 将df_us与df_song, df_user合并
+#         df = df_us.merge(df_song_new, on='song_id', how='left')
+#         df = df.merge(df_user, on='user_id', how='left')
+#         # df.to_csv('df.csv', index=False, encoding='utf-8-sig')
+
+#         us_complete_ratio = df['us_complete_count'] / df['us_play_count'] # 向量化计算标签
+#         df['us_complete_ratio'] = us_complete_ratio.fillna(0) # 填充空值
+        
+#         # 定义正样本和强负样本y条件
+#         is_positive = df['us_complete_ratio'] >= 0.6 # 完播率>=60%
+#         is_strong_negative = (df['us_play_count'] >= 3) & (df['us_complete_ratio'] <= 0.3)
+#         df = df[is_positive | is_strong_negative].copy() # 筛选有效样本
+
+#         # 标签平滑
+#         df['y'] = df['us_complete_ratio'].clip(0, 1) # 限制在 0-1 之间
+#         df.loc[is_positive, 'y'] = 0.8 + (df['us_complete_ratio'] * 0.2) # 分数区间在0.8~1
+#         df.loc[is_strong_negative, 'y'] = df['us_complete_ratio'] * 0.5 # 分数区间在0~0.1
+#         df['y'] = df['y'] * (1 - 1 / (df['us_avg_play_ratio'] + 1)) # 通过播放次数修正
+
+#         df['sample_weight'] = df['y'].apply(lambda x: cls.POSITIVE_WEIGHT if x >= 0.6 else cls.STRONG_NEG_WEIGHT)
+#         df['is_new_pair'] = 0
+
+#         # 重命名列名
+#         result_df = df.rename(columns={
+#             'genre': 'song_genre',
+#             'language': 'song_language'
+#         })
+
+#         return result_df
+
+
+
 
 

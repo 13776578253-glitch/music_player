@@ -21,7 +21,10 @@ async def get_playlist_songs_information(playlist_id: str):
     return data
 
 async def get_song_information(song_id):
-    data = await db_operations.SongTable.get_song_by_id(song_id)
+    song = await db_operations.SongTable.get_song_by_id(song_id)
+    data = {
+        'songs':[song]
+    }
     logger.info(f"歌曲{song_id}信息已提取[get_song_information]")
     return data
 
