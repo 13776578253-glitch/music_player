@@ -1,2 +1,2 @@
 # music_player
-creat a music server use c data structure
+creat a music server use data structure
