@@ -1,62 +1,172 @@
 
+// const home_page = {
+//     async init(_params) {
+//         //console.log("[Home] 开始初始化...");
+//         const container = document.getElementById('home-list');
+//         const template = document.getElementById('song-card-template');
+
+//         this.handleBannerClick();   //
+
+//         if (!this.validate(container, template)) return;
+
+//         //核心！
+//         try {
+//             //const songs = await API.getRecommend();
+//             // const Playlists = await API.getPopularPlaylists();
+//             const Playlists = await API.getPopularSonglists();
+//             this.render(container, template, Playlists);
+//         } catch (error) {
+//             this.handleError(container, error);
+//         }
+//     },
+
+//     // 点击后 立即播放 事件
+//     handleBannerClick() {
+//         const playBtn = document.getElementById('banner-play-btn');
+//         if (!playBtn) return;
+
+//         // 解绑旧事件（防止 SPA 切换导致重复绑定）
+//         playBtn.onclick = null;
+
+//         playBtn.onclick = async () => {
+//             console.log("[Home] 点击了 Banner 立即播放");
+            
+//             // 给个加载反馈（可选）
+//             const originalText = playBtn.innerHTML;
+//             playBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> 加载中...`;
+
+//             try {
+//                 if (!window.API) {
+//                     throw new Error("全局 API 对象尚未加载完毕");
+//                 }
+
+//                 // 调用你指定的接口获取歌曲列表
+//                 const songs = await window.API.getPopularSonglists();
+
+//                 // 检查数据有效性
+//                 if (songs && songs.length > 0) {
+//                     console.log(`[Home] 获取到 ${songs.length} 首歌曲，准备播放...`);
+                    
+//                     // 【核心】调用 Player
+//                     // 参数1: 列表里的第一首歌 (作为当前播放)
+//                     // 参数2: 整个列表 (用于构建链表)
+//                     if (window.Player) {
+//                         await Player.play(songs[0], songs);
+//                     }
+//                 } else {
+//                     console.warn("接口返回了空列表");
+//                 }
+//             } catch (err) {
+//                 console.error("播放失败:", err);
+//             } finally {
+//                 // 恢复按钮文字
+//                 playBtn.innerHTML = originalText;
+//             }
+//         };
+//     },
+
+//     validate(container, template, data) {
+
+//         if (!container || !template) {
+//             console.warn(' — 缺少 DOM 元素 —');
+//             return false;
+//         }
+//         return true;
+//     },
+
+//     // 核心渲染逻辑！
+//     render(container, template, data) {
+//         container.innerHTML = ''; 
+        
+//         const fragment = document.createDocumentFragment();  // 使用文档片段减少性能损耗
+
+//         data.forEach(song => {
+//             const clone = template.content.cloneNode(true);
+            
+//             // 数据映射
+//             clone.querySelector('.pl-cover').src = song.url;
+//             clone.querySelector('.pl-title').textContent = song.title;
+            
+//             // 事件绑定
+//             clone.querySelector('.playlist-item').onclick = () => {
+//                 loadPage('playlist', { id: song.id }); 
+//             };
+            
+//             fragment.appendChild(clone);
+//         });
+
+//         container.appendChild(fragment);
+//         console.log("— 渲染完成 —");
+//     },
+
+//     handleError(container, error) {
+//         console.error('— 加载失败: —', error);
+//         container.innerHTML = `<div class="text-red-500">内容加载失败，请检查后端服务。</div>`;
+//     }
+// };
+
+
+// window.PageHandlers = window.PageHandlers || {};
+// window.PageHandlers.home = (_params) => home_page.init(_params);
+
 const home_page = {
     async init(_params) {
-        //console.log("[Home] 开始初始化...");
+
+        this.handleBannerClick();
+
         const container = document.getElementById('home-list');
-        const template = document.getElementById('song-card-template');
+        // const template = document.getElementById('song-card-template');
 
-        if (!this.validate(container, template)) return;
+        // 1. 核心：只绑定 Banner 的立即播放事件
+        this.handleBannerClick();
 
-        //核心！
-        try {
-            //const songs = await API.getRecommend();
-            const Playlists = await API.getPopularPlaylists();
-            this.render(container, template, Playlists);
-        } catch (error) {
-            this.handleError(container, error);
-        }
+        if (!container) return;
+
+        // // 2. 清空下方列表 (既然你还没定义歌单数据，我们就不要强行渲染歌曲)
+        // container.innerHTML = `
+        //     <div class="col-span-full py-10 text-center text-slate-500 border-2 border-dashed border-slate-800 rounded-2xl">
+        //         <p>暂无歌单数据，请点击上方“立即播放”测试链表内核</p>
+        //     </div>
+        // `;
     },
 
-    validate(container, template, data) {
+    handleBannerClick() {
+        const playBtn = document.getElementById('banner-play-btn');
+        if (!playBtn) return;
 
-        if (!container || !template) {
-            console.warn(' — 缺少 DOM 元素 —');
-            return false;
-        }
-        return true;
-    },
-
-    // 核心渲染逻辑！
-    render(container, template, data) {
-        container.innerHTML = ''; 
-        
-        const fragment = document.createDocumentFragment();  // 使用文档片段减少性能损耗
-
-        data.forEach(song => {
-            const clone = template.content.cloneNode(true);
+        playBtn.onclick = null;
+        playBtn.onclick = async () => {
+            console.log("[Home] 点击了 Banner，准备加载 10 首测试歌曲到链表...");
             
-            // 数据映射
-            clone.querySelector('.pl-cover').src = song.url;
-            clone.querySelector('.pl-title').textContent = song.title;
-            
-            // 事件绑定
-            clone.querySelector('.playlist-item').onclick = () => {
-                loadPage('playlist', { id: song.id }); 
-            };
-            
-            fragment.appendChild(clone);
-        });
+            try {
+                // 直接从 API 获取那 10 首存放在 _List_SONGS 里的歌曲
+                const songs = await window.API.getPopularSonglists();
 
-        container.appendChild(fragment);
-        console.log("— 渲染完成 —");
-    },
+                if (songs && songs.length > 0) {
+                    console.log(`[Kernel] 成功提取数据，正在构建双向循环链表...`);
+                    
+                    if (!window.Player) {
+                        console.error("❌ 致命错误：Player 对象未定义！请检查 player.js 是否成功挂载到 window");
+                        return;
+                    }
 
-    handleError(container, error) {
-        console.error('— 加载失败: —', error);
-        container.innerHTML = `<div class="text-red-500">内容加载失败，请检查后端服务。</div>`;
+                    if (window.Player) {
+                        console.log(`...`);
+                        // 【关键】这里将 10 首歌传入 Player.js
+                        // Player 会在内部执行：this.playlist = new DoublyCircularLinkedList()
+                        await window.Player.play(songs[0], songs);
+                        
+                        // 验证代码
+                        console.log("[Check] 播放器当前歌曲:", window.Player.currentSong.title);
+                        console.log("[Check] 链表长度:", window.Player.playlist.size);
+                    }
+                }
+            } catch (err) {
+                console.error("链表注入失败:", err);
+            }
+        };
     }
 };
-
 
 window.PageHandlers = window.PageHandlers || {};
 window.PageHandlers.home = (_params) => home_page.init(_params);

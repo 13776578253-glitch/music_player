@@ -59,14 +59,41 @@ function executePageScripts(container) {
 window.loadPage = loadPage;
 
 // 测试逻辑
-async function handlePlay(songId) {
-    console.log("准备播放歌曲 ID:", songId);
+
+// async function handlePlay(songId) {
+//     console.log("准备播放歌曲 ID:", songId);
     
-    const songData = await API.getSongDetail(songId);
+//     const songData = await API.getSongDetail(songId);
     
-    if (songData) {
-        Player.play(songData);
-    } else {
-        console.error("未找到歌曲数据");
-    }
-}
+//     if (songData) {
+//         Player.play(songData);
+//     } else {
+//         console.error("未找到歌曲数据");
+//     }
+// }
+
+
+// async function handlePlay(songId) {
+//     console.log("准备播放歌曲集合，定位 ID:", songId);
+    
+//     try {
+//         // 1. 获取集合数据 (此时返回的是 { songs: [...] })
+//         const responseData = await API.getSongDetail(songId);
+        
+//         if (responseData && responseData.songs && responseData.songs.length > 0) {
+//             const list = responseData.songs;
+            
+//             // 2. 在集合中找到匹配的那首歌对象
+//             const target = list.find(s => (s.id == songId || s.song_id == songId)) || list[0];
+            
+//             // 3. 调用 Player 播放，并把整个集合传进去构建链表
+//             if (window.Player) {
+//                 Player.play(target, list); 
+//             }
+//         } else {
+//             console.error("未找到有效的歌曲集合数据");
+//         }
+//     } catch (err) {
+//         console.error("handlePlay 执行失败:", err);
+//     }
+// }

@@ -16,59 +16,78 @@ const Player = {
     isQueueOpen: false, // 侧边栏状态
 
     init() {
-        // 核心事件监听
-        this.audio.ontimeupdate = () => this.handleTimeUpdate();
-        this.audio.onended = () => this.next(true);
+        try {
+            // 核心事件监听
+            this.audio.ontimeupdate = () => this.handleTimeUpdate();
+            this.audio.onended = () => this.next(true);
 
-        // 进度条初始化
-        this.setupProgressBar('p-progress-container'); // 底部
-        this.setupProgressBar('fp-progress-container'); // 全屏
+            // 进度条初始化
+            this.setupProgressBar('p-progress-container'); // 底部
+            this.setupProgressBar('fp-progress-container'); // 全屏
 
-        // 点击底部封面展开全屏
-        const miniCover = document.getElementById('p-cover');
-        if (miniCover) miniCover.onclick = () => this.toggleFullPlayer();
+            // 点击底部封面展开全屏
+            const miniCover = document.getElementById('p-cover');
+            if (miniCover) miniCover.onclick = () => this.toggleFullPlayer();
 
-        // 特殊——初始化
-        if (typeof DoublyCircularLinkedList !== 'undefined') {
-            this.playlist = new DoublyCircularLinkedList();
-        }
-
-        // 初始化按钮监听 (使用事件委托)
-        this.initControlListeners();
-
-        console.log("Player 系统初始化完成");
-    },
-
-    // 核心播放入口
-    async play(song, list = []) {
-        if (!song) return;
-
-        //  构建链表
-        // this.playlist = new DoublyCircularLinkedList();
-        if (list && list.length > 0) {
-            console.log("初始化播放列表...", list.length);
-            this.playlist = new DoublyCircularLinkedList();
-            list.forEach(s => this.playlist.append(s));
-
-            this.renderQueue();
-            // 尝试定位当前歌曲
-            const found = this.playlist.setCurrentById(song.song_id || song.id);
-            if (!found) {
-                // 如果列表里找不到这首歌，就把它加进去
-                this.playlist.append(song);
-                this.playlist.setCurrentById(song.song_id || song.id);
+            // 测试
+            // 特殊——初始化
+            if (typeof DoublyCircularLinkedList !== 'undefined') {
+                this.playlist = new DoublyCircularLinkedList();
             }
 
-            //  待确定逻辑
-            await this.loadAndPlayCurrent();
-        } else {
-            this.playlist.append(song);
-            this.playlist.current = this.playlist.head;
-        }
+            // 初始化按钮监听 (使用事件委托)
+            this.initControlListeners();
 
-        // 2. 获取数据并播放
-        const dataToPlay = this.playlist.getCurrentData();
-        this.loadSong(dataToPlay);
+            console.log("Player 系统初始化完成");
+        } catch (e) {
+            console.error(" Player 初始化过程崩溃:", e);
+        }
+    
+    },
+
+    async play(song, list = []) {
+        console.log("[Player] 收到播放请求:", song?.title);
+        
+        try {
+            // 1. 验证必要参数
+            if (!song) throw new Error("播放失败：未传入有效的歌曲对象");
+
+            // 2. 链表构建逻辑
+            if (list && list.length > 0) {
+                if (typeof DoublyCircularLinkedList === 'undefined') {
+                    throw new Error("LinkedList.js 未加载，无法构建循环播放链表");
+                }
+                this.playlist = new DoublyCircularLinkedList();
+                list.forEach(item => this.playlist.append(item));
+                console.log(`[Kernel] 链表构建成功，节点数: ${this.playlist.size}`);
+            }
+
+            if (!this.playlist || this.playlist.size === 0) {
+                throw new Error("播放队列为空，请检查数据源");
+            }
+
+            // 3. 定位指针 (强制类型转换以兼容 API 字段)
+            const targetId = String(song.song_id || song.id);
+            const foundNode = this.playlist.setCurrentById(targetId);
+
+            if (!foundNode) {
+                console.warn(`[Kernel] 定位失败(ID:${targetId})，将回退至队列首位`);
+                this.playlist.current = this.playlist.head;
+            }
+
+            // 4. 核心赋值：这一步解决了 home.js 读不到 title 的问题
+            this.currentSong = this.playlist.current.data;
+            
+            // 5. 加载并播放
+            await this.loadSong(this.currentSong);
+
+            // 6. UI 更新
+            this.renderQueue();
+
+        } catch (err) {
+            console.error(" [Player.play] 核心链路崩溃:", err.message);
+            throw err; 
+        }
     },
 
     renderQueue() {
@@ -159,22 +178,32 @@ const Player = {
 
     loadSong(song) {
         if (!song) return;
+    
+        try {
+            const audioSrc = song.filepath || song.url || "";
+            if (!audioSrc) throw new Error(`歌曲《${song.title}》缺少音频路径`);
 
-        // 更新全局状态
-        this.currentSong = song;
-        
-        // // 兼容音频地址
-        // this.audio.src = song.filepath || song.url || "";
+            this.audio.src = audioSrc;
+            
+            // 处理浏览器自动播放策略
+            const playPromise = this.audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    this.isPlaying = true;
+                    this.updatePlayStateUI();
+                }).catch(e => {
+                    console.warn("[Player] 浏览器拦截了自动播放，等待用户点击交互", e.name);
+                    this.isPlaying = false;
+                    this.updatePlayStateUI();
+                });
+            }
 
-        const audioSrc = song.filepath || song.url || "";
-        this.audio.src = audioSrc;
-        
-        // 尝试播放
-        this.audio.play().catch(e => console.log("等待用户交互以播放:", e));
-        this.isPlaying = true;
-
-        // 立即同步所有 UI
-        this.syncUI(song);
+            // 同步所有 UI 组件
+            this.syncUI(song);
+            
+        } catch (e) {
+            console.error("❌ [Player.loadSong] 出错:", e.message);
+        }
     },
 
     // 下一首
@@ -428,6 +457,8 @@ const Player = {
         }
     }
 };
+
+window.Player = Player;
 
 // 启动
 Player.init();
