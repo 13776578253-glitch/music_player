@@ -120,6 +120,42 @@ class SongTable:
             logger.error(f"查询歌曲失败：{e}")
             raise
 
+    # 批量查询数据
+    @classmethod
+    async def get_songs_by_ids(cls, song_ids, conn=None):
+        if not song_ids: return []
+
+        placeholders = ",".join(["?"] * len(song_ids))
+        sql = f"""
+        SELECT s.id, s.id AS song_id, s.title, s.artist, s.album, s.lyrics, 
+        s.lyricist, s.composer, s.language, s.genre, s.record_company, s.duration, 
+        s.file_path, s.url, s.is_deleted, s.created_at
+        FROM songs AS s
+        WHERE id IN ({placeholders})
+        """
+
+        try:
+            if conn is None:
+                async with db_context() as conn:
+                    cursor = await conn.execute(sql, song_ids)
+                    rows = await cursor.fetchall()
+            else:
+                cursor = await conn.execute(sql, song_ids)
+                rows = await cursor.fetchall()
+
+            result = []
+            for row in rows:
+                song_dict = dict(row)
+                song_dict["artist"] = json.loads(song_dict["artist"])
+                result.append(song_dict)
+
+            logger.info(f"批量查询歌曲成功，共{len(result)}首")
+            return result
+
+        except aiosqlite.Error as e:
+            logger.error(f"批量查询歌曲失败：{e}")
+            raise
+
     # 更新数据
     @classmethod
     async def update_song(cls, song_id, new_data, conn):
@@ -224,7 +260,7 @@ class SongStatsTable:
     # 更新歌曲统计数据
     @classmethod
     async def update_song_stats(cls, song_id, count_type, add_count=1):
-        valid_stats = ['skip_count', 'complete_count']
+        valid_stats = ['skip_count', 'complete_count', 'play_count']
         if count_type not in valid_stats:
             logger.error(f"无效的歌曲更新统计类型：{count_type}，可选类型：{valid_stats}")
             return False
@@ -234,18 +270,18 @@ class SongStatsTable:
         
         sql = f"""
         UPDATE song_stats 
-        SET play_count = play_count + ?, {count_type} = {count_type} + ?, last_played = CURRENT_TIMESTAMP 
+        SET {count_type} = {count_type} + ?, last_played = CURRENT_TIMESTAMP 
         WHERE song_id = ?
         """
         try:
             async with db_context() as conn:
                 cursor = await conn.cursor()
-                await cursor.execute(sql, (add_count, add_count, song_id))
+                await cursor.execute(sql, (add_count, song_id))
                 if cursor.rowcount == 0:
                     # 若统计记录不存在，先初始化再更新
                     await cls.init_song_stats(song_id, conn=conn)
-                    await cursor.execute(sql, (add_count, add_count, song_id))
-            logger.info(f"歌曲{song_id}的play_count和{count_type}增加{add_count}")
+                    await cursor.execute(sql, (add_count, song_id))
+            logger.info(f"歌曲{song_id}的{count_type}增加{add_count}")
             return True
         except aiosqlite.Error as e:
             logger.error(f"更新歌曲统计数据失败：{e}")
@@ -412,12 +448,26 @@ class PlayEventTable:
 
     @classmethod
     async def if_update_song_stats(cls, song_id, event_type):
+        await SongStatsTable.update_song_stats(song_id, 'play_count')
         if event_type == 'skip':
             await SongStatsTable.update_song_stats(song_id, 'skip_count')
         elif event_type == 'complete':
             await SongStatsTable.update_song_stats(song_id, 'complete_count')
         else:
             return
+        
+    @classmethod
+    async def get_max_id(cls):
+        sql = "SELECT MAX(id) AS max_id FROM play_events;"
+        try:
+            async with db_context() as conn:
+                cursor = await conn.execute(sql)
+                row = await cursor.fetchone()
+            logger.info(f"已获取play_events的最大id")
+            return dict(row)
+        except aiosqlite.Error as e:
+            logger.error(f"获取play_events的最大id失败：{e}")
+            raise
 
     # 新增播放行为日志
     @classmethod
@@ -611,9 +661,9 @@ class PlaylistTable:
             logger.error(f"更新歌单失败：{e}")
             raise
 
+    # 删除歌单
     @classmethod
     async def delete_playlist(cls, playlist_id):
-        # 删除歌单
         sql = "DELETE FROM playlists WHERE id = ?"
         try:
             async with db_context() as conn:
@@ -657,10 +707,11 @@ class UserPlaylistTable:
     # 获取最大position值
     @classmethod
     async def get_max_position(cls, user_id):
+        sql = "SELECT MAX(position) FROM user_playlists WHERE user_id = ?"
         try:
             async with db_context() as conn:
                 cursor = await conn.cursor()
-                await cursor.execute("""SELECT MAX(position) FROM user_playlists WHERE user_id = ?""", (user_id,))
+                await cursor.execute(sql, (user_id,))
                 max_pos = await cursor.fetchone()
 
                 logger.info(f"获取用户{user_id}的歌单最大position成功")
@@ -832,7 +883,7 @@ class PlaylistSongTable:
             raise
 
 # 用户决策树表
-class UserModelTable:
+class ModelTable:
     CREATE_QUERY = """
     CREATE TABLE IF NOT EXISTS model (
         id INTEGER PRIMARY KEY,
@@ -856,17 +907,33 @@ class UserModelTable:
             raise
 
     # 保存/更新模型
-    classmethod
-    async def save_user_model(cls, model_id, model_data, event_cursor):
-        sql = """INSERT OR REPLACE INTO model (id, model_data, event_cursor) VALUES (?, ?, ?)"""
+    @classmethod
+    async def save_model(cls, model_id, model_type, model_data, event_cursor):
+        sql = """INSERT OR REPLACE INTO model (id, model_type, model_data, event_cursor) VALUES (?, ?, ?, ?)"""
         try:
             async with db_context() as conn:
                 cursor = await conn.cursor()
-                await cursor.execute(sql, (model_id, model_data, event_cursor))
+                await cursor.execute(sql, (model_id, model_type, model_data, event_cursor))
             logger.info(f"保存模型数据成功")
             return True
         except aiosqlite.Error as e:
             logger.error(f"保存模型失败：{e}")
+            raise
+
+    # 查找模型id
+    @classmethod
+    async def get_model_by_id(cls, model_id):
+        sql = "SELECT * FROM model WHERE id = ?"
+        try:
+            async with db_context() as conn:
+                cursor = await conn.cursor()
+                await cursor.execute(sql, (model_id,))
+                row = await cursor.fetchone()
+
+                logger.info(f"查询模型{model_id}成功")
+                return dict(row) if row else None
+        except aiosqlite.Error as e:
+            logger.error(f"查询模型失败：{e}")
             raise
 
 
@@ -890,12 +957,45 @@ class Analytics:
                 row_dict["artist"] = []
             result.append(row_dict)
         return result
+    
+    @classmethod
+    def if_is_loved(cls, loved_songs, songs):
+        for s in songs: 
+            s.pop('play_count', None)
+            s['is_loved'] = 0
+            if s['id'] in loved_songs: s['is_loved'] = 1
+        return songs
+    
+
+    # 查找用户已喜欢歌曲
+    @classmethod
+    async def user_is_loved(cls, user_id):
+        sql = """
+        SELECT DISTINCT ps.song_id
+        FROM playlists p
+        JOIN playlist_songs ps ON ps.playlist_id = p.id
+        WHERE p.creator_id = ? AND p.type = 'loved';
+        """
+
+        try:
+            async with db_context() as conn:
+                cursor = await conn.execute(sql, (user_id,))
+                rows = await cursor.fetchall()
+                data = cls.tuple_to_list(rows)
+                logger.info("user_is_loved成功提取信息")
+                return data
+
+        except aiosqlite.Error as e:
+            logger.error(f"user_is_loved提取信息失败：{e}")
+            raise
 
     # 提取播放次数最多的10个歌曲信息
     @classmethod
     async def get_most_played_song(cls): 
         query = """
-        SELECT s.id, s.title, s.artist, s.duration, COUNT(p.song_id) AS play_count
+        SELECT s.id, s.id AS song_id, s.title, s.artist, s.album, s.lyrics, s.lyricist, 
+        s.composer, s.language, s.genre, s.record_company, s.duration, s.file_path, 
+        s.url, s.is_deleted, s.created_at, COUNT(p.song_id) AS play_count
         FROM play_events p
         JOIN songs s ON p.song_id = s.id
         GROUP BY s.id
@@ -941,7 +1041,7 @@ class Analytics:
 
     # 生成正样本候选与强负的user_song聚合行-训练所有用户的样本行
     @classmethod
-    async def get_user_song_aggregation(cls):
+    async def get_user_song_aggregation(cls, date=30, limit=None):
         sql = """
         SELECT
             p.user_id,
@@ -956,13 +1056,19 @@ class Analytics:
             s.language
         FROM play_events p
         JOIN songs s ON p.song_id = s.id
-        WHERE p.created_at >= DATE('now', '-30 days')
-        GROUP BY p.user_id, p.song_id;
+        WHERE p.created_at >= DATE('now', ?)
+        GROUP BY p.user_id, p.song_id
         """
+        params = []
+        params.append(f'-{date} days')
+
+        if limit is not None:
+            sql += "ORDER BY p.created_at DESC LIMIT ?"
+            params.append(limit)
 
         try:
             async with db_context() as conn:
-                cursor = await conn.execute(sql)
+                cursor = await conn.execute(sql, params)
                 rows = await cursor.fetchall()
                 data = cls.tuple_to_list(rows)
                 logger.info("get_user_song_aggregation成功提取信息")
@@ -1003,7 +1109,7 @@ class Analytics:
     # 正数据为用户完全播放较多
     # 强负数据为用户反复尝试、反复跳过
     @classmethod
-    async def get_user_level_stats(cls):
+    async def get_user_level_stats(cls, date=30, limit=None):
         sql = """
         SELECT
             p.user_id,
@@ -1011,13 +1117,19 @@ class Analytics:
             SUM(CASE WHEN p.event_type = 'complete' THEN 1 ELSE 0 END) AS user_total_complete,
             SUM(CASE WHEN p.event_type = 'complete' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS user_complete_rate
         FROM play_events p
-        WHERE p.created_at >= DATE('now', '-30 days')
-        GROUP BY p.user_id;
+        WHERE p.created_at >= DATE('now', ?)
+        GROUP BY p.user_id
         """
+        params = []
+        params.append(f'-{date} days')
+
+        if limit is not None:
+            sql += "ORDER BY p.created_at DESC LIMIT ?"
+            params.append(limit)
 
         try:
             async with db_context() as conn:
-                cursor = await conn.execute(sql)
+                cursor = await conn.execute(sql, params)
                 rows = await cursor.fetchall()
                 data = cls.tuple_to_list(rows)
                 logger.info("get_user_level_stats成功提取信息")
@@ -1026,6 +1138,33 @@ class Analytics:
         except aiosqlite.Error as e:
             logger.error(f"get_user_level_stats提取信息失败：{e}")
             raise
+
+    # 查找用户的聚合信息用于预测
+    @classmethod
+    async def get_one_user_song_aggregation(cls, user_id):
+        sql = """
+        SELECT 
+            s.id AS song_id, s.genre AS song_genre, s.language AS song_language, s.duration AS song_duration,
+            ss.play_count AS song_play_count, 
+            ss.complete_count song_complete_count
+        FROM songs s
+        LEFT JOIN song_stats ss ON s.id = ss.song_id
+        LEFT JOIN play_events p ON s.id = p.song_id AND p.user_id = ?
+        WHERE p.song_id IS NULL
+        """
+
+        try:
+            async with db_context() as conn:
+                cursor = await conn.execute(sql, (user_id,))
+                rows = await cursor.fetchall()
+                data = cls.tuple_to_list(rows)
+                logger.info("get_one_user_song_aggregation成功提取信息")
+                return data
+
+        except aiosqlite.Error as e:
+            logger.error(f"get_one_user_song_aggregation提取信息失败：{e}")
+            raise
+
 
 
 if __name__ == "__main__":
