@@ -101,7 +101,7 @@ class Decision_Tree():
         feature_indexs = list(range(data.shape[1]-2))
 
         for feature_index in feature_indexs:
-            feature_values = np.percentile(data[:, feature_index], q=np.arange(25, 100, 25))  # 取25%，50%，75%的百分位数
+            feature_values = np.percentile(data[:, feature_index], q=np.arange(25, 100, 20))  # 取多个百分位数
             if len(feature_values) <= 1: continue # 如果这一列全是一样的值，直接跳过
             for feature_value in feature_values:
                 group1, group2 = self.spilt_data(data, feature_index, feature_value)
@@ -196,11 +196,6 @@ class Decision_Tree():
     def print_tree(self):
         if self.is_none(): return
         self.root.print_tree()
-
-    # 打印更好的决策树
-    def print_better_tree(self):
-        if self.is_none(): return
-
         
     # 预测一个例子
     def predict_one_sample(self, x):

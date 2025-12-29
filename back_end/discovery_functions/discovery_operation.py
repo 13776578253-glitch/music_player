@@ -1,4 +1,4 @@
-import json, logging, random, os
+import json, logging, random, os, pickle
 import numpy as np
 import pandas as pd
 
@@ -7,26 +7,33 @@ from decision import decision_tree
 
 logger = logging.getLogger("discovery_functions")
 
-async def get_popular_discovery_information():
-    songs = await db_operations.Analytics.get_most_played_song()
-    songs.sort(key=lambda x: x["position"])
-    data = {
-        'count': len(songs),
-        'songs': songs
-    }
-    logger.info(f"热门推荐信息已提取[get_popular_discovery_information]")
-    return data
+# async def get_popular_discovery_information(user_id):
+#     loved_songs = await db_operations.Analytics.user_is_loved(user_id)
+#     songs = await db_operations.Analytics.get_most_played_song()
 
-async def get_popular_daily_information():
-    data = None
-    return data
+#     last_songs = await db_operations.Analytics.if_is_loved(loved_songs, songs)
+#     # songs.sort(key=lambda x: x["position"])
+#     data = {
+#         'songs': last_songs
+#     }
+
+#     logger.info(f"热门推荐信息已提取[get_popular_discovery_information]")
+#     return data
+
+async def get_popular_daily_information(user_id):
+    predict_data = await TreeOperation.predict_data(user_id)
+    songs = await db_operations.SongTable.get_songs_by_ids(list(predict_data))
+    print(songs)
+    logger.info(f"每日推荐信息已提取[get_popular_daily_information]")
+    return 
+
 
 
 class TrainData:
     POSITIVE_WEIGHT = 2.0 # 正权重
-    STRONG_NEG_WEIGHT = 4.0 # 强负权重
-    SAMPLE_WEIGH = 0.8 # 默认/模糊权重
-    WEAK_NEG_WEIGHT = 0.4 # 弱负权重
+    STRONG_NEG_WEIGHT = 1 # 强负权重
+    SAMPLE_WEIGH = 0.1 # 默认/模糊权重
+    WEAK_NEG_WEIGHT = 0.2 # 弱负权重
     WEAK_NEG_LABEL = 0.1 # 弱负标签
 
     # 统一的列顺序
@@ -38,6 +45,9 @@ class TrainData:
         'is_new_pair', 'y', 'sample_weight'
     ]
 
+    X_COLUMNS = ['user_id', 'song_genre', 'song_language', 'song_duration', 'song_play_count', 'song_complete_rate', 'user_total_plays', 'user_complete_rate', 'is_new_pair']
+    Y_COLUMNS = 'y'
+
 
     # 垂直堆叠并随机排序
     @classmethod
@@ -45,13 +55,16 @@ class TrainData:
         df_all = pd.concat([df_pos_neg, df_weak_neg], ignore_index=True, sort=False) # 将df_pos_neg和df_weak_neg垂直堆叠，ignore_index重置行索引
         shuffled_index = np.random.permutation(df_all.index)
         result = df_all.iloc[shuffled_index].reset_index(drop=True)
+        # result = df_all
 
-        # 确保所有列存在，按 schema 填充默认值
+        # 确保所有列存在，填充默认值
         for col in cls.SAMPLE_COLUMNS:
             if col not in result.columns:
                 result[col] = 0.0
 
-        return result
+        train_data = result[cls.SAMPLE_COLUMNS] # 规定列顺序
+
+        return train_data
     
     @classmethod
     def save_data(cls, data, file_path):
@@ -65,10 +78,10 @@ class TrainData:
         if os.path.exists(mapping_file):
             with open(mapping_file, 'r', encoding='utf-8') as f:
                 all_mappings = json.load(f)
-            logging.info(f"已读取字典")
+            logger.info(f"已读取字典")
         else:
             all_mappings = {}
-            logging.info(f"未检测到字典")
+            logger.info(f"未检测到字典")
 
         for col in columns_to_encode:
             current_map = all_mappings.get(col, {}) # 获取该列已有的映射
@@ -89,7 +102,7 @@ class TrainData:
         with open(mapping_file, 'w', encoding='utf-8') as f:
             json.dump(all_mappings, f, ensure_ascii=False, indent=4)
         
-        logging.info("映射完成")
+        logger.info("映射完成")
         return df
     
     # 将DataFrame转换为NumPy训练数组
@@ -217,24 +230,134 @@ class TrainData:
         df_pos_neg = cls.build_positive_strong_negative_data(df_us, df_song, df_user)
         df_weak_neg = cls.build_weak_negative_data(df_us, df_song, df_user, sample_k)
 
-        df_all = cls.concat_shuffled_data(df_pos_neg, df_weak_neg)
+        train_data = cls.concat_shuffled_data(df_pos_neg, df_weak_neg)
 
-        train_data = df_all[cls.SAMPLE_COLUMNS]
         last_train_data = cls.transform_and_save_mappings(train_data, ['song_genre', 'song_language'])
         cls.save_data(last_train_data, "discovery_functions/train_data.csv")
 
-        X_columns = ['song_genre', 'song_language', 'song_duration', 'song_play_count', 'song_complete_rate', 'user_total_plays', 'user_complete_rate', 'is_new_pair']
-        Y_column = 'y'
-        X_train, Y_train, W_train = cls.prepare_training_arrays(last_train_data, X_columns, Y_column)
+        X_train, Y_train, W_train = cls.prepare_training_arrays(last_train_data, cls.X_COLUMNS, cls.Y_COLUMNS)
+        logger.info("已生成训练数据")
+
         return X_train, Y_train, W_train
+    
+
+    # 生成用户未听歌曲数据
+    @classmethod
+    def build_user_song_data(cls, df, samples=200): # 限制200条采样
+        df.sample(min(len(df), samples)) # 随机采样
+        df['song_complete_rate'] = (df['song_complete_count'] / df['song_play_count']).fillna(0)
+        df = df.drop(columns=['song_complete_count'])
+
+        return df
+
+    # 生成用户歌曲统计数据
+    @classmethod
+    def build_user_data(cls, df_user):
+        user_stats = df_user['event_type'].agg(
+            user_total_plays='count',
+            user_complete_count=lambda x: (x == 'complete').sum()
+        )
+
+        if user_stats['user_complete_count']:
+            user_stats['user_complete_rate'] = (user_stats['user_complete_count'] / user_stats['user_total_plays'])
+
+        return user_stats
+    
+    # 结合数据
+    def group_data(cls, df_us, df_u, user_id):
+        df_us['user_total_plays'] = df_u['user_complete_count']
+        df_us['user_complete_rate'] = df_u['user_complete_rate']
+        df_us['is_new_pair'] = 1
+        df_us['user_id'] = user_id
+        
+        predict_data = df_us[cls.X_COLUMNS]
+        predict_song_id = df_us['song_id'].reset_index(drop=True)
+        return predict_data, predict_song_id
+    
+
+    # 生成预测数据
+    @classmethod
+    async def build_predict_data(cls, user_id, sample_k=10):
+        columns = ['song_id', 'song_genre', 'song_language', 'song_duration', 'song_play_count', 'song_complete_count']
+        df = await db_operations.Analytics.get_one_user_song_aggregation(user_id)
+        df = pd.DataFrame(df, columns=columns)
+
+        user_columns = ['id', 'user_id', 'song_id', 'event_type', 'position', 'duration', 'created_at']
+        df_user = await db_operations.PlayEventTable.get_user_play_events(user_id, ['play', 'skip', 'complete'], limit=500) # 限制500条交互
+        df_user = pd.DataFrame(df_user, columns=user_columns)
+
+        df_us = cls.build_user_song_data(df)
+        df_u = cls.build_user_data(df_user)
+
+        predict_data, predict_song_id = cls.group_data(cls, df_us, df_u, user_id)
+        
+        last_predict_data = cls.transform_and_save_mappings(predict_data, ['song_genre', 'song_language'])
+        cls.save_data(last_predict_data, "discovery_functions/predict_data.csv")
+
+        result = last_predict_data.to_numpy().tolist()
+        result_song_id = predict_song_id.to_numpy().tolist()
+        logger.info("已生成预测数据")
+
+        return result, result_song_id
 
 
-async def test():
-    X_train, Y_train, W_train = await TrainData.build_train_data()
-    tree = decision_tree.Decision_Tree(MIN_SAMPLES_SPLIT=25, MIN_SAMPLES_LEAF=10)
-    tree.fit(X_train, Y_train, W_train)
-    tree.print_tree()
+class TreeOperation:
+    # 序列化决策树
+    @classmethod
+    def to_blob(cls, tree):
+        model_blob = pickle.dumps(tree)
+        return model_blob
 
+    # 训练决策树并存储
+    @classmethod
+    async def train_decision_tree(cls, max_depth=7, min_samples_split=10, min_samples_leaf=5):
+        decision_tree_id = 1
+        max_id = await db_operations.PlayEventTable.get_max_id()
+
+        X_train, Y_train, W_train = await TrainData.build_train_data()
+        tree = decision_tree.Decision_Tree(max_depth=max_depth, MIN_SAMPLES_SPLIT=min_samples_split, MIN_SAMPLES_LEAF=min_samples_leaf)
+        tree.fit(X_train, Y_train, W_train)
+        blob_tree = cls.to_blob(tree)
+
+        await db_operations.ModelTable.save_model(decision_tree_id, 'decision_tree', blob_tree, max_id['max_id'])
+        logger.info("已训练决策树并存储")
+        # from sklearn.ensemble import RandomForestRegressor
+        # ensemble_reg = RandomForestRegressor(
+        #     n_estimators=100,  # 决策树数量
+        #     random_state=42,
+        #     max_depth=5        # 控制单棵决策树复杂度
+        # )
+        # # 步骤2：fit()方法中直接传入sample_weight=W_train（核心：启用权重模式）
+        # ensemble_reg.fit(X_train, Y_train, sample_weight=W_train)
+        return ensemble_reg
+        
+    # 反序列化决策树
+    @classmethod
+    def blob_return(cls, data):
+        tree = pickle.loads(data)
+        return tree
+    
+    # 预测数据
+    @classmethod
+    async def predict_data(cls, user_id, top_n=10):
+
+        tree_data = await db_operations.ModelTable.get_model_by_id(1) 
+        tree_model = cls.blob_return(tree_data['model_data'])
+        
+        predict_data, predict_song_id = await TrainData.build_predict_data(user_id)
+        probability_list = tree_model.predict(predict_data)
+        
+        song_prob_dict = dict(zip(predict_song_id, probability_list)) # 结合为字典
+        top_song_dict = dict(sorted(song_prob_dict.items(), key=lambda x: x[1], reverse=True)[:top_n])
+        top_songs_list = list(top_song_dict.keys())
+        
+        logger.info("数据预测已完成")
+        # ensemble_reg = await cls.train_decision_tree()
+        # result = ensemble_reg.predict(predict_data)
+        # song_prob_dict1 = dict(zip(predict_song_id, result)) # 结合为字典
+        # top_song_dict1 = dict(sorted(song_prob_dict1.items(), key=lambda x: x[1], reverse=True)[:top_n])
+        # top_songs_list1 = list(top_song_dict1.keys())
+        return top_songs_list
 
 
 if __name__ == "__main__":
@@ -242,6 +365,5 @@ if __name__ == "__main__":
     setup_logging()
 
     import asyncio
-    asyncio.run(test())
-
+    asyncio.run(get_popular_daily_information(1))
 

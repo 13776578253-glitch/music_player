@@ -202,6 +202,281 @@ async def init_play_event():
     
     logger.info("所有个播放事件数据初始化完成！")
 
+async def init_rigorous_play_events():
+    """生成严谨的有规律播放事件数据集"""
+    
+    # 严谨的用户偏好模型
+    user_preferences = {
+        1: {
+            'fav_genres': ['pop', 'rock'],
+            'fav_languages': ['Japanese', 'English'],
+            'fav_duration_range': (180, 280),
+            'complete_probability': 0.85,  # 喜欢时完成概率
+            'skip_probability': 0.05       # 喜欢时跳过概率
+        },
+        2: {
+            'fav_genres': ['electronic', 'hip-hop'],
+            'fav_languages': ['Korean', 'English'],
+            'fav_duration_range': (150, 220),
+            'complete_probability': 0.80,
+            'skip_probability': 0.10
+        },
+        3: {
+            'fav_genres': ['folk', 'ballad'],
+            'fav_languages': ['Chinese', 'Japanese'],
+            'fav_duration_range': (200, 320),
+            'complete_probability': 0.90,
+            'skip_probability': 0.03
+        },
+        4: {
+            'fav_genres': ['rock', 'pop'],
+            'fav_languages': ['Japanese', 'Korean'],
+            'fav_duration_range': (210, 300),
+            'complete_probability': 0.82,
+            'skip_probability': 0.08
+        },
+        5: {
+            'fav_genres': ['pop', 'electronic'],
+            'fav_languages': ['English', 'Korean'],
+            'fav_duration_range': (160, 240),
+            'complete_probability': 0.78,
+            'skip_probability': 0.12
+        },
+        6: {
+            'fav_genres': ['folk', 'pop'],
+            'fav_languages': ['Chinese', 'Japanese'],
+            'fav_duration_range': (220, 330),
+            'complete_probability': 0.88,
+            'skip_probability': 0.04
+        },
+        7: {
+            'fav_genres': ['hip-hop', 'electronic'],
+            'fav_languages': ['Korean', 'English'],
+            'fav_duration_range': (140, 210),
+            'complete_probability': 0.75,
+            'skip_probability': 0.15
+        },
+        8: {
+            'fav_genres': ['rock', 'ballad'],
+            'fav_languages': ['Japanese', 'Chinese'],
+            'fav_duration_range': (230, 310),
+            'complete_probability': 0.86,
+            'skip_probability': 0.06
+        },
+        9: {
+            'fav_genres': ['pop', 'folk'],
+            'fav_languages': ['English', 'Chinese'],
+            'fav_duration_range': (190, 270),
+            'complete_probability': 0.83,
+            'skip_probability': 0.07
+        },
+        10: {
+            'fav_genres': ['electronic', 'rock'],
+            'fav_languages': ['Korean', 'Japanese'],
+            'fav_duration_range': (170, 250),
+            'complete_probability': 0.81,
+            'skip_probability': 0.09
+        }
+    }
+    
+    # 歌曲分类（基于49首歌）
+    songs_by_category = {
+        # Category 1: Japanese pop/rock (适合用户1,4,8,10)
+        'japanese_pop_rock': [1, 2, 6, 7, 9, 10, 14, 17, 18, 19, 21, 24, 28, 29],
+        
+        # Category 2: Korean/English pop/hip-hop (适合用户2,5,7)
+        'korean_english': [31, 32, 33, 34, 35, 36, 37, 38],
+        
+        # Category 3: Chinese folk/pop (适合用户3,6,9)
+        'chinese': [39, 40, 41, 42, 44, 45, 46, 47, 48, 49],
+        
+        # Category 4: Japanese electronic/ballad (中等偏好)
+        'japanese_other': [3, 4, 5, 8, 11, 12, 13, 15, 16, 20, 22, 23, 25, 26, 27, 30],
+        
+        # Category 5: 不匹配的歌曲（用于负样本）
+        'mismatch': [5, 27, 30, 34, 43]  # 这些歌曲与大部分用户偏好不匹配
+    }
+    
+    # 歌曲详细信息
+    song_details = {}
+    # 这里应该填充49首歌的详细信息，为简化，我创建一些基本数据
+    for i in range(1, 50):
+        # 分配流派和语言
+        if i in songs_by_category['japanese_pop_rock']:
+            genre = 'pop' if i % 2 == 0 else 'rock'
+            language = 'Japanese'
+            duration = random.randint(180, 280)
+        elif i in songs_by_category['korean_english']:
+            genre = 'pop' if i < 35 else 'hip-hop'
+            language = 'Korean' if i % 2 == 0 else 'English'
+            duration = random.randint(150, 220)
+        elif i in songs_by_category['chinese']:
+            genre = 'folk' if i in [41, 49] else 'pop'
+            language = 'Chinese'
+            duration = random.randint(200, 320)
+        elif i in songs_by_category['japanese_other']:
+            genre = random.choice(['electronic', 'ballad', 'folk'])
+            language = 'Japanese'
+            duration = random.randint(190, 300)
+        else:
+            genre = random.choice(['folk', 'electronic', 'hip-hop'])
+            language = random.choice(['Instrumental', 'Chinese', 'Japanese'])
+            duration = random.randint(150, 330)
+        
+        song_details[i] = {
+            'genre': genre,
+            'language': language,
+            'duration': duration
+        }
+    
+    events = []
+    
+    # 为每个用户生成20个事件（总共200个）
+    for user_id in range(1, 11):
+        user_pref = user_preferences[user_id]
+        
+        # 确定用户对各类歌曲的偏好程度
+        pref_levels = {
+            'fav_category': 0.6,    # 最喜欢类别占比
+            'medium_category': 0.3,  # 中等喜欢类别占比
+            'mismatch_category': 0.1 # 不匹配类别占比
+        }
+        
+        # 确定用户的偏好歌曲类别
+        if user_id in [1, 4, 8, 10]:
+            fav_category = 'japanese_pop_rock'
+            medium_category = 'japanese_other'
+        elif user_id in [2, 5, 7]:
+            fav_category = 'korean_english'
+            medium_category = 'japanese_other'
+        elif user_id in [3, 6, 9]:
+            fav_category = 'chinese'
+            medium_category = 'japanese_other'
+        else:
+            fav_category = 'japanese_pop_rock'
+            medium_category = 'chinese'
+        
+        # 为当前用户生成20个事件
+        for i in range(20):
+            # 根据偏好选择歌曲类别
+            rand_val = random.random()
+            if rand_val < pref_levels['fav_category']:
+                # 最喜欢类别
+                category = fav_category
+                song_id = random.choice(songs_by_category[category])
+                song_info = song_details[song_id]
+                
+                # 检查是否符合用户具体偏好
+                genre_match = song_info['genre'] in user_pref['fav_genres']
+                lang_match = song_info['language'] in user_pref['fav_languages']
+                duration_match = user_pref['fav_duration_range'][0] <= song_info['duration'] <= user_pref['fav_duration_range'][1]
+                
+                # 决定事件类型
+                if genre_match and lang_match and duration_match:
+                    # 完全匹配，大概率完成
+                    if random.random() < user_pref['complete_probability']:
+                        event_type = 'complete'
+                        position = song_info['duration']
+                    else:
+                        event_type = 'skip'
+                        position = random.randint(10, song_info['duration'] // 4)
+                else:
+                    # 部分匹配，中等概率完成
+                    complete_prob = user_pref['complete_probability'] * 0.7
+                    if random.random() < complete_prob:
+                        event_type = 'complete'
+                        position = song_info['duration']
+                    else:
+                        event_type = random.choice(['skip', 'pause'])
+                        if event_type == 'skip':
+                            position = random.randint(10, song_info['duration'] // 3)
+                        else:
+                            position = random.randint(song_info['duration'] // 3, song_info['duration'] * 2 // 3)
+            
+            elif rand_val < pref_levels['fav_category'] + pref_levels['medium_category']:
+                # 中等喜欢类别
+                category = medium_category
+                song_id = random.choice(songs_by_category[category])
+                song_info = song_details[song_id]
+                
+                # 中等概率完成
+                complete_prob = user_pref['complete_probability'] * 0.5
+                if random.random() < complete_prob:
+                    event_type = 'complete'
+                    position = song_info['duration']
+                else:
+                    event_type = random.choice(['skip', 'pause', 'stop'])
+                    if event_type == 'skip':
+                        position = random.randint(10, song_info['duration'] // 3)
+                    else:
+                        position = random.randint(song_info['duration'] // 3, song_info['duration'] * 2 // 3)
+            
+            else:
+                # 不匹配类别
+                category = 'mismatch'
+                song_id = random.choice(songs_by_category[category])
+                song_info = song_details[song_id]
+                
+                # 低概率完成
+                complete_prob = user_pref['complete_probability'] * 0.2
+                if random.random() < complete_prob:
+                    event_type = 'complete'
+                    position = song_info['duration']
+                else:
+                    event_type = random.choice(['skip', 'stop'])
+                    if event_type == 'skip':
+                        position = random.randint(10, song_info['duration'] // 5)  # 很早跳过
+                    else:
+                        position = random.randint(song_info['duration'] // 4, song_info['duration'] // 2)
+            
+            # 创建事件
+            events.append({
+                'user_id': user_id,
+                'song_id': song_id,
+                'event_type': event_type,
+                'position': position,
+                'duration': song_info['duration']
+            })
+    
+    # 验证数据规律性
+    print("数据验证：")
+    
+    # 1. 检查事件类型分布
+    event_counts = {}
+    for event in events:
+        event_counts[event['event_type']] = event_counts.get(event['event_type'], 0) + 1
+    
+    print(f"事件类型分布: {event_counts}")
+    
+    # 2. 检查用户行为一致性
+    print("\n用户行为统计:")
+    for user_id in range(1, 6):  # 显示前5个用户
+        user_events = [e for e in events if e['user_id'] == user_id]
+        completes = len([e for e in user_events if e['event_type'] == 'complete'])
+        skips = len([e for e in user_events if e['event_type'] == 'skip'])
+        print(f"用户{user_id}: 完成率={completes/len(user_events):.2f}, 跳过率={skips/len(user_events):.2f}")
+    
+    # 3. 检查歌曲偏好模式
+    print("\n歌曲类别偏好验证:")
+    for category in songs_by_category.keys():
+        cat_events = [e for e in events if e['song_id'] in songs_by_category[category]]
+        if cat_events:
+            complete_rate = len([e for e in cat_events if e['event_type'] == 'complete']) / len(cat_events)
+            print(f"{category}: {len(cat_events)}次播放, 完成率={complete_rate:.2f}")
+    
+    # 插入数据
+    for event in events:
+        await db_operations.PlayEventTable.add_play_event(
+            event['user_id'],
+            event['song_id'],
+            event['event_type'],
+            event['position'],
+            event['duration']
+        )
+    
+    print(f"\n已生成{len(events)}个播放事件")
+    return events
+
 async def init_user_playlist():
     # 生成30个用户-歌单关系数据
     # 已有的21个歌单中，1-10号是用户的"喜欢"歌单，11-21是其他歌单
@@ -256,7 +531,8 @@ async def init_all_data():
     await init_user()
     await init_song()
     await init_playlist()
-    await init_play_event()
+    # await init_play_event()
+    await init_rigorous_play_events()
     await init_user_playlist()
     logger.info('=====================数据初始化=====================\n')
 
