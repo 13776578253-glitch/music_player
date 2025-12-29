@@ -13,14 +13,14 @@ import {
 const BASE_URL = "http://localhost:5000"; // Python 后端地址
 
 window.API = {
-    //热门推荐歌曲集合 对应接口 //recommendations/daily  //应该传回十首固定的歌曲集合
-    getPopularSonglists:async () => {
+    //热门推荐歌曲集合 对应接口 //recommendations/daily/?user_id=${user_id}  //应该传回十首固定的歌曲集合
+    getPopularSonglists:async (user_id) => {
         try {
             //后端对接
-            const res = await fetch(`${BASE_URL}/recommendations/daily`);
+            const res = await fetch(`${BASE_URL}/recommendations/daily?user_id=${user_id}`);
             if (!res.ok) throw new Error();
             const data = await res.json();
-            return data.playlists || data.songs ;  // 逻辑待确定
+            return data.playlists || data.songs || data ;  // 逻辑待确定
 
         } catch (error) {
             console.warn("后端未响应，加载测试歌曲集合...");
