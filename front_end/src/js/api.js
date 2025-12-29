@@ -20,7 +20,7 @@ window.API = {
             const res = await fetch(`${BASE_URL}/recommendations/daily`);
             if (!res.ok) throw new Error();
             const data = await res.json();
-            return data.playlists || data.songs || this._List_SONGS;  // 逻辑待确定
+            return data.playlists || data.songs ;  // 逻辑待确定
 
         } catch (error) {
             console.warn("后端未响应，加载测试歌曲集合...");
@@ -28,7 +28,7 @@ window.API = {
         }
     },
 
-    //热门推荐歌单 对应接口 //recommendations/popular  // 应该传回四个独立的热门歌单  //每个歌单会和独立唯一的歌曲列表对应
+    //热门推荐歌单 对应接口 //recommendations/popular  // 应该传回n个独立的热门歌单  //每个歌单会和独立唯一的歌曲列表对应
     getPopularPlaylists: async () => {
         try {
             //后端对接
@@ -96,7 +96,7 @@ window.API = {
                     title = "测试推荐歌单";
             }
 
-            // 3. 返回一个完整的歌单对象，playlist.js 拿到后直接渲染并缓存
+            //  返回一个完整的歌单对象，playlist.js 拿到后直接渲染并缓存
             return {
                 id: id,
                 title: title,

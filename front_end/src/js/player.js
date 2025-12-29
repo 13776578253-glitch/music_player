@@ -50,6 +50,8 @@ const Player = {
             // 初始化按钮监听 (使用事件委托)
             this.initControlListeners();
 
+            // this.audio.playbackRate = 1.0;
+
             console.log("Player 系统初始化完成");
         } catch (e) {
             console.error(" Player 初始化过程崩溃:", e);
@@ -134,7 +136,7 @@ const Player = {
 
             // 【关键交互】点击队列里的歌，切歌
             div.onclick = () => {
-                this.playlist.current = nodeRef; // 仅仅更新指针
+                this.playlist.current = nodeRef; // 更新指针
                 this.loadAndPlayCurrent();       // 播放
                 // 重新渲染一下高亮状态 (性能优化版只改样式，这里为了简单直接重绘)
                 this.renderQueue(); 
@@ -181,7 +183,7 @@ const Player = {
         if (this.isQueueOpen) {
             drawer.classList.remove('translate-x-full');
             overlay.classList.remove('opacity-0', 'pointer-events-none');
-            // 打开时最好刷新一下高亮，防止状态不同步
+            // 打开时刷新一下高亮，防止状态不同步
             this.renderQueue();
         } else {
             drawer.classList.add('translate-x-full');
@@ -189,107 +191,182 @@ const Player = {
         }
     },
 
-    loadSong(song) {
+    async loadSong(song) {
         if (!song) return;
-    
-        try {
-            const audioSrc = song.filepath || song.url || "";
-            if (!audioSrc) throw new Error(`歌曲《${song.title}》缺少音频路径`);
 
+        this.audio.pause();
+
+        const audioSrc = song.filepath || song.url || "";
+        if (!audioSrc) {
+            console.Error(`歌曲《${song.title}》缺少音频路径`);
+            return;
+        }
+        try {
             this.audio.src = audioSrc;
-            this.audio.load(); 
+            // this.audio.load(); 
             this.currentSong = song;
 
+            // 显式调用 load() 
+            this.audio.load();
+
+            // 4. 同步 UI (封面、标题等)
+            this.syncUI(song);
+            this.renderQueue();
+
             try {
-                this.audio.play();
+                await this.audio.play();
                 this.isPlaying = true;
+                this.updatePlayStateUI();
             } catch (e) {
-                console.warn("[Player] 自动播放受限:", e.name);
-                this.isPlaying = false;
+                // console.warn("[Player] 自动播放受限:", e.name);
+                // this.isPlaying = false;
+                if (e.name === 'AbortError') {
+                // 这是一个常见的“假报错”，通常是因为用户切歌太快，新的请求打断了旧的
+                // 我们可以忽略它，或者只在控制台轻提示
+                    console.log("[Player] 快速切歌中断了上一次加载");
+                } else if (e.name === 'NotAllowedError') {
+                    console.warn("[Player] 浏览器阻止自动播放，等待交互");
+                    this.isPlaying = false;
+                    this.updatePlayStateUI();
+                } else {
+                    console.error("[Player] 播放出错:", e);
+                    this.isPlaying = false;
+                }
             }
             
             // 处理浏览器自动播放策略
-            const playPromise = this.audio.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    this.isPlaying = true;
-                    this.updatePlayStateUI();
-                }).catch(e => {
-                    console.warn("[Player] 浏览器拦截了自动播放，等待用户点击交互", e.name);
-                    this.isPlaying = false;
-                    this.updatePlayStateUI();
-                });
-            }
+            // const playPromise = this.audio.play();
+            // if (playPromise !== undefined) {
+            //     playPromise.then(() => {
+            //         this.isPlaying = true;
+            //         this.updatePlayStateUI();
+            //     }).catch(e => {
+            //         console.warn("[Player] 浏览器拦截了自动播放，等待用户点击交互", e.name);
+            //         this.isPlaying = false;
+            //         this.updatePlayStateUI();
+            //     });
+            // }
 
-            // 同步所有 UI 组件
-            this.syncUI(song);
-            this.renderQueue();   // 测试
+            // // 同步所有 UI 组件
+            // this.syncUI(song);
+            // this.renderQueue();   // 测试
             
         } catch (e) {
-            console.error(" [Player.loadSong] 出错:", e.message);
+            console.error(" [Player.loadSong] 致命错误:", e.message);
         }
     },
 
     // 下一首
     next(isAuto = false) {
-        if (!this.playlist.current) return;
+        if (!this.playlist || !this.playlist.current) return;
+        if (this.isSwitching) return;
+
+        this.isSwitching = true;
+        setTimeout(() => { this.isSwitching = false; }, 300);
 
         switch (this.mode) {
             case PlayMode.ONE:
                 if (isAuto) {
                     this.audio.currentTime = 0;
                     this.audio.play();
+                    return;
                 } else {
                     this.playlist.current = this.playlist.current.next;
-                    this.loadSong(this.playlist.getCurrentData());
+                    // this.loadSong(this.playlist.getCurrentData());
                 }
                 break;
 
             case PlayMode.SHUFFLE:
-                const steps = Math.floor(Math.random() * this.playlist.size) || 1;
-                for (let i = 0; i < steps; i++) {
-                    this.playlist.current = this.playlist.current.next;
+                const steps = Math.floor(Math.random() * (this.playlist.size || 10));    // 测试
+                
+                const finalSteps = steps === 0 ? 1 : steps;
+                
+                for (let i = 0; i < finalSteps; i++) {
+                    if (this.playlist.current.next) {
+                        this.playlist.current = this.playlist.current.next;
+                    }
+                    // this.playlist.current = this.playlist.current.next;
                 }
-                this.loadSong(this.playlist.getCurrentData());
+                // this.loadSong(this.playlist.getCurrentData());
                 break;
 
             case PlayMode.SEQUENCE:
+
                 if (isAuto && this.playlist.current.next === this.playlist.head) {
                     this.isPlaying = false;
                     this.updatePlayStateUI();
                     return;
                 }
                 this.playlist.current = this.playlist.current.next;
-                this.loadSong(this.playlist.getCurrentData());
+                // this.loadSong(this.playlist.getCurrentData());
                 break;
 
             case PlayMode.LOOP:
             default:
                 this.playlist.current = this.playlist.current.next;
-                this.loadSong(this.playlist.getCurrentData());
+                // this.loadSong(this.playlist.getCurrentData());
                 break;
         }
+        this.loadSong(this.playlist.getCurrentData());
     },
 
     // 上一首
     prev() {
-        if (!this.playlist.current) return;
+        if (!this.playlist || !this.playlist.current) return;
+        if (this.isSwitching) return;
+
+        this.isSwitching = true;
+        setTimeout(() => { this.isSwitching = false; }, 300);
 
         if (this.audio.currentTime > 3) {
             this.audio.currentTime = 0;
+            this.audio.play();
         } else {
-            this.playlist.current = this.playlist.current.prev;
+            // this.playlist.current = this.playlist.current.prev;
+            // this.loadSong(this.playlist.getCurrentData());
+            if (this.playlist.current.prev) {
+                this.playlist.current = this.playlist.current.prev;
+            } else {
+            // 如果是单向链表，找 prev 会很麻烦，这里假设你是双向
+            // 如果没有 prev，可能需要遍历到 tail (不常见)
+                console.warn("链表没有 prev 指针？");
+            }
             this.loadSong(this.playlist.getCurrentData());
         }
     },
 
     // 切换模式
     toggleMode() {
-        const modes = [PlayMode.LOOP, PlayMode.ONE, PlayMode.SHUFFLE, PlayMode.SEQUENCE];
-        const idx = modes.indexOf(this.mode);
-        this.mode = modes[(idx + 1) % modes.length];
+        // const modes = [PlayMode.LOOP, PlayMode.ONE, PlayMode.SHUFFLE, PlayMode.SEQUENCE];
+        // const idx = modes.indexOf(this.mode);
+        // this.mode = modes[(idx + 1) % modes.length];
 
+        // this.updateModeUI();
+        const modes = [
+            PlayMode.LOOP,     // 列表循环
+            PlayMode.ONE,      // 单曲循环
+            PlayMode.SHUFFLE,  // 随机播放
+            PlayMode.SEQUENCE  // 顺序播放
+        ];
+    
+        // 找到当前模式在数组中的位置
+        const currentIndex = modes.indexOf(this.mode);
+        // 计算下一个索引，到末尾后自动回到 0
+        const nextIndex = (currentIndex + 1) % modes.length;
+        
+        this.mode = modes[nextIndex];
+
+        // 更新 UI（你已经写好了 updateModeUI，它会自动更新图标）
         this.updateModeUI();
+        
+        // 给用户一个简单的文字反馈
+        const modeNames = {
+            [PlayMode.LOOP]: '列表循环',
+            [PlayMode.ONE]: '单曲循环',
+            [PlayMode.SHUFFLE]: '随机播放',
+            [PlayMode.SEQUENCE]: '顺序播放'
+        };
+        console.log("[Player] 模式切换:", modeNames[this.mode]);
     },
 
     // 红心收藏
@@ -395,7 +472,17 @@ const Player = {
         const btns = document.querySelectorAll('.btn-mode');
         btns.forEach(btn => {
             const icon = btn.querySelector('i');
-            if(icon) icon.className = `fa-solid ${iconMap[this.mode]}`;
+            if(icon) {
+                // icon.className = `fa-solid ${iconMap[this.mode]}`;
+                icon.className = `fa-solid ${iconMap[this.mode]} ${this.mode !== PlayMode.SEQUENCE ? '' : 'text-xs'}`;
+            }
+                
+            // if (this.mode === PlayMode.SEQUENCE) {
+            //     btn.classList.replace('text-indigo-400', 'text-slate-500');
+            // } else {
+            //     btn.classList.replace('text-slate-500', 'text-indigo-400');
+            // }
+
         });
     },
 

@@ -88,10 +88,11 @@
             </div> -->
 
             <div class="flex items-center gap-10 w-1/4">
-                <button class="player-action-btn btn-like text-slate-500 hover:text-red-500 transition-all active:scale-90" title="喜欢">
+                <button onclick="Player.toggleLike()" class="player-action-btn btn-like text-slate-500 hover:text-red-500 transition-all active:scale-90" title="喜欢">
                     <i class="fa-regular fa-heart text-base"></i>
                 </button>
-                <button class="player-action-btn btn-mode text-slate-500 hover:text-indigo-400 transition-all" title="播放模式">
+                <button onclick="Player.toggleMode()" class="player-action-btn btn-mode text-slate-500 hover:text-indigo-400 transition-all" title="播放模式">
+                    <!-- <i class="fa-solid fa-shuffle text-xs"></i> -->
                     <i class="fa-solid fa-shuffle text-xs"></i>
                 </button>
             </div>
@@ -211,11 +212,12 @@
             <button class="text-slate-500 hover:text-indigo-400 transition-all active:scale-90"><i class="fa-solid fa-shuffle text-base"></i></button>
         </div> -->
         <div class="flex gap-3 ml-2">
-            <button class="btn-like text-slate-500 hover:text-red-500 transition-all active:scale-90">
+            <button onclick="Player.toggleLike()" class="btn-like text-slate-500 hover:text-red-500 transition-all active:scale-90">
                 <i class="fa-regular fa-heart text-lg"></i>
             </button>
-            <button class="btn-mode text-slate-500 hover:text-indigo-400 transition-all active:scale-90">
+            <button onclick="Player.toggleMode()" class="btn-mode text-slate-500 hover:text-indigo-400 transition-all active:scale-90">
                 <i class="fa-solid fa-shuffle text-base"></i>
+                <!-- <i class="fa-solid fa-shuffle fa-1 fa-arrow-right-long text-base"></i> -->
             </button>
         </div>
     </div>
