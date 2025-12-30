@@ -16,7 +16,8 @@
                 <i class="fa-solid fa-plus-circle text-[10px]"></i> 我创建的歌单
             </h2>
             <div id="created-playlists-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                <div onclick="loadPlaylist('loved')" class="playlist-card group cursor-pointer">
+                <!-- <div onclick="loadPlaylist('loved')" class="playlist-card group cursor-pointer"> -->
+                <div id="card-liked" class="playlist-card group cursor-pointer">
                     <div class="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-[1.02]">
                         <i class="fa-solid fa-heart text-white text-4xl opacity-80 group-hover:scale-110 transition-transform"></i>
                         <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -24,6 +25,7 @@
                     <div class="mt-3">
                         <p class="text-sm font-medium truncate">我喜欢的音乐</p>
                         <p class="text-[11px] text-slate-500 mt-1">专属收藏</p>
+                        <p id="info-liked-count" class="text-[11px] text-slate-500 mt-1">加载中...</p>  <!-- 测试 -->
                     </div>
                 </div>
 
@@ -38,7 +40,8 @@
                     </div>
                 </div> -->
 
-                <div onclick="loadPlaylist('recent')" class="playlist-card group cursor-pointer">
+                <!-- <div onclick="loadPlaylist('recent')" class="playlist-card group cursor-pointer"> -->
+                <div id="card-recent" class="playlist-card group cursor-pointer">
                     <div class="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-[1.02]">
                         <i class="fa-solid fa-clock-rotate-left text-white text-4xl opacity-80 group-hover:scale-110 transition-transform"></i>
                         <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -46,6 +49,7 @@
                     <div class="mt-3">
                         <p class="text-sm font-medium truncate">最近播放</p>
                         <p class="text-[11px] text-slate-500 mt-1">最近播放统计</p>
+                        <p id="info-liked-count" class="text-[11px] text-slate-500 mt-1">加载中...</p>  <!-- 测试 -->
                     </div>
                 </div>
 
@@ -62,4 +66,4 @@
     </div>
 </div>
 
-<script src="src/pages/playlist/playlist.js" defer></script>
+<script src="src/pages/user/user.js" defer></script>

@@ -57,36 +57,61 @@ window.API = {
     //             
     // },
 
+    //  我的音乐 界面
+    //  我喜欢的歌单    对应接口  //my/my_songlists_1_like?user_id=${user_id}   // 返回包含歌单信息的数组
+    getMyLikedPlaylist: async (user_id) => {
+        try {
+            const res = await fetch(`${BASE_URL}/my/my_songlists_1_like?user_id=${user_id}`);
+            if (!res.ok) throw new Error();
+            return await res.json();
+        } catch (e) {
+            console.warn("[API] 获取[我喜欢的音乐]失败，使用 测试数据");
+            // 模拟返回结构  // ID 11  
+            // 测试
+            return { count: 1, playlists: [{ playlist_id: 11, title: "我喜欢的音乐", song_count: 12 }] };
+        }
+    },
 
+    //  最近播放歌单    对应接口  //my/my_songlists_1_recent?user_id=${user_id}   
+    getMyRecentPlaylist: async (user_id) => {
+        try {
+            const res = await fetch(`${BASE_URL}/my/my_songlists_1_recent?user_id=${user_id}`);
+            if (!res.ok) throw new Error();
+            return await res.json();
+        } catch (e) {
+            console.warn("[API] 获取[最近播放]失败，使用 测试数据");
+            // ID 12 
+            // 测试
+            return { count: 1, playlists: [{ playlist_id: 12, title: "最近播放", song_count: 5 }] };
+        }
+    },
 
+    //  我创建的歌单 (标准歌单)   对应接口   //my/my_songlists_1?user_id=${user_id}
+    getMyCreatedPlaylists: async (user_id) => {
+        try {
+            const res = await fetch(`${BASE_URL}/my/my_songlists_1?user_id=${user_id}`);
+            if (!res.ok) throw new Error();
+            return await res.json();
+        } catch (e) {
+            console.warn("[API] 获取[我创建的歌单]失败，使用 测试数据");
+            // 测试
+            return list_Playlist_p_1; // 复用测试数据
+        }
+    },
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    //  我收藏的歌单 (标准歌单)  对应接口   //my/my_songlists_2?user_id=${user_id}
+    getMyCollectedPlaylists: async (user_id) => {
+        try {
+            const res = await fetch(`${BASE_URL}/my/my_songlists_2?user_id=${user_id}`);
+            if (!res.ok) throw new Error();
+            return await res.json();
+        } catch (e) {
+            console.warn("[API] 获取[我收藏的歌单]失败，使用 测试数据");
+            // 测试
+            return { count: 0, playlists: [] }; // 模拟空
+        }
+    },
+    
 
     //  歌曲详情列表   //兼容 热门歌单和标准歌单  对应接口 //songlist/  // 根据歌曲id返回对应歌曲详情
     //  注意:  传入了user_id,用于检测用户是否喜欢，待实现逻辑
