@@ -290,7 +290,7 @@ export const list_Playlist_p_1 = {
         count: 4, 
         playlists: [
         { 
-            song_id: 50, 
+            playlist_id: 50, 
             title: "大手子致敬", 
             creater_id: 10,
             type: "a",
@@ -300,7 +300,7 @@ export const list_Playlist_p_1 = {
             song_count: 1
         },
         { 
-            song_id: 51, 
+            playlist_id: 51, 
             title: "致敬大手子", 
             creater_id: 10,
             type: "a",
@@ -310,7 +310,7 @@ export const list_Playlist_p_1 = {
             song_count: 1
         },
         { 
-            song_id: 52, 
+            playlist_id: 52, 
             title: "大手致敬子", 
             creater_id: 10,
             type: "a",
@@ -320,7 +320,7 @@ export const list_Playlist_p_1 = {
             song_count: 1
         },
         { 
-            song_id: 53, 
+            playlist_id: 53, 
             title: "大子致敬手", 
             creater_id: 10,
             type: "a",
@@ -339,7 +339,7 @@ export const list_Playlist_c_1 = {
         count: 4, 
         playlists: [
         { 
-            song_id: 50, 
+            playlist_id: 50, 
             title: "大手子致敬", 
             creater_id: 10,
             type: "a",
@@ -349,7 +349,7 @@ export const list_Playlist_c_1 = {
             song_count: 1
         },
         { 
-            song_id: 51, 
+            playlist_id: 51, 
             title: "致敬大手子", 
             creater_id: 10,
             type: "a",
@@ -359,7 +359,7 @@ export const list_Playlist_c_1 = {
             song_count: 1
         },
         { 
-            song_id: 52, 
+            playlist_id: 52, 
             title: "大手致敬子", 
             creater_id: 10,
             type: "a",
@@ -369,7 +369,7 @@ export const list_Playlist_c_1 = {
             song_count: 1
         },
         { 
-            song_id: 53, 
+            playlist_id: 53, 
             title: "大子致敬手", 
             creater_id: 10,
             type: "a",

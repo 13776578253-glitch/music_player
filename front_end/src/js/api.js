@@ -13,7 +13,7 @@ import {
 const BASE_URL = "http://localhost:5000"; // Python 后端地址
 
 window.API = {
-    //热门推荐歌曲集合 对应接口 //recommendations/daily/?user_id=${user_id}  //应该传回十首固定的歌曲集合
+    //每日推荐歌曲集合 对应接口 //recommendations/daily/?user_id=${user_id}  //应该传回十首固定的歌曲集合
     getPopularSonglists:async (user_id) => {
         try {
             //后端对接
@@ -57,7 +57,38 @@ window.API = {
     //             
     // },
 
-    //  歌曲详情列表   //兼容 热门歌单和标准歌单
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    //  歌曲详情列表   //兼容 热门歌单和标准歌单  对应接口 //songlist/${id}  // 根据歌曲id返回对应歌曲详情
     getPlaylistSongs : async (id) => {
 
         console.log(`[API] 正在请求歌单详情，ID: ${id}`);
@@ -68,7 +99,7 @@ window.API = {
             return await res.json();
         } catch (error) {
             //映射完整逻辑，模拟后端
-            console.warn(`[API] 后端未响应，正在根据 ID ${id} 匹配本地 mock 集合...`);
+            console.warn(`[API] 后端未响应，正在根据 ID ${id} 匹配测试集合...`);
             
             let songsDetail = [];
             let title = "未知歌单";
@@ -114,6 +145,41 @@ window.API = {
             songs: _List_SONGS_1 
         };
     },
+
+    // 榜单 (全局)/(左侧) 对应接口  // rank/public
+    getGlobalRank: async () => {
+        try {
+            const res = await fetch(`${BASE_URL}/rank/public`);
+            if (!res.ok) throw new Error("Network response was not ok");
+            const data = await res.json();
+            return data; // 返回结构包含 { songs: [] }
+
+        } catch (error) {
+            console.warn("[API] 获取全局榜单失败，加载测试数据...");
+            // 兜底返回，保持数据结构一致
+            return { songs: _List_SONGS_1 }; 
+        }
+    },
+
+    // 榜单 (个人)/(右侧)
+    getPersonalRank: async (user_id) => {
+        try {
+            const res = await fetch(`${BASE_URL}/rank/?user_id=${user_id}`);
+            if (!res.ok) throw new Error("Network response was not ok");
+            const data = await res.json();
+            return data; 
+        } catch (error) {
+            console.warn("[API] 获取个人榜单失败，加载测试数据...");
+            return { songs: _List_SONGS_1 }; 
+        }
+    },
+
+
+
+
+
+
+
 
 };
 

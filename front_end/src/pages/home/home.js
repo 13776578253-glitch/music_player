@@ -219,8 +219,8 @@ const home_page = {
             const card = clone.querySelector('.group');
             if (card) {
                 card.onclick = () => {
-                    console.log(`[Home] 点击了歌单: ${item.title} (ID: ${item.song_id})`);
-                    loadPage('playlist', { id: item.song_id });
+                    console.log(`[Home] 点击了歌单: ${item.title} (ID: ${item.playlist_id})`);
+                    loadPage('playlist', { id: item.playlist_id });
                 };
             }
 

@@ -1,7 +1,13 @@
 
-function createRankRow(song, index) {
-    // 处理歌手数组，转为字符串展示
+window.rankData = {
+    global: [],
+    personal: []
+};
+
+function createRankRow(song, index, type) {
     const artistDisplay = Array.isArray(song.artist) ? song.artist.join(', ') : song.artist;
+    // 兼容 id 字段
+    const songId = song.song_id || song.id; 
 
     return `
         <div class="rank-item group flex items-center p-3 hover:bg-white/5 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer">
@@ -12,7 +18,7 @@ function createRankRow(song, index) {
             <div class="relative ml-4 shrink-0">
                 <img src="${song.url}" class="w-12 h-12 rounded-lg object-cover shadow-md" alt="cover">
                 <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                    <button onclick="handlePlay('${song.song_id}')" class="text-white text-sm">
+                    <button onclick="window.handleRankPlay('${songId}', '${type}')" class="text-white text-sm hover:scale-110 transition-transform">
                         <i class="fa-solid fa-play"></i>
                     </button>
                 </div>
@@ -25,7 +31,7 @@ function createRankRow(song, index) {
 
             <div class="flex items-center gap-4">
                 <div class="text-[10px] font-mono text-slate-500 opacity-60 group-hover:opacity-100 transition-opacity">
-                    ${song.duration}
+                    ${song.duration || '0:00'}
                 </div>
                 <button class="text-slate-600 hover:text-white transition-colors">
                     <i class="fa-solid fa-ellipsis-vertical text-xs"></i>
@@ -35,37 +41,141 @@ function createRankRow(song, index) {
     `;
 }
 
+// 核心播放处理函数 (挂载到 window 以便 HTML onclick 调用)
+window.handleRankPlay = function(id, type) {
+    console.log(`[Rank] 请求播放 类型:${type} ID:${id}`);
+    
+    //  根据类型获取对应的完整列表
+    const list = window.rankData[type];
+    if (!list || list.length === 0) return;
 
-//  playlistId 根据业务逻辑，如 '1' 是热度榜，'2' 是偏好榜
+    //  在列表中找到目标歌曲对象
+    const targetSong = list.find(s => (String(s.song_id) === String(id)) || (String(s.id) === String(id)));
+
+    if (targetSong) {
+        //  调用全局 Player，传入歌曲 + 完整列表 (构建双向链表)
+        if (window.Player) {
+            window.Player.play(targetSong, list);
+        }
+    } else {
+        console.error("未在对应榜单中找到该歌曲");
+    }
+};
 
 async function initRankPage() {
     try {
-        // 同时发起两个请求（假设热度榜ID为1，偏好榜ID为2）
-        const [globalData, personalData] = await Promise.all([
-            API.getPlaylistSongs(1),
-            API.getPlaylistSongs(2)
+        console.log("[Rank] 开始加载排行榜数据...");
+
+        // 并行请求两个新接口
+        const [globalRes, personalRes] = await Promise.all([
+            API.getGlobalRank(),   // 对应 /rank/public
+            API.getPersonalRank()  // 对应 /rank/users
         ]);
 
+        // 更新本地缓存
+        window.rankData.global = globalRes.songs || [];
+        window.rankData.personal = personalRes.songs || [];
+
+        // 渲染 DOM
         const globalContainer = document.getElementById('global-rank-list');
         const personalContainer = document.getElementById('personal-rank-list');
 
-        if (globalContainer && globalData.songs) {
-            globalContainer.innerHTML = globalData.songs
-                .slice(0, 10) // 取前10名
-                .map((s, i) => createRankRow(s, i))
+        if (globalContainer) {
+            globalContainer.innerHTML = window.rankData.global
+                .slice(0, 20) // 限制显示数量20
+                .map((s, i) => createRankRow(s, i, 'global'))
                 .join('');
         }
 
-        if (personalContainer && personalData.songs) {
-            personalContainer.innerHTML = personalData.songs
-                .slice(0, 10)
-                .map((s, i) => createRankRow(s, i))
+        if (personalContainer) {
+            personalContainer.innerHTML = window.rankData.personal
+                .slice(0, 20)
+                .map((s, i) => createRankRow(s, i, 'personal'))
                 .join('');
         }
 
     } catch (error) {
-        console.error("加载排行榜失败:", error);
+        console.error("[Rank] 加载排行榜失败:", error);
     }
 }
 
+// 初始化
 initRankPage();
+
+
+
+
+
+
+
+
+// function createRankRow(song, index) {
+//     // 处理歌手数组，转为字符串展示
+//     const artistDisplay = Array.isArray(song.artist) ? song.artist.join(', ') : song.artist;
+
+//     return `
+//         <div class="rank-item group flex items-center p-3 hover:bg-white/5 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer">
+//             <div class="rank-number w-8 text-center font-mono text-lg font-bold italic text-slate-500 group-hover:text-indigo-500 transition-colors">
+//                 ${String(index + 1).padStart(2, '0')}
+//             </div>
+            
+//             <div class="relative ml-4 shrink-0">
+//                 <img src="${song.url}" class="w-12 h-12 rounded-lg object-cover shadow-md" alt="cover">
+//                 <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+//                     <button onclick="handlePlay('${song.song_id}')" class="text-white text-sm">
+//                         <i class="fa-solid fa-play"></i>
+//                     </button>
+//                 </div>
+//             </div>
+
+//             <div class="flex-1 ml-4 overflow-hidden">
+//                 <div class="font-bold truncate text-sm text-white dark:text-white">${song.title}</div>
+//                 <div class="text-xs text-slate-500 truncate mt-1">${artistDisplay}</div>
+//             </div>
+
+//             <div class="flex items-center gap-4">
+//                 <div class="text-[10px] font-mono text-slate-500 opacity-60 group-hover:opacity-100 transition-opacity">
+//                     ${song.duration}
+//                 </div>
+//                 <button class="text-slate-600 hover:text-white transition-colors">
+//                     <i class="fa-solid fa-ellipsis-vertical text-xs"></i>
+//                 </button>
+//             </div>
+//         </div>
+//     `;
+// }
+
+
+// //  playlistId 根据业务逻辑，如 '1' 是热度榜，'2' 是偏好榜
+
+// async function initRankPage() {
+//     try {
+//         // 同时发起两个请求（假设热度榜ID为1，偏好榜ID为2）
+//         const [globalData, personalData] = await Promise.all([
+//             API.getPlaylistSongs(1),
+//             API.getPlaylistSongs(2)
+//         ]);
+
+//         const globalContainer = document.getElementById('global-rank-list');
+//         const personalContainer = document.getElementById('personal-rank-list');
+
+//         if (globalContainer && globalData.songs) {
+//             globalContainer.innerHTML = globalData.songs
+//                 .slice(0, 10) // 取前10名
+//                 .map((s, i) => createRankRow(s, i))
+//                 .join('');
+//         }
+
+//         if (personalContainer && personalData.songs) {
+//             personalContainer.innerHTML = personalData.songs
+//                 .slice(0, 10)
+//                 .map((s, i) => createRankRow(s, i))
+//                 .join('');
+//         }
+
+//     } catch (error) {
+//         console.error("加载排行榜失败:", error);
+//     }
+// }
+
+// initRankPage();
