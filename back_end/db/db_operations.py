@@ -483,7 +483,7 @@ class PlayEventTable:
                 cursor = await conn.cursor()
                 await cursor.execute(sql, (user_id, song_id, event_type, position, duration))
                 event_id = cursor.lastrowid
-            logger.info(f"新增播放日志成功，ID：{event_id}")
+            logger.info(f"新增播放日志{event_type}成功，ID：{event_id}")
             await cls.if_update_song_stats(song_id, event_type)
             return event_id
         except aiosqlite.Error as e:
@@ -514,7 +514,7 @@ class PlayEventTable:
             async with db_context() as conn:
                 cursor = await conn.execute(sql, tuple(params))
                 rows = await cursor.fetchall()
-                logger.info(f"查询用户 {user_id} 播放日志成功 {'，事件类型=' + ','.join(event_types) if event_types else ''}")
+                logger.info(f"查询用户{user_id}播放日志成功 {'，事件类型=' + ','.join(event_types) if event_types else ''}")
                 return [dict(row) for row in rows]
 
         except aiosqlite.Error as e:
@@ -617,17 +617,59 @@ class PlaylistTable:
             logger.error(f"新增歌单失败：{e}")
             raise
 
-    # 根据ID查询歌单
+    # 查询播放量最高的前limit个歌单
+    @classmethod
+    async def get_playlists(cls, limit=20):
+        sql = """
+        SELECT * FROM playlists
+        WHERE type = 'public'
+        ORDER BY play_count DESC
+        LIMIT ?;
+        """
+
+        try:
+            async with db_context() as conn:
+                cursor = await conn.execute(sql, (limit, ))
+                rows = await cursor.fetchall()
+                logger.info(f"成功提取歌单")
+                return [dict(row) for row in rows]
+
+        except aiosqlite.Error as e:
+            logger.error(f"提取歌单失败：{e}")
+            raise
+
+    # 根据歌单ID查询歌单
     @classmethod
     async def get_playlist_by_id(cls, playlist_id):
         sql = "SELECT * FROM playlists WHERE id = ?"
         try:
+            if not cls.exists(playlist_id): raise ValueError('歌单id不存在')
             async with db_context() as conn:
                 cursor = await conn.cursor()
                 await cursor.execute(sql, (playlist_id,))
                 row = await cursor.fetchone()
 
                 logger.info(f"查询歌单{playlist_id}成功")
+                return dict(row) if row else None
+        except aiosqlite.Error as e:
+            logger.error(f"查询歌单失败：{e}")
+            raise
+
+    # 根据用户ID查询歌单
+    @classmethod
+    async def get_playlist_by_uid(cls, user_id, type='public'):
+        sql = """
+        SELECT id AS playlist_id, name AS title, creator_id, type, url, play_count, song_count
+        FROM playlists 
+        WHERE creator_id = ? AND type = ?
+        """
+        try:
+            async with db_context() as conn:
+                cursor = await conn.cursor()
+                await cursor.execute(sql, (user_id, type))
+                row = await cursor.fetchone()
+
+                logger.info(f"查询歌单成功，type：{type}")
                 return dict(row) if row else None
         except aiosqlite.Error as e:
             logger.error(f"查询歌单失败：{e}")
@@ -643,18 +685,13 @@ class PlaylistTable:
         
         sql = f"UPDATE playlists SET play_count = {count_type} + ? WHERE id = ?"
         try:
+            if not cls.exists(playlist_id): raise ValueError('歌单id不存在')
             if conn is None:
                 async with db_context() as conn:
                     cursor = await conn.cursor()
                     await cursor.execute(sql, (add_count, playlist_id))
-                    if not await cls.exists(playlist_id, conn):
-                        logger.error(f"歌单{playlist_id}不存在")
-                        raise ValueError(f"歌单{playlist_id}不存在")
             else:
                 await conn.execute(sql, (count_type, add_count, playlist_id))
-                if not await cls.exists(playlist_id, conn):
-                    logger.error(f"歌单{playlist_id}不存在")
-                    raise ValueError(f"歌单{playlist_id}不存在")
             logger.info(f"歌单{playlist_id}增加{add_count}")
             return True
         except aiosqlite.Error as e:
@@ -666,12 +703,10 @@ class PlaylistTable:
     async def delete_playlist(cls, playlist_id):
         sql = "DELETE FROM playlists WHERE id = ?"
         try:
+            if not cls.exists(playlist_id): raise ValueError('歌单id不存在')
             async with db_context() as conn:
                 cursor = await conn.cursor()
                 await cursor.execute(sql, (playlist_id,))
-                if cursor.rowcount == 0:
-                    logger.warning(f"歌单{playlist_id}不存在，删除失败")
-                    return False
             logger.info(f"删除歌单{playlist_id}成功")
             return True
         except aiosqlite.Error as e:
@@ -851,7 +886,7 @@ class PlaylistSongTable:
                 cursor = await conn.cursor()
                 sql = "INSERT INTO playlist_songs (playlist_id, song_id, position) VALUES (?, ?, ?)"
                 await cursor.execute(sql, (playlist_id, song_id, position))
-                await PlaylistTable.update_playlist_count(playlist_id, add_count=1, conn=conn) # 同步更新歌单歌曲数量
+                await PlaylistTable.update_playlist_count(playlist_id, count_type='song_count', add_count=1, conn=conn) # 同步更新歌单歌曲数量
 
             logger.info(f"歌曲{song_id}添加到歌单{playlist_id}，位置：{position}")
             return True
@@ -875,7 +910,7 @@ class PlaylistSongTable:
                     logger.warning(f"移除歌单{playlist_id}中的歌曲{song_id}失败")
                     return False
                 # 同步更新歌单歌曲数量
-                await PlaylistTable.update_playlist_count(playlist_id, add_count=-1, conn=conn)
+                await PlaylistTable.update_playlist_count(playlist_id, count_type='song_count', add_count=-1, conn=conn)
             logger.info(f"从歌单{playlist_id}移除歌曲{song_id}成功")
             return True
         except aiosqlite.Error as e:
@@ -1018,10 +1053,12 @@ class Analytics:
     @classmethod
     async def get_playlist_songs(cls, playlist_id):
         sql = """
-        SELECT s.id AS song_id, s.title, s.artist, s.album, s.duration, s.cover_url AS url, p.type AS type, ps.position AS position
+        SELECT s.id, s.id AS song_id, s.title, s.artist, s.album, s.lyrics, s.lyricist, 
+        s.composer, s.language, s.genre, s.record_company, s.duration, s.file_path, 
+        s.url, s.is_deleted, s.created_at, ps.position AS position
         FROM playlist_songs ps
-        JOIN songs s      ON ps.song_id = s.id
-        JOIN playlists p  ON ps.playlist_id = p.id
+        JOIN songs s ON ps.song_id = s.id
+        JOIN playlists p ON ps.playlist_id = p.id
         WHERE ps.playlist_id = ?
         ORDER BY ps.position ASC
         """
@@ -1036,6 +1073,98 @@ class Analytics:
 
         except aiosqlite.Error as e:
             logger.error(f"get_playlist_songs提取信息失败：{e}")
+            raise
+
+    # 查询用户的收藏歌曲
+    @classmethod
+    async def get_user_playlists(cls, user_id):
+        sql = """
+        SELECT p.id AS playlist_id, p.name AS title, p.creator_id, p.type, p.url, p.play_count, p.song_count
+        FROM user_playlists up
+        JOIN playlists p ON up.playlist_id = p.id
+        WHERE up.user_id = ?
+        ORDER BY up.position ASC
+        """
+
+        try:
+            async with db_context() as conn:
+                cursor = await conn.execute(sql, (user_id,))
+                rows = await cursor.fetchall()
+                songs = cls.tuple_to_list(rows)
+                logger.info("get_user_playlists成功提取信息")
+                return songs
+
+        except aiosqlite.Error as e:
+            logger.error(f"get_user_playlists提取信息失败：{e}")
+            raise
+
+    # 获取用户最近听过的500首不重复歌曲，按最近收听顺序排列
+    @classmethod
+    async def get_user_history_play_events(cls, user_id, limit=500):
+        sql = """
+        SELECT s.id, s.id AS song_id, s.title, s.artist, s.album, s.lyrics, s.lyricist, 
+        s.composer, s.language, s.genre, s.record_company, s.duration, s.file_path, 
+        s.url, s.is_deleted, s.created_at, pe.last_played_at
+        FROM songs s
+        JOIN (
+            SELECT song_id, MAX(created_at) AS last_played_at
+            FROM play_events
+            WHERE user_id = ? AND event_type = 'play' AND song_id IS NOT NULL
+            GROUP BY song_id
+        ) pe ON pe.song_id = s.id
+        ORDER BY pe.last_played_at DESC
+        LIMIT ?;
+        """
+
+        try:
+            async with db_context() as conn:
+                cursor = await conn.execute(sql, (user_id, limit))
+                rows = await cursor.fetchall()
+                songs = cls.tuple_to_list_s(rows)
+                logger.info("get_user_history_play_events成功提取信息")
+                return songs
+
+        except aiosqlite.Error as e:
+            logger.error(f"get_user_history_play_events提取信息失败：{e}")
+            raise
+
+    # 获取用户最近听过的500首中听的最多的10首
+    @classmethod
+    async def get_user_rank(cls, user_id):
+        sql = """
+        SELECT s.id, s.id AS song_id, s.title, s.artist, s.album, s.lyrics, s.lyricist, 
+        s.composer, s.language, s.genre, s.record_company, s.duration, s.file_path, 
+        s.url, s.is_deleted, s.created_at, stats.play_count, stats.last_played_at
+        FROM songs s
+        JOIN (
+            SELECT song_id, COUNT(*) AS play_count, MAX(created_at) AS last_played_at
+            FROM (
+                SELECT song_id, created_at
+                FROM play_events
+                WHERE user_id = ?
+                AND event_type = 'play'
+                AND song_id IS NOT NULL
+                ORDER BY created_at DESC
+                LIMIT 500
+            ) recent_500
+            GROUP BY song_id
+        ) stats ON stats.song_id = s.id
+        ORDER BY
+            stats.play_count DESC,
+            stats.last_played_at DESC
+        LIMIT 10;
+        """
+
+        try:
+            async with db_context() as conn:
+                cursor = await conn.execute(sql, (user_id,))
+                rows = await cursor.fetchall()
+                songs = cls.tuple_to_list_s(rows)
+                logger.info("get_user_history_play_events成功提取信息")
+                return songs
+
+        except aiosqlite.Error as e:
+            logger.error(f"get_user_history_play_events提取信息失败：{e}")
             raise
 
 
