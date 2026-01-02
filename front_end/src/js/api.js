@@ -12,6 +12,8 @@
 
     const BASE_URL = "http://localhost:5000"; // Python 后端地址
 
+    //管理员 凭证 MURE_ADMIN_TOKEN_2025_GLOBAL
+
     window.API = {
         //每日推荐歌曲集合 对应接口 //recommendations/daily/?user_id=${user_id}  //应该传回十首固定的歌曲集合
         getPopularSonglists:async (user_id) => {
@@ -232,7 +234,7 @@
                 console.log(`[API] 自动同步 ${resultData.songs.length} 首歌曲的喜欢状态到 AppState`);
                 window.AppState.syncLikedStatus(resultData.songs);
             }
-            
+
             return resultData;
         },   
 
@@ -316,30 +318,65 @@
             }
         },
 
+        //  注册逻辑：通过 UID 获取唯一凭证 (Cookie)   // 测试逻辑
+        registerByUID: async (uid) => {
+            try {
+                const res = await fetch(`${BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: uid })
+                });
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    // 处理“用户已存在”或其他后端错误
+                    throw new Error(data.message || "该 UID 已存在");
+                }
+                return data; // 预期返回 { success: true, cookie: "MF_xxxx" }
+            } catch (error) {
+                console.error("[API] Register Error:", error);
+                throw error; 
+            }
+        },
 
+        //  登录逻辑：通过 Cookie 凭证登录   //  测试逻辑
+        loginByCookie: async (cookie) => {
+            if (cookie === "MURE_ADMIN_TOKEN_2025_GLOBAL") {
+                console.warn("[API] 检测到管理员凭证，开启超级权限模式");
+                return { 
+                    success: true, 
+                    user_id: "System_Admin", 
+                    role: "admin", // 增加角色字段
+                    permissions: ["all"] 
+                };
+            }
 
-        
+            try {
+                const res = await fetch(`${BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cookie: cookie })
+                });
+                const data = await res.json();
 
-
-
-
-
-
-
-
-
-
-
-
+                if (!res.ok) throw new Error(data.message || "无效的凭证");
+                
+                // 登录成功，返回用户信息
+                return data; // 预期返回 { success: true, user_id: "123", username: "用户123" }
+            } catch (error) {
+                console.error("[API] Login Error:", error);
+                throw error;
+            }
+        },
 
     };
 
 
-    // 定义一个全局状态缓存
+    // 全局状态缓存
     window.AppState = {
         likedSongs: new Set(), // 存储已喜欢的 song_id (String)
         
-        // 初始化时，可以从 localStorage 加载，或在加载歌单后填充
+        // 初始化时，从 localStorage 加载，或在加载歌单后填充
         syncLikedStatus(songs) {
             songs.forEach(s => {
                 if (s.is_liked || s.is_loved == 1) {
@@ -364,4 +401,4 @@
     window.API = window.API || {};
 
     window.Player = Player; // 关键：手动挂载到全局
-    window.Player.init();   // 然后再初始化
+    window.Player.init();   // 初始化

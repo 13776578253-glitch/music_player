@@ -311,11 +311,30 @@
                 <div>
                     <label class="text-xs text-slate-500 mb-2 block font-medium">使用 Cookie 凭证登录</label>
                     
-                    <div class="flex flex-col gap-2">
+                    <!-- <div class="flex flex-col gap-2">
                         <input type="password" id="cookie-input" placeholder="输入您的凭证 (Cookie)" 
                             class="dynamic-input w-full rounded-lg px-4 py-2 text-sm font-mono focus:outline-none focus:border-emerald-500 transition text-emerald-400">
                         <button onclick="handleCookieLogin()" 
-                                class="dynamic-button-primary w-full py-2 rounded-lg text-sm transition font-bold text-white shadow-lg">验证并登录</button>
+                            class="dynamic-button-primary w-full py-2 rounded-lg text-sm transition font-bold text-white shadow-lg">验证并登录
+                        </button>
+                        <button onclick="handleLogout()" 
+                            id="btn-logout" class="hidden bg-red-500/10 hover:bg-red-500/20 text-red-500 px-4 py-2 rounded-lg text-sm transition font-medium border border-red-500/20">退出
+                        </button>
+                    </div> -->
+
+                    <div class="flex flex-col gap-2">
+                        <input type="password" id="cookie-input" placeholder="输入您的凭证 (Cookie)" 
+                            class="dynamic-input w-full rounded-lg px-4 py-2 text-sm font-mono focus:outline-none focus:border-emerald-500 transition text-emerald-400">
+                        
+                        <div class="flex gap-2">
+                            <button onclick="handleCookieLogin()" 
+                                    class="dynamic-button-primary flex-1 py-2 rounded-lg text-sm transition font-bold text-white shadow-lg">验证并登录
+                            </button>
+                            <button onclick="handleLogout()" 
+                                    id="btn-logout"
+                                    class="hidden bg-red-500/10 hover:bg-red-500/20 text-red-500 px-4 py-2 rounded-lg text-sm transition font-medium border border-red-500/20">退出
+                            </button>
+                        </div>
                     </div>
                 </div>
 
