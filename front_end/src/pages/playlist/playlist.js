@@ -73,9 +73,9 @@
 (function() {
     const PlaylistView = {
         currentId: null,
-        _localCurrentSongs: [],   // 存储当前界面的歌曲数据
-        isBatchMode: false,     // 是否处于批量操作模式
-        selectedSongIds: new Set(), // 存储选中的歌曲 ID
+        _localCurrentSongs: [],         // 存储当前界面的歌曲数据
+        isBatchMode: false,             // 是否处于批量操作模式
+        selectedSongIds: new Set(),     // 存储选中的歌曲 ID
 
         async init(params) {
             this.currentId = params?.id || 'default';
@@ -125,30 +125,51 @@
             if(descEl) descEl.textContent = `${this._localCurrentSongs.length} 首歌曲`;
             
             // 如果歌单有封面字段则使用，否则尝试用第一首歌的封面
+            //测试逻辑
             let coverUrl = data.cover;
             if (!data.cover && this._localCurrentSongs.length > 0) {
+                // coverUrl = this._localCurrentSongs[0].url;
                 coverUrl = this._localCurrentSongs[0].url || coverUrl;
             }
+            // if(coverEl) coverEl.src = coverUrl || 'src/assets/default_cover.jpg';
             if(coverEl) coverEl.src = coverUrl;
+
         },
 
         render(container, template, songs) {
             container.innerHTML = '';
 
+            // 空状态处理
+            const emptyState = document.getElementById('empty-state');
+
             if (songs.length === 0) {
-                document.getElementById('empty-state').classList.remove('hidden');
-                document.getElementById('empty-state').classList.add('flex');
+                if(emptyState) {
+                    emptyState.classList.remove('hidden');
+                    emptyState.classList.add('flex');
+                }
                 return;
             } else {
-                document.getElementById('empty-state').classList.add('hidden');
-                document.getElementById('empty-state').classList.remove('flex');
+                if(emptyState) {
+                    emptyState.classList.add('hidden');
+                    emptyState.classList.remove('flex');
+                }
             }
+
+            // if (songs.length === 0) {
+            //     document.getElementById('empty-state').classList.remove('hidden');
+            //     document.getElementById('empty-state').classList.add('flex');
+            //     return;
+            // } else {
+            //     document.getElementById('empty-state').classList.add('hidden');
+            //     document.getElementById('empty-state').classList.remove('flex');
+            // }
 
             const fragment = document.createDocumentFragment();
 
             songs.forEach((song, index) => {
                 const clone = template.content.cloneNode(true);
-                const tr = clone.querySelector('tr');
+                const songId = String(song.id || song.song_id);
+                const tr = clone.querySelector('tr');     // 测试
                 
                 // 填充数据
                 //  Checkbox (批量操作)
@@ -177,12 +198,131 @@
                 //  时长 
                 clone.querySelector('.song-duration').textContent = song.duration || "0:00";
 
-                //  喜欢 按钮
-                const likeBtn = clone.querySelector('.btn-like i');
-                if (song.is_loved) {
-                    likeBtn.classList.remove('fa-regular');
-                    likeBtn.classList.add('fa-solid', 'text-rose-500');
+                //  喜欢 按钮    //与后端通信   //重点逻辑！
+                // const likeBtn = clone.querySelector('.btn-like i');
+                const likeBtn = clone.querySelector('.btn-like');
+                const likeIcon = likeBtn.querySelector('i');
+
+
+                // 测试
+                likeBtn.dataset.id = String(song.id || song.song_id);
+
+                // 初始化 UI 状态
+                // 后端传回的数据 // is_liked 字段 (boolean)  如数据里没有 is_liked，默认为 false  // 我服了
+                // const is_liked = song.is_liked === true || song.is_liked === "true" || song.is_liked == 1 || song.is_loved === true || song.is_loved === "true" || song.is_loved == 1 || song.is_loved == "1";
+
+                // 从全局状态池获取最新的喜欢状态
+                const is_liked = window.AppState.isLiked(songId);
+
+                // 渲染 HTML 时使用 isLiked 决定 class
+                const heartClass = is_liked ? 'fa-solid fa-heart text-rose-500' : 'fa-regular fa-heart';
+
+                // 初始化图标样式
+                if (is_liked) {
+                    likeIcon.className = 'fa-solid fa-heart text-rose-500'; // 实心红
+                } else {
+                    likeIcon.className = 'fa-regular fa-heart text-slate-600'; // 空心灰
                 }
+                
+                // if (is_liked) {
+                //     likeIcon.classList.remove('fa-regular', 'text-slate-600');
+                //     likeIcon.classList.add('fa-solid', 'text-rose-500');
+                // } else {
+                //     likeIcon.classList.remove('fa-solid', 'text-rose-500');
+                //     likeIcon.classList.add('fa-regular', 'text-slate-600');
+                // }
+
+                // if (song.is_loved) {
+                //     likeBtn.classList.remove('fa-regular');
+                //     likeBtn.classList.add('fa-solid', 'text-rose-500');
+                // }
+
+                //  绑定喜欢按钮点击事件
+                likeBtn.onclick = async (e) => {
+                    
+                    // 阻止冒泡：防止点击爱心时触发整行的“播放”事件
+                    e.stopPropagation(); 
+
+                    const songId = String(song.id || song.song_id);
+
+                    // 3. 【核心修改】直接调用 Player 封装好的逻辑
+                    // Player.toggleLike 内部已经处理了：更新 AppState + 刷新全页面 UI + 同步后端
+                    if (window.Player && typeof window.Player.toggleLike === 'function') {
+                        await window.Player.toggleLike(songId);
+                    } else {
+                        // 兜底逻辑：如果 Player 没加载好（虽然概率很低）
+                        const nextStatus = !window.AppState.isLiked(songId);
+                        window.AppState.toggleLike(songId, nextStatus);
+                        if (window.API) API.toggleLike(songId, nextStatus);
+                    }
+                    
+                    // 4. (可选) 同步当前列表内的数据对象，确保数据一致
+                    song.is_liked = window.AppState.isLiked(songId);
+                    song.is_loved = song.is_liked ? 1 : 0;
+
+                    // const currentStatus = (song.is_liked === true || song.is_liked == 1 || song.is_loved == 1 || song.is_loved === true);
+                    // // const newStatus = !song.is_liked;
+                    // const newStatus = !currentStatus;
+
+                    // // 1. 同步数据对象（重要：Player和当前页共享此对象）
+                    // song.is_liked = newStatus;
+                    // song.is_loved = newStatus ? 1 : 0;
+
+                    // // 2. 更新当前行 UI
+                    // likeIcon.className = newStatus ? 'fa-solid fa-heart text-rose-500 animate-bounce' : 'fa-regular fa-heart text-slate-600';
+                    
+                    // // 3. 通知后端
+                    // if (window.API && API.toggleLike) API.toggleLike(songId, newStatus);
+
+                    // // 4. 同步底部播放器 UI
+                    // this.syncBottomPlayerLike(songId, newStatus);
+
+                    // // // 乐观更新 UI (不等后端返回，先变色)
+                    // // if (newStatus) {
+                    // //     likeIcon.classList.remove('fa-regular', 'text-slate-600');
+                    // //     likeIcon.classList.add('fa-solid', 'text-rose-500');
+                    // //     // 简单的动画效果
+                    // //     likeIcon.classList.add('animate-bounce'); 
+                    // //     setTimeout(() => likeIcon.classList.remove('animate-bounce'), 500);
+                    // // } else {
+                    // //     likeIcon.classList.remove('fa-solid', 'text-rose-500');
+                    // //     likeIcon.classList.add('fa-regular', 'text-slate-600');
+                    // // }
+
+                    // // // 更新本地数据模型 (状态持久存储)
+                    // // song.is_liked = newStatus;
+
+                    // // // 调用后端 API
+                    // // if (window.API) {
+                    // //     API.toggleLike(song.id || song.song_id, newStatus);
+                    // // }
+
+                    // // // 同步 Player  //  如果当前播放的正是这首歌，也要更新播放器上的爱心状态  // 待测试逻辑
+                    // // if (window.Player && Player.currentSong) {
+                    // //     const playingId = String(Player.currentSong.id || Player.currentSong.song_id);
+                    // //     const currentId = String(song.id || song.song_id);
+                        
+                    // //     if (playingId === currentId) {
+                    // //         // 如果 Player 内部有 updateLikeUI 方法，调用它
+                    // //         // 如果没有，可以直接修改 Player.currentSong.is_liked
+                    // //         Player.currentSong.is_liked = newStatus;
+                            
+                    // //         // 假设 Player 底部也有个爱心按钮 id="p-btn-like"
+                    // //         const playerLikeBtn = document.getElementById('p-btn-like');
+                    // //         const playerLikeIcon = playerLikeBtn?.querySelector('i');
+                    // //         if (playerLikeIcon) {
+                    // //             if (newStatus) {
+                    // //                 playerLikeIcon.classList.remove('fa-regular');
+                    // //                 playerLikeIcon.classList.add('fa-solid', 'text-rose-500');
+                    // //             } else {
+                    // //                 playerLikeIcon.classList.remove('fa-solid', 'text-rose-500');
+                    // //                 playerLikeIcon.classList.add('fa-regular');
+                    // //             }
+                    // //         }
+                    // //     }
+                    // // }
+
+                };
 
                 // const row = clone.querySelector('.song-row');
                 
@@ -196,6 +336,7 @@
                 //     }
                 // };
 
+                // 测试逻辑 待修改
                 const clickArea = clone.querySelector('.title-click-area');
                 clickArea.onclick = () => {
                     // 如果处于批量模式，点击行 = 选中 checkbox
@@ -207,8 +348,43 @@
                     
                     // 正常模式：播放
                     console.log(`[Playlist] 播放: ${song.title}`);
+
+                    if (this.isBatchMode) return;
+
+                    // if (window.Player) {
+                    //     Player.play(song, this._localCurrentSongs);
+                    // }
+
                     if (window.Player) {
-                        Player.play(song, this._localCurrentSongs);
+                        // 检查这首歌在不在 Player.playlist 链表
+                        const songId = String(song.song_id || song.id);
+                        // const songId = song.song_id || song.id;
+                        // 测试
+                        // const exists = Player.playlist ? Player.playlist.setCurrentById(songId) : false;
+
+                        // if (exists) {
+                        //     // 如果存在，setCurrentById 内部已经把指针指向它了，直接 play() 
+                        //     // 调用 player.js 里定义的切换逻辑
+                        //     Player.currentSong = song;
+                        //     Player.audio.src = song.filepath;
+                        //     Player.audio.play();
+                        //     Player.updateUI();
+                        // } else {
+                        //     // 如果不存在，则添加并播放
+                        //     Player.play(song); // 确保 Player.play 内部是 append 逻辑
+                        // }
+
+                        // 逻辑：如果播放器里已经有这首歌了，直接切过去播；如果没有，把它加进去播
+                        if (Player.playlist && Player.playlist.setCurrentById(songId)) {
+                            // 已经在队列里了，我们直接调用一个内部加载方法，或者简化版的 play
+                            Player.currentSong = Player.playlist.current.data;
+                            Player.loadSong(Player.currentSong);
+                            Player.renderQueue(); 
+                        } else {
+                            // 不在队列里，调用原有的 play 方法，传入当前歌单作为 context
+                            // 这样 Player 会重建链表并开始播放
+                            Player.play(song, this._localCurrentSongs);
+                        }
                     }
                 };
 
@@ -225,6 +401,46 @@
             // 渲染后，根据当前模式显示/隐藏 checkbox 列
             this.updateBatchUIState();
         },
+
+        // 新增辅助方法：专门处理底部同步     // 测试
+        syncBottomPlayerLike(songId, status) {
+            if (window.Player && Player.currentSong) {
+                const playingId = String(Player.currentSong.id || Player.currentSong.song_id);
+                if (playingId === String(songId)) {
+                    Player.currentSong.is_liked = status;
+                    Player.currentSong.is_loved = status ? 1 : 0;
+                    // 寻找底部 ID 为 p-btn-like 的按钮（确保你在 index.html 底部播放栏里给爱心按钮加了 id="p-btn-like"）
+                    const pIcon = document.querySelector('#p-btn-like i');
+                    if (pIcon) {
+                        pIcon.className = status ? 'fa-solid fa-heart text-rose-500' : 'fa-regular fa-heart';
+                    }
+                }
+            }
+        },
+
+        // 测试
+        // refreshLikeStatus(songId, isLiked) {
+        //     // // 1. 同步本地缓存的数据
+        //     // const song = this._localCurrentSongs.find(s => String(s.id || s.song_id) === String(songId));
+        //     // if (song) {
+        //     //     song.is_liked = status;
+        //     //     song.is_loved = status ? 1 : 0;
+        //     // }
+
+        //     // // 2. 找到页面上对应的那一行图标，直接修改 DOM（不需要全量刷新 render，性能更好）
+        //     // // 我们可以在 render 时给每个红心按钮加一个 data-song-id 属性
+        //     // const icon = document.querySelector(`.btn-like[data-id="${songId}"] i`);
+        //     // if (icon) {
+        //     //     icon.className = status ? 'fa-solid fa-heart text-rose-500' : 'fa-regular fa-heart text-slate-600';
+        //     // }
+        //     // 在 DOM 中找到那一行。dataset.id 必须在 render 时绑定好
+        //     const btn = document.querySelector(`.btn-like[data-id="${songId}"]`);
+        //     if (btn) {
+        //         const icon = btn.querySelector('i');
+        //         icon.className = isLiked ? 'fa-solid fa-heart text-rose-500' : 'fa-regular fa-heart text-slate-600';
+        //     }
+
+        // },
 
         // 批量操作_逻辑
 
@@ -245,17 +461,37 @@
         },
 
         // 更新 UI 显示 (Checkbox 列和底部 Bar)
+        // updateBatchUIState() {
+        //     const checkboxes = document.querySelectorAll('.batch-col');
+        //     const bottomBar = document.getElementById('batch-action-bar');
+        //     const mainContainer = document.querySelector('.p-8'); // 主容器，需要 padding-bottom 防止挡住   //!!
+
+        //     if (this.isBatchMode) {
+        //         checkboxes.forEach(el => el.classList.remove('hidden'));
+        //         bottomBar.classList.remove('translate-y-32'); // 升起
+        //     } else {
+        //         checkboxes.forEach(el => el.classList.add('hidden'));
+        //         bottomBar.classList.add('translate-y-32'); // 降下
+        //     }
+        // },
+
         updateBatchUIState() {
             const checkboxes = document.querySelectorAll('.batch-col');
             const bottomBar = document.getElementById('batch-action-bar');
-            const mainContainer = document.querySelector('.p-8'); // 主容器，需要 padding-bottom 防止挡住   //!!
-
+            
             if (this.isBatchMode) {
                 checkboxes.forEach(el => el.classList.remove('hidden'));
-                bottomBar.classList.remove('translate-y-32'); // 升起
+                // 向上滑入显示
+                bottomBar.classList.remove('translate-y-48');
+                bottomBar.classList.add('translate-y-0');
             } else {
-                checkboxes.forEach(el => el.classList.add('hidden'));
-                bottomBar.classList.add('translate-y-32'); // 降下
+                // 向下滑出隐藏
+                bottomBar.classList.remove('translate-y-0');
+                bottomBar.classList.add('translate-y-48');
+                // 延迟隐藏列，等动画做完
+                setTimeout(() => {
+                    if(!this.isBatchMode) checkboxes.forEach(el => el.classList.add('hidden'));
+                }, 300);
             }
         },
 
@@ -295,32 +531,84 @@
 
         // 播放全部
         playAll() {
-            if (this._localCurrentSongs.length > 0 && window.Player) {
-                // 从第一首开始播放，列表为当前所有
+            console.log("点击播放全部");
+
+            if (!this._localCurrentSongs || this._localCurrentSongs.length === 0) {
+                alert("当前歌单为空");
+                return;
+            }
+
+            if (window.Player) {
+                // 传入第一首歌，和整个列表
+                // player.js 重建链表
                 Player.play(this._localCurrentSongs[0], this._localCurrentSongs);
             }
         },
 
-        // 添加到播放列表 (不播放)   //测试逻辑  需要验证  // 重点！
+        // 添加到播放列表 (不播放)         //测试逻辑  需要验证  // 重点！
         addAllToQueue() {
+            console.log("点击添加到队列");
+
             if (!window.Player) return;
-            
-            let count = 0;
-            // 简单处理：遍历当前列表加入 LinkedList
-            // 假设 Player.playlist 暴露了 append 方法 (Standard LinkedList)
-            // 如果 Player.js 没有公开 append，我们需要扩充 Player.js，这里假设可以直接操作
-            
-            
-            this._localCurrentSongs.forEach(song => {
-                // 这里需要确认 LinkedList.js 的 API，通常是 append(data)
-                // 为了安全，我们检查 Player 是否有 addSongToQueue 辅助函数，如果没有就直接 append
-                if (Player.playlist && typeof Player.playlist.append === 'function') {
-                    Player.playlist.append(song);
-                    count++;
+            if (!this._localCurrentSongs || this._localCurrentSongs.length === 0) return;
+
+            // 确保 Player 链表实例存在
+            if (!Player.playlist) {
+                Player.playlist = new DoublyCircularLinkedList(); //  LinkedList 全局加载
+            }
+
+            //  重新实例化链表（清空）
+            //  注：DoublyCircularLinkedList 必须挂全局
+            // Player.playlist = new DoublyCircularLinkedList();
+
+            //  遍历链表获取当前播放列表中已有的所有歌曲 ID
+            const existingIds = new Set();
+            if (Player.playlist.head) {
+                let curr = Player.playlist.head;
+                for (let i = 0; i < Player.playlist.size; i++) {
+                    // 兼容多种 ID 字段名
+                    const id = curr.data.song_id || curr.data.id;
+                    existingIds.add(String(id));
+                    curr = curr.next;
                 }
+            }
+
+            // this._localCurrentSongs.forEach(song => {
+            //     Player.playlist.append(song);
+            // });
+
+            // 切断当前正在听的歌
+            // Player.currentSong = this._localCurrentSongs[0];
+            // Player.playlist.setCurrentById(Player.currentSong.id);
+            
+            let addedCount = 0;
+            // 遍历歌单，添加不存在的歌曲
+            this._localCurrentSongs.forEach(song => {
+            const songId = String(song.song_id || song.id);
+        
+            if (!existingIds.has(songId)) {
+                Player.playlist.append(song);
+                addedCount++;
+                // 同步把新加的 ID 也放进 set  
+                existingIds.add(songId); 
+            }
             });
 
-            alert(`已将 ${count} 首歌曲添加到播放列表`);
+            // if (typeof Player.renderQueue === 'function') {
+            //     Player.renderQueue(); 
+            // }
+
+            // 如果有新添加歌曲，手动触发 Player 更新播放队列 UI
+            if (addedCount > 0) {
+                if (typeof Player.renderQueue === 'function') {
+                    Player.renderQueue(); 
+                }
+                console.log(`成功添加 ${addedCount} 首新歌曲到列表`);
+            } else {
+                console.log("所选歌曲已全部在列表中，无需重复添加");
+            }
+
+            console.log(`播放列表已更新`);
         },
 
         // 批量删除    //测试逻辑  需要验证  // 重点！
@@ -428,7 +716,10 @@
         }
     };
 
+    window.CurrentPlaylist = PlaylistView;
+    // window.PageHandlers.playlist = PlaylistView;
+
     window.PageHandlers = window.PageHandlers || {};
     window.PageHandlers.playlist = (params) => PlaylistView.init(params);
-    // window.PageHandlers.playlist = PlaylistView;
+    
 })();

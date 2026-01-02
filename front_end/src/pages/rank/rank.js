@@ -4,8 +4,47 @@ window.rankData = {
     personal: []
 };
 
+// function createRankRow(song, index, type) {
+//     const artistDisplay = Array.isArray(song.artist) ? song.artist.join(', ') : song.artist;
+//     // 兼容 id 字段
+//     const songId = song.song_id || song.id; 
+
+//     return `
+//         <div class="rank-item group flex items-center p-3 hover:bg-white/5 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer">
+//             <div class="rank-number w-8 text-center font-mono text-lg font-bold italic text-slate-500 group-hover:text-indigo-500 transition-colors">
+//                 ${String(index + 1).padStart(2, '0')}
+//             </div>
+            
+//             <div class="relative ml-4 shrink-0">
+//                 <img src="${song.url}" class="w-12 h-12 rounded-lg object-cover shadow-md" alt="cover">
+//                 <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+//                     <button onclick="window.handleRankPlay('${songId}', '${type}')" class="text-white text-sm hover:scale-110 transition-transform">
+//                         <i class="fa-solid fa-play"></i>
+//                     </button>
+//                 </div>
+//             </div>
+
+//             <div class="flex-1 ml-4 overflow-hidden">
+//                 <div class="font-bold truncate text-sm text-white dark:text-white">${song.title}</div>
+//                 <div class="text-xs text-slate-500 truncate mt-1">${artistDisplay}</div>
+//             </div>
+
+//             <div class="flex items-center gap-4">
+//                 <div class="text-[10px] font-mono text-slate-500 opacity-60 group-hover:opacity-100 transition-opacity">
+//                     ${song.duration || '0:00'}
+//                 </div>
+//                 <button class="text-slate-600 hover:text-white transition-colors">
+//                     <i class="fa-solid fa-ellipsis-vertical text-xs"></i>
+//                 </button>
+//             </div>
+//         </div>
+//     `;
+// }
+
 function createRankRow(song, index, type) {
     const artistDisplay = Array.isArray(song.artist) ? song.artist.join(', ') : song.artist;
+    // 专辑名：如果 song 对象里没有 album 字段，默认显示“未知专辑”
+    const albumDisplay = song.album || "未知专辑";
     // 兼容 id 字段
     const songId = song.song_id || song.id; 
 
@@ -24,14 +63,24 @@ function createRankRow(song, index, type) {
                 </div>
             </div>
 
-            <div class="flex-1 ml-4 overflow-hidden">
-                <div class="font-bold truncate text-sm text-white dark:text-white">${song.title}</div>
-                <div class="text-xs text-slate-500 truncate mt-1">${artistDisplay}</div>
-            </div>
+            <div class="ml-4 flex-1 flex items-center min-w-0 gap-4">
+                <div class="flex flex-col flex-1 min-w-0">
+                    <div class="text-sm font-semibold text-slate-200 truncate group-hover:text-white transition-colors">
+                        ${song.name}
+                    </div>
+                    <div class="text-xs text-slate-500 truncate mt-0.5">
+                        ${artistDisplay}
+                    </div>
+                </div>
 
-            <div class="flex items-center gap-4">
-                <div class="text-[10px] font-mono text-slate-500 opacity-60 group-hover:opacity-100 transition-opacity">
-                    ${song.duration || '0:00'}
+                <div class="hidden md:block flex-1 text-xs text-slate-500 truncate italic">
+                    ${albumDisplay}
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4 ml-2">
+                <div class="text-[11px] font-mono text-slate-500 opacity-60 group-hover:opacity-100 transition-opacity">
+                    ${song.duration}
                 </div>
                 <button class="text-slate-600 hover:text-white transition-colors">
                     <i class="fa-solid fa-ellipsis-vertical text-xs"></i>

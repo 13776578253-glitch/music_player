@@ -19,7 +19,8 @@ export const _List_SONGS_1 = [
             url: "./assets/cover/cover_song/test1.jpg",   // 封面图地址
             lyrics: "歌词第一句\n歌词第二句",  //歌词
             is_deleted:"",  
-            created_at:""
+            created_at:"",
+            is_loved: ""
         },
         {
             id: "102",
@@ -37,7 +38,8 @@ export const _List_SONGS_1 = [
             url: "./assets/cover/cover_song/test2.jpg",   // 封面图地址
             lyrics: "第一句\n第二句",  //歌词
             is_deleted:"",  
-            created_at:""
+            created_at:"",
+            is_loved: ""
         }, 
 ];
 
@@ -59,7 +61,8 @@ export const _List_SONGS_2_l = [
             url: "./assets/cover/cover_song/test3.jpg",   // 封面图地址
             lyrics: "第一句动次打次\n歌词第二句动词",  //歌词
             is_deleted:"",  
-            created_at:""
+            created_at:"",
+            is_loved: ""
         },
         {
             id: "108",
@@ -77,7 +80,8 @@ export const _List_SONGS_2_l = [
             url: "./assets/cover/cover_song/test4.jpg",   // 封面图地址
             lyrics: "第一句大词动词\n第二句大词",  //歌词
             is_deleted:"",  
-            created_at:""
+            created_at:"",
+            is_loved: ""
         }
     
 ];
@@ -100,7 +104,8 @@ export const _List_SONGS_2_r = [
             url: "./assets/cover/cover_song/test5.jpg",   // 封面图地址
             lyrics: "歌\n词",  //歌词
             is_deleted:"",  
-            created_at:""
+            created_at:"",
+            is_loved: ""
         },
         {
             id: "110",
@@ -118,7 +123,8 @@ export const _List_SONGS_2_r = [
             url: "./assets/cover/cover_song/test1.jpg",   // 封面图地址
             lyrics: "manba\nout",  //歌词
             is_deleted:"",  
-            created_at:""
+            created_at:"",
+            is_loved: ""
         },
 
 ];
@@ -141,7 +147,8 @@ export const _List_SONGS_Commen_1 = [
             url: "./assets/cover/cover_song/test1.jpg",   // 封面图地址
             lyrics: "歌词第一句\n歌词第二句",  //歌词
             is_deleted:"",  
-            created_at:""
+            created_at:"",
+            is_loved: ""
         },
         {
             id: "112",
@@ -159,7 +166,8 @@ export const _List_SONGS_Commen_1 = [
             url: "./assets/cover/cover_song/test2.jpg",   // 封面图地址
             lyrics: "第一句\n第二句",  //歌词
             is_deleted:"",  
-            created_at:""
+            created_at:"",
+            is_loved: ""
         },     
 ];
 
@@ -181,7 +189,8 @@ export const _List_SONGS_Commen_2 = [
             url: "./assets/cover/cover_song/test1.jpg",   // 封面图地址
             lyrics: "歌词第一句\n歌词第二句",  //歌词
             is_deleted:"",  
-            created_at:""
+            created_at:"",
+            is_loved: ""
         },
         {
             id: "202",
@@ -199,7 +208,8 @@ export const _List_SONGS_Commen_2 = [
             url: "./assets/cover/cover_song/test2.jpg",   // 封面图地址
             lyrics: "第一句\n第二句",  //歌词
             is_deleted:"",  
-            created_at:""
+            created_at:"",
+            is_loved: ""
         },     
 ];
 
@@ -221,7 +231,8 @@ export const _List_SONGS_Commen_5 = [
             url: "./assets/cover/cover_song/test1.jpg",   // 封面图地址
             lyrics: "歌词第一句\n歌词第二句",  //歌词
             is_deleted:"",  
-            created_at:""
+            created_at:"",
+            is_loved: ""
         },
         {
             id: "202",
@@ -239,7 +250,8 @@ export const _List_SONGS_Commen_5 = [
             url: "./assets/cover/cover_song/test2.jpg",   // 封面图地址
             lyrics: "第一句\n第二句",  //歌词
             is_deleted:"",  
-            created_at:""
+            created_at:"",
+            is_loved: ""
         },     
 ];
 
@@ -261,7 +273,8 @@ export const _List_SONGS_Commen_6 = [
             url: "./assets/cover/cover_song/test1.jpg",   // 封面图地址
             lyrics: "歌词第一句\n歌词第二句",  //歌词
             is_deleted:"",  
-            created_at:""
+            created_at:"",
+            is_loved: ""
         },
         {
             id: "202",
@@ -279,7 +292,8 @@ export const _List_SONGS_Commen_6 = [
             url: "./assets/cover/cover_song/test2.jpg",   // 封面图地址
             lyrics: "第一句\n第二句",  //歌词
             is_deleted:"",  
-            created_at:""
+            created_at:"",
+            is_loved: ""
         },     
 ];
 

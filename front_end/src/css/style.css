@@ -574,3 +574,27 @@ nav {
         rgba(255, 255, 255, 0) 100%
     ) !important;
 }
+
+/* 确保亮色模式下的文字颜色覆盖 */
+.light-mode .song-name {
+    color: #1e293b; /* slate-800 */
+}
+
+/* 批量操作栏的浮动效果 */
+#batch-action-bar {
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+.dark #batch-action-bar {
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* 复选框样式美化 */
+.song-checkbox {
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+}
+
+.dark .song-checkbox {
+    border: 1px solid #475569;
+}

@@ -2,8 +2,8 @@
 
 /* 1. 基础背景覆盖 */
 .light-mode body {
-    background-color: #f1f5f9 !important; /* 浅灰色背景 */
-    color: #0f172a !important;            /* 深色文字 */
+    background-color: #f8fafc !important; /* 更亮的 slate-50 */
+    color: #0f172a !important;
 }
 
 /* 2. 侧边栏和底部播放栏适配 */
@@ -14,13 +14,21 @@
     color: #1e293b !important;
 }
 
-/* 3. 动态内容区域（歌单列表等）的面板适配 */
 .light-mode .glass-panel,
 .light-mode .bg-slate-800\/30,
 .light-mode .bg-slate-900\/50 {
-    background: #ffffff !important;
-    border-color: rgba(0, 0, 0, 0.05) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    /* 1. 将 0.982 改为 0.45，实现真正的通透感 */
+    background: rgba(255, 255, 255, 0.45) !important; 
+    
+    /* 2. 强化毛玻璃，让背景显得高级 */
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+
+    /* 3. 边框改为极其微弱的亮白边 */
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    
+    /* 4. 阴影改用浅色扩散影 */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03) !important;
 }
 
 /* 4. 文字颜色深度修复 (针对 Tailwind 硬编码的 text-slate-400 等) */
@@ -35,7 +43,7 @@
     color: #64748b !important;
 }
 
-/* 5. 播放队列侧边栏适配 (你刚才加的大工程) */
+/* 5. 播放队列侧边栏适配  */
 .light-mode #queue-drawer {
     background: rgba(248, 250, 252, 0.95) !important;
     border-left: 1px solid rgba(0, 0, 0, 0.05) !important;
@@ -47,4 +55,27 @@
 
 .light-mode .queue-item:hover {
     background: rgba(99, 102, 241, 0.1) !important;
+}
+
+.light-mode #dynamic-content {
+    background: transparent !important;
+}
+
+.light-mode .content-title {
+    color: #0f172a !important; /* 确保标题是黑色的 */
+}
+.light-mode .content-subtitle {
+    color: #64748b !important; /* 确保副标题是深灰色的 */
+}
+
+.light-mode thead th {
+    color: #000000 !important;
+    font-weight: 800 !important; /* 增强粗度 */
+    background-color: rgba(0, 0, 0, 0.02) !important; /* 极其浅的表头背景 */
+}
+
+.light-mode .song-name, 
+.light-mode thead th {
+    color: #000000 !important;
+    font-weight: 600 !important;
 }

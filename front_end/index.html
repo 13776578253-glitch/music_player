@@ -88,9 +88,10 @@
             </div> -->
 
             <div class="flex items-center gap-10 w-1/4">
-                <button onclick="Player.toggleLike()" class="player-action-btn btn-like text-slate-500 hover:text-red-500 transition-all active:scale-90" title="喜欢">
-                    <i class="fa-regular fa-heart text-base"></i>
+                <button id="p-btn-like-bar" class="btn-like text-slate-500 hover:text-red-500 transition-all active:scale-90">
+                    <i class="fa-regular fa-heart text-lg"></i>
                 </button>
+                <!-- onclick="Player.toggleLike()" -->
                 <button onclick="Player.toggleMode()" class="player-action-btn btn-mode text-slate-500 hover:text-indigo-400 transition-all" title="播放模式">
                     <!-- <i class="fa-solid fa-shuffle text-xs"></i> -->
                     <i class="fa-solid fa-shuffle text-xs"></i>
@@ -172,7 +173,7 @@
     <nav class="h-16 bg-slate-900/95 border-b border-white/5 flex items-center px-6 shrink-0 z-20">
         <div class="flex items-center gap-8 text-sm font-medium">
             <div class="flex items-center gap-2 font-bold text-xl mr-4">
-                <i class="fa-solid fa-music text-indigo-500"></i> MuseFlow
+                <i class="fa-solid fa-music text-indigo-500"></i> MureFlow
             </div>
             <button onclick="loadPage('home')" class="hover:text-indigo-400 transition">发现</button>
             <button onclick="loadPage('rank')" class="hover:text-indigo-400 transition">排行榜</button>
@@ -212,9 +213,10 @@
             <button class="text-slate-500 hover:text-indigo-400 transition-all active:scale-90"><i class="fa-solid fa-shuffle text-base"></i></button>
         </div> -->
         <div class="flex gap-3 ml-2">
-            <button onclick="Player.toggleLike()" class="btn-like text-slate-500 hover:text-red-500 transition-all active:scale-90">
-                <i class="fa-regular fa-heart text-lg"></i>
+            <button id="p-btn-like-full" class="player-action-btn btn-like text-slate-500 hover:text-red-500 transition-all active:scale-90" title="喜欢">
+                <i class="fa-regular fa-heart text-base"></i>
             </button>
+            <!-- onclick="Player.toggleLike()" -->
             <button onclick="Player.toggleMode()" class="btn-mode text-slate-500 hover:text-indigo-400 transition-all active:scale-90">
                 <i class="fa-solid fa-shuffle text-base"></i>
                 <!-- <i class="fa-solid fa-shuffle fa-1 fa-arrow-right-long text-base"></i> -->

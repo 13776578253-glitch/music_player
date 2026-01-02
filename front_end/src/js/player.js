@@ -50,6 +50,8 @@ const Player = {
             // 初始化按钮监听 (使用事件委托)
             this.initControlListeners();
 
+            
+
             // this.audio.playbackRate = 1.0;
 
             console.log("Player 系统初始化完成");
@@ -72,7 +74,11 @@ const Player = {
                     throw new Error("LinkedList.js 未加载，无法构建循环播放链表");
                 }
                 this.playlist = new DoublyCircularLinkedList();
-                list.forEach(item => this.playlist.append(item));
+                list.forEach(item => {
+                    const sid = String(item.song_id || item.id);
+                    item.is_liked = window.AppState.isLiked(sid); 
+                    this.playlist.append(item);
+                });
                 console.log(`[Kernel] 链表构建成功，节点数: ${this.playlist.size}`);
             }
 
@@ -89,13 +95,13 @@ const Player = {
                 this.playlist.current = this.playlist.head;
             }
 
-            // 4. 核心赋值：这一步解决了 home.js 读不到 title 的问题
+            //  核心赋值：这一步解决了 home.js 读不到 title 的问题
             this.currentSong = this.playlist.current.data;
             
-            // 5. 加载并播放
+            //  加载并播放
             await this.loadSong(this.currentSong);
 
-            // 6. UI 更新
+            //  UI 更新
             this.renderQueue();
 
         } catch (err) {
@@ -222,7 +228,6 @@ const Player = {
                 // this.isPlaying = false;
                 if (e.name === 'AbortError') {
                 // 这是一个常见的“假报错”，通常是因为用户切歌太快，新的请求打断了旧的
-                // 我们可以忽略它，或者只在控制台轻提示
                     console.log("[Player] 快速切歌中断了上一次加载");
                 } else if (e.name === 'NotAllowedError') {
                     console.warn("[Player] 浏览器阻止自动播放，等待交互");
@@ -370,16 +375,37 @@ const Player = {
     },
 
     // 红心收藏
-    toggleLike() {
-        const s = this.currentSong;
-        if (!s) return;
+    async toggleLike(targetId = null) {
+        // 1. 确定我们要操作哪首歌的 ID
+        // 如果传了 ID (来自列表点击)，就用传的；否则用当前播放歌曲的 ID
+        const sid = targetId ? String(targetId) : (this.currentSong ? String(this.currentSong.song_id || this.currentSong.id) : null);
+        
+        if (!sid) return;
 
-        // 切换状态
-        s.type = (s.type === 'loved' ? 'normal' : 'loved');
-        console.log("红心状态切换:", s.type);
+        // 2. 【核心】只从 AppState 获取当前状态 (这是唯一的真理账本)
+        const currentStatus = window.AppState.isLiked(sid);
+        const newStatus = !currentStatus; // 纯逻辑取反，保证灰色点击一定变 true
 
-        this.updateLikeUI(s);
-        // API.likeSong(s.song_id, s.type); 
+        console.log(`[Player] 状态切换: ${sid} | ${currentStatus} -> ${newStatus}`);
+
+        // 3. 更新全局数据状态
+        window.AppState.toggleLike(sid, newStatus);
+
+        // 4. 【关键】同步内存对象 (如果操作的恰好是当前播放的歌)
+        if (this.currentSong && String(this.currentSong.song_id || this.currentSong.id) === sid) {
+            this.currentSong.is_liked = newStatus;
+            this.currentSong.is_loved = newStatus ? 1 : 0;
+        }
+
+        // 5. 【UI 更新】不传 DOM 对象，直接传 ID，让 UI 函数去全页面搜索
+        this.updateLikeUI(sid, newStatus);
+
+        // 6. 静默同步后端
+        try {
+            await window.API.toggleLike(sid, newStatus);
+        } catch (err) {
+            console.warn("[Player] API 同步失败，本地状态已保留");
+        }
     },
 
     // 播放/暂停
@@ -394,7 +420,7 @@ const Player = {
         this.updatePlayStateUI();
     },
 
-    // --- UI 同步核心 ---
+    // UI 同步核心
     syncUI(song) {
         const s = song || this.playlist.getCurrentData() || this.currentSong;
         if (!s) return;
@@ -438,27 +464,51 @@ const Player = {
             }
         }
 
-        // 4. 状态按钮
-        this.updateLikeUI(s);
+        //  is_like状态
+        const sid = String(s.song_id || s.id);
+        const isLiked = window.AppState.isLiked(sid);
+        this.updateLikeUI(sid, isLiked);
+        
+
         this.updateModeUI();
         this.updatePlayStateUI();
     },
 
-    updateLikeUI(song) {
-        if (!song) return;
-        const isLiked = (song.type === 'loved');
-        const btns = document.querySelectorAll('.btn-like');
-        
-        btns.forEach(btn => {
-            const icon = btn.querySelector('i');
-            if (icon) {
-                if (isLiked) {
-                    icon.className = 'fa-solid fa-heart text-red-500';
-                } else {
-                    icon.className = 'fa-regular fa-heart text-slate-400';
-                }
+    // 
+     /**
+     * 核心：同步全页面所有相关红心图标的状态
+     * @param {string|number} sid 歌曲ID
+     * @param {boolean} isLiked 是否喜欢
+     */
+    updateLikeUI(sid, isLiked) {
+        if (!sid) return;
+        const targetId = String(sid);
+
+        // 1. 定义样式应用逻辑
+        const applyHeartStyle = (iconElement) => {
+            if (!iconElement) return;
+            if (isLiked) {
+                // 变成实心红心
+                iconElement.className = 'fa-solid fa-heart text-rose-500';
+            } else {
+                // 变成空心灰心
+                iconElement.className = 'fa-regular fa-heart text-slate-500';
             }
-        });
+        };
+
+        // 2. 更新播放器底栏和全屏按钮 (只有当操作的ID是当前播放歌曲时)
+        const currentPlayingId = this.currentSong ? String(this.currentSong.id || this.currentSong.song_id) : null;
+        if (targetId === currentPlayingId) {
+            const barIcon = document.querySelector('#p-btn-like-bar i');
+            const fullIcon = document.querySelector('#p-btn-like-full i');
+            applyHeartStyle(barIcon);
+            applyHeartStyle(fullIcon);
+        }
+
+        // 3. 更新所有动态列表中的红心 (通过 data-id 匹配)
+        // 覆盖 playlist.js 渲染出来的所有具有相同 data-id 的按钮
+        const listIcons = document.querySelectorAll(`.btn-like[data-id="${targetId}"] i`);
+        listIcons.forEach(icon => applyHeartStyle(icon));
     },
 
     updateModeUI() {
@@ -502,19 +552,104 @@ const Player = {
         if (cover) cover.style.animationPlayState = this.isPlaying ? 'running' : 'paused';
     },
 
-    // --- 事件委托 (关键修复：解决动态渲染点击无效) ---
+
+    //  核心！
+    //  事件委托 (关键修复：解决动态渲染点击无效) ---
     initControlListeners() {
         document.addEventListener('click', (e) => {
             const btn = e.target.closest('button');
             if (!btn) return;
 
+            // 2. 阻止事件继续向上传递，防止重复触发
+            // e.stopPropagation(); // 如果还有别的全局监听，可以加上这一句
+
             if (btn.classList.contains('btn-next')) this.next();
             if (btn.classList.contains('btn-prev')) this.prev();
             if (btn.classList.contains('btn-toggle')) this.toggle(); // 对应 p-btn-icon 和 fp-play-icon
             if (btn.classList.contains('btn-mode')) this.toggleMode();
-            if (btn.classList.contains('btn-like')) this.toggleLike();
-            if (btn.classList.contains('btn-toggle')) this.toggle();
+            if (btn.classList.contains('btn-like')) {
+                if (btn.disabled) return;
+
+                const songId = btn.dataset.id || (this.currentSong ? (this.currentSong.song_id || this.currentSong.id) : null); 
+                
+                if (!songId) {
+                    console.warn("[Player] 未找到有效的歌曲 ID，无法切换红心状态");
+                    return;
+                }
+                
+                console.log("[Player] 检测到喜欢按钮点击,ID:",songId);
+
+                // this.toggleLike();
+
+                // 阻止冒泡，防止触发歌单行的点击播放
+                e.stopPropagation();
+
+                // 调用 handleToggleLike 并传入 ID
+                this.handleToggleLike(songId);
+
+                btn.disabled = true;
+                setTimeout(() => btn.disabled = false, 300);
+            }
         });
+    },
+
+    //测试  //状态更新与ui同步
+    async handleToggleLike() {
+        if (!this.currentSong) return;
+        const sid = String(this.currentSong.id || this.currentSong.song_id); // 强制转为字符串，确保 ID 匹配
+        
+        // 更新状态
+        const isCurrentlyLiked = window.AppState.isLiked(sid);
+        const nextStatus = !isCurrentlyLiked; 
+
+        console.log(`[Player] 检测到喜欢按钮点击, ID: ${sid} | ${isCurrentlyLiked} -> ${nextStatus}`);
+
+        // 2. 更新全局状态：记录在 AppState 中 (解决切换页面后状态消失)
+        window.AppState.toggleLike(sid, nextStatus);
+
+        // 4. 同步当前歌曲的内存对象
+        if (this.currentSong && String(this.currentSong.song_id || this.currentSong.id) === sid) {
+            this.currentSong.is_liked = nextStatus;
+            // 如果你的后端字段叫 is_loved，也一并更新
+            this.currentSong.is_loved = nextStatus ? 1 : 0;
+        }
+
+
+
+        this.updateLikeUI(sid, nextStatus);
+
+        // // 6. 异步同步后端 (乐观更新：不使用 await 阻塞，让它在后台跑)
+        // window.API.toggleLike(sid, nextStatus).catch(err => {
+        //     console.error("[API] 喜欢操作后端同步失败:", err);
+        //     // 如果追求极致严谨，可以在这里添加回滚逻辑
+        //     // 但通常对于“喜欢”操作，本地状态优先即可
+        // });
+
+        // // // 5. 静默同步后端 (不管连接是否拒绝，本地 UI 已经改完了)
+        // // try {
+        // //     await window.API.toggleLike(sid, nextStatus);
+        // // } catch (err) {
+        // //     console.error("[API] 同步失败，但本地已保持状态");
+        // // }
+
+        // 2. 发送给后端
+        try {
+            const result = await window.API.toggleLike(sid, nextStatus);
+            
+            // 如果后端返回了具体的错误结果（比如登录过期）
+            if (result && result.success === false) {
+                throw new Error(result.message || "后端操作失败");
+            }
+        } catch (err) {
+            console.error("[回滚] 后端同步失败，执行 UI 撤销:", err);
+            
+            // 3. 【关键】回滚逻辑：如果失败了，把状态改回去
+            window.AppState.toggleLike(sid, isCurrentlyLiked); // 改回原状态
+            this.updateLikeUI(sid, isCurrentlyLiked);        // 刷新 UI 为原样
+            
+            // 提示用户
+            // alert("同步失败，请检查网络"); 
+        }
     },
 
     toggle() {

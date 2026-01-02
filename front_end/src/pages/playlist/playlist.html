@@ -1,42 +1,3 @@
-<!-- <div class="p-8 pb-32">
-    <div class="flex items-center gap-4 mb-8">
-        <button onclick="loadPage('home')" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
-            <i class="fa-solid fa-arrow-left text-white"></i>
-        </button>
-        <div>
-            <h2 id="pl-title" class="text-4xl font-bold text-white">加载中...</h2>
-            <p id="pl-desc" class="text-slate-400 mt-1">歌单详情</p>
-        </div>
-    </div>
-
-    <div class="bg-slate-800/30 rounded-2xl overflow-hidden backdrop-blur-md border border-white/5">
-        <table class="w-full text-left">
-            <thead class="text-xs uppercase text-slate-500 border-b border-white/5">
-                <tr>
-                    <th class="px-6 py-4 font-medium">#</th>
-                    <th class="px-6 py-4 font-medium">标题</th>
-                    <th class="px-6 py-4 font-medium">歌手</th>
-                    <th class="px-6 py-4 font-medium text-right">操作</th>
-                </tr>
-            </thead>
-            <tbody id="song-list-body">
-                </tbody>
-        </table>
-    </div>
-</div>
-
-<template id="song-row-template">
-    <tr class="song-row group hover:bg-white/5 transition-colors cursor-pointer border-b border-white/5">
-        <td class="px-6 py-4 text-slate-500 index-num">1</td>
-        <td class="px-6 py-4 font-medium text-white song-name">歌曲名</td>
-        <td class="px-6 py-4 text-slate-400 song-artist">歌手名</td>
-        <td class="px-6 py-4 text-right">
-            <button class="play-this-btn text-indigo-400 opacity-0 group-hover:opacity-100 transition">
-                <i class="fa-solid fa-play"></i>
-            </button>
-        </td>
-    </tr>
-</template> -->
 
 <div class="p-8 pb-32 relative">
     <div class="flex items-end gap-6 mb-8">
@@ -47,6 +8,7 @@
             </div>
         </div>
 
+        <!-- 待修改逻辑 -->
         <div class="flex flex-col gap-3 pb-2">
             <span class="text-xs font-bold tracking-widest text-indigo-400 border border-indigo-400/30 px-2 py-0.5 rounded w-fit">歌单</span>
             <h2 id="pl-title" class="text-5xl font-bold text-white tracking-tight">加载中...</h2>
@@ -58,76 +20,171 @@
                 </div>
                 <span>•</span>
                 <span id="pl-desc">0 首歌</span>
-                <span>•</span>
-                <span id="pl-duration-total">0分钟</span>
+                <!-- <span>•</span>
+                <span id="pl-duration-total">0分钟</span> -->
             </div>
         </div>
     </div>
 
-    <div class="flex items-center gap-4 mb-8">
+    <!-- <div class="flex items-center gap-2 mb-8 px-2">
         <button onclick="PageHandlers.playlist.playAll()" 
-            class="flex items-center gap-2 px-6 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-full transition shadow-lg shadow-indigo-500/20 active:scale-95">
-            <i class="fa-solid fa-play"></i>
-            <span class="font-medium">播放全部</span>
+            class="flex items-center gap-2 px-6 py-2 bg-white hover:bg-slate-100 text-slate-900 rounded-full transition-all active:scale-95 shadow-sm">
+            <i class="fa-solid fa-play text-xs"></i>
+            <span class="text-sm font-bold">立即播放</span>
         </button>
 
         <button onclick="PageHandlers.playlist.addAllToQueue()" 
-            class="w-10 h-10 rounded-full border border-slate-600 hover:border-slate-400 text-slate-300 hover:text-white flex items-center justify-center transition" title="添加到当前播放列表">
+            class="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition" 
+            title="添加到当前播放列表">
             <i class="fa-solid fa-plus"></i>
+            <span class="text-sm font-medium">添加到播放列表</span>
         </button>
 
-        <button class="w-10 h-10 rounded-full border border-slate-600 hover:border-slate-400 text-slate-300 hover:text-white flex items-center justify-center transition" title="收藏歌单">
-            <i class="fa-regular fa-folder-open"></i> </button>
+        <button class="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition" 
+            title="收藏歌单">
+            <i class="fa-regular fa-folder-open"></i>
+            <span class="text-sm font-medium">收藏歌单</span>
+        </button>
 
         <button onclick="PageHandlers.playlist.toggleBatchMode()" 
             id="btn-batch-toggle"
-            class="flex items-center gap-2 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition ml-auto">
-            <i class="fa-solid fa-list-check"></i>
-            <span class="text-sm">批量操作</span>
+            class="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition ml-auto">
+            <i class="fa-solid fa-list-check text-xs"></i>
+            <span class="text-sm font-medium">批量操作</span>
+        </button>
+    </div> -->
+
+    <div class="flex items-center gap-2 mb-8 px-2">
+        <button onclick="CurrentPlaylist.playAll()" 
+            class="flex items-center gap-2 px-6 py-2 bg-white hover:bg-slate-100 text-slate-900 rounded-full transition-all active:scale-95 shadow-sm">
+            <i class="fa-solid fa-play text-xs"></i>
+            <span class="text-sm font-bold">立即播放</span>
+        </button>
+
+        <button onclick="CurrentPlaylist.addAllToQueue()" 
+            class="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition" 
+            title="添加到当前播放列表">
+            <i class="fa-solid fa-plus"></i>
+            <span class="text-sm font-medium">添加到播放列表</span>
+        </button>
+
+        <button class="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition" 
+            title="收藏歌单">
+            <i class="fa-regular fa-folder-open"></i>
+            <span class="text-sm font-medium">收藏歌单</span>
+        </button>
+
+        <button onclick="CurrentPlaylist.toggleBatchMode()" 
+            id="btn-batch-toggle"
+            class="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition ml-auto">
+            <i class="fa-solid fa-list-check text-xs"></i>
+            <span class="text-sm font-medium">批量操作</span>
         </button>
     </div>
 
-    <div class="bg-slate-800/20 rounded-2xl overflow-hidden border border-white/5 min-h-[400px]">
+    <div class="glass-container rounded-2xl overflow-hidden transition-all duration-500">
         <table class="w-full text-left border-collapse">
-            <thead class="text-xs uppercase text-slate-500 border-b border-white/5 bg-slate-800/40">
+            <thead class="text-xs uppercase tracking-widest text-slate-500 border-b border-black/5 dark:border-white/5">
                 <tr>
-                    <th class="w-12 px-4 py-4 text-center batch-col hidden">
-                        <input type="checkbox" onchange="PageHandlers.playlist.toggleSelectAll(this)" class="accent-indigo-500 w-4 h-4 cursor-pointer">
-                    </th>
-                    <th class="px-6 py-4 font-medium w-16">#</th>
-                    <th class="px-6 py-4 font-medium">标题</th>
-                    <th class="px-6 py-4 font-medium w-1/4">专辑</th>
-                    <th class="px-6 py-4 font-medium w-16 text-center">喜欢</th>
-                    <th class="px-6 py-4 font-medium w-20 text-right">时长</th>
-                    <th class="px-6 py-4 w-12"></th> 
-                </tr>
-            </thead>
-            <tbody id="song-list-body">
-                </tbody>
+                    <th class="px-6 py-5 font-bold w-16">#</th>
+                    <th class="px-6 py-5 font-bold">标题</th>
+                    <th class="px-6 py-5 font-bold w-1/4">专辑</th>
+                    <th class="px-6 py-5 font-bold w-20 text-center">喜欢</th>
+                    <th class="px-6 py-5 font-bold w-24 text-right">时长</th>
+                    <th class="px-6 py-5 w-16"></th> </tr>
+                </thead>
+            <tbody id="song-list-body"></tbody>
         </table>
-        
-        <div id="empty-state" class="hidden flex-col items-center justify-center py-20 text-slate-500">
-            <i class="fa-solid fa-music text-4xl mb-4 opacity-50"></i>
-            <p>暂无歌曲</p>
-        </div>
     </div>
+
+        <template id="song-row-template">
+            <tr class="song-row group transition-all duration-300 border-b border-black/[0.02] dark:border-white/[0.02] hover:bg-black/[0.02] dark:hover:bg-white/[0.04]">
+                
+                <td class="px-4 py-4 text-center batch-col hidden">
+                    <input type="checkbox" class="song-checkbox accent-indigo-600 w-4 h-4 cursor-pointer">
+                </td>
+                
+                <td class="px-6 py-4 text-sm text-slate-400 font-mono">
+                    <span class="index-num"></span>
+                </td>
+                
+                <td class="px-6 py-2 cursor-pointer title-click-area">
+                    <div class="flex items-center gap-4">
+                        <div class="relative shrink-0">
+                            <img src="" class="song-cover w-10 h-10 rounded shadow-md object-cover bg-slate-200 dark:bg-slate-800">
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded">
+                                <i class="fa-solid fa-play text-white text-xs"></i>
+                            </div>
+                        </div>
+                        <div class="flex flex-col truncate">
+                            <span class="font-medium text-slate-900 dark:text-white text-base song-name truncate"></span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400 song-artist truncate"></span>
+                        </div>
+                    </div>
+                </td>
+                
+                <td class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm song-album truncate"></td>
+                
+                <!-- <td class="px-6 py-4 text-center">
+                    <button class="text-slate-300 dark:text-slate-600 hover:text-rose-500 hover:scale-110 transition-all btn-like">
+                        <i class="fa-solid fa-heart"></i>
+                    </button>
+                </td> -->
+
+                <td class="px-6 py-4 text-center">
+                    <button class="text-slate-300 dark:text-slate-600 hover:text-rose-500 hover:scale-110 transition-all btn-like"
+                            data-id="${song.id}">
+                        <i class="${window.AppState.isLiked(song.id) ? 'fa-solid text-rose-500' : 'fa-regular'} fa-heart"></i>
+                    </button>
+                </td>
+                
+                <td class="px-6 py-4 text-right text-slate-400 dark:text-slate-500 font-mono text-sm song-duration"></td>
+                
+                <td class="px-6 py-4 text-right">
+                    <button class="text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-all">
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </button>
+                </td>
+            </tr>
+        </template>
+
+    <div id="empty-state" class="hidden flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-500">
+        <i class="fa-solid fa-music text-4xl mb-4 opacity-50"></i>
+        <p>暂无歌曲</p>
+    </div>
+    
+
 </div>
 
 <div id="batch-action-bar" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-800/90 backdrop-blur-md border border-white/10 px-8 py-3 rounded-full flex items-center gap-8 shadow-2xl transform translate-y-32 transition-transform duration-300 z-40">
     <span class="text-sm text-slate-400">已选择 <span id="selected-count" class="text-white font-bold">0</span> 首</span>
     <div class="h-4 w-px bg-white/10"></div>
     
-    <button onclick="PageHandlers.playlist.openAddToPlaylistModal()" class="flex items-center gap-2 text-slate-200 hover:text-white transition group">
+    <!-- <button onclick="PageHandlers.playlist.openAddToPlaylistModal()" class="flex items-center gap-2 text-slate-200 hover:text-white transition group">
+        <i class="fa-solid fa-folder-plus group-hover:text-indigo-400"></i>
+        <span>收藏到...</span>
+    </button> -->
+    
+    <button onclick="CurrentPlaylist.openAddToPlaylistModal()" class="flex items-center gap-2 text-slate-200 hover:text-white transition group">
         <i class="fa-solid fa-folder-plus group-hover:text-indigo-400"></i>
         <span>收藏到...</span>
     </button>
-    
-    <button onclick="PageHandlers.playlist.batchDelete()" class="flex items-center gap-2 text-slate-200 hover:text-red-400 transition group">
+
+    <!-- <button onclick="PageHandlers.playlist.batchDelete()" class="flex items-center gap-2 text-slate-200 hover:text-red-400 transition group">
+        <i class="fa-solid fa-trash-can group-hover:text-red-400"></i>
+        <span>删除</span>
+    </button> -->
+
+    <button onclick="CurrentPlaylist.batchDelete()" class="flex items-center gap-2 text-slate-200 hover:text-red-400 transition group">
         <i class="fa-solid fa-trash-can group-hover:text-red-400"></i>
         <span>删除</span>
     </button>
     
-    <button onclick="PageHandlers.playlist.toggleBatchMode()" class="ml-4 w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white">
+    <!-- <button onclick="PageHandlers.playlist.toggleBatchMode()" class="ml-4 w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-xs"></i>
+    </button> -->
+
+    <button onclick="CurrentPlaylist.toggleBatchMode()" class="ml-4 w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white">
         <i class="fa-solid fa-xmark text-xs"></i>
     </button>
 </div>
@@ -141,7 +198,14 @@
             </button>
         </div>
         <div class="p-2 max-h-[400px] overflow-y-auto custom-scrollbar" id="modal-playlist-list">
-            <div onclick="PageHandlers.playlist.confirmAddToPlaylist('new')" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer mb-2 group">
+            <!-- <div onclick="PageHandlers.playlist.confirmAddToPlaylist('new')" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer mb-2 group">
+                <div class="w-12 h-12 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition">
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <p class="font-medium text-slate-200">新建歌单</p>
+            </div> -->
+
+            <div onclick="CurrentPlaylist.confirmAddToPlaylist('new')" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer mb-2 group">
                 <div class="w-12 h-12 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition">
                     <i class="fa-solid fa-plus"></i>
                 </div>
@@ -184,11 +248,19 @@
             专辑名
         </td>
         
-        <td class="px-6 py-4 text-center">
-            <button class="text-slate-600 hover:text-rose-500 transition active:scale-90 btn-like">
+        <!-- <td class="px-6 py-4 text-center">
+            <button class="text-slate-600 hover:text-rose-500 transition active:scale-90 btn-like" data-id="${song.id}">
                 <i class="fa-regular fa-heart"></i> </button>
         </td>
-        
+         -->
+
+        <td class="px-6 py-4 text-center">
+            <button class="text-slate-600 hover:text-rose-500 transition active:scale-90 btn-like" 
+                    data-id="${song.id}">
+                <i class="${window.AppState.isLiked(song.id) ? 'fa-solid text-rose-500' : 'fa-regular'} fa-heart"></i>
+            </button>
+        </td>
+
         <td class="px-6 py-4 text-right text-slate-500 font-mono text-sm song-duration">
             3:45
         </td>
@@ -199,6 +271,6 @@
              </button>
         </td>
     </tr>
-</template>
+</template> 
 
 <script src="src/pages/playlist/playlist.js"></script>
