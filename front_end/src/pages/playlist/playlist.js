@@ -1,81 +1,11 @@
 
-// (function() {
-//     const PlaylistView = {
-//         // 定义一个内部变量，专门存【当前打开的这个歌单】的歌曲
-//         _localCurrentSongs: [], 
-
-//         async init(params) {
-//             const container = document.getElementById('song-list-body');
-//             const template = document.getElementById('song-row-template');
-//             if (!container || !template) return;
-
-//             // 1. 等待 API 准备就绪
-//             if (!window.API || !window.API.getPlaylistSongs) {
-//                 setTimeout(() => this.init(params), 50);
-//                 return;
-//             }
-
-//             try {
-//                 // 2. 获取歌单数据 (例如 ID 为 103)
-//                 const playlistId = params.id || "103";
-//                 const data = await API.getPlaylistSongs(playlistId); 
-                
-//                 // 3. 【关键】把这一批歌存到局部变量里，不影响首页推荐
-//                 this._localCurrentSongs = data.songs || [];
-
-//                 // 4. 更新 UI
-//                 document.getElementById('pl-title').textContent = data.title || "歌单详情";
-                
-//                 // 5. 调用渲染
-//                 this.render(container, template, this._localCurrentSongs);
-//             } catch (err) {
-//                 console.error("[Playlist] 加载失败:", err);
-//             }
-//         },
-
-//         render(container, template, songs) {
-//             container.innerHTML = '';
-//             const fragment = document.createDocumentFragment();
-
-//             songs.forEach((song, index) => {
-//                 const clone = template.content.cloneNode(true);
-                
-//                 // 填充数据
-//                 clone.querySelector('.index-num').textContent = index + 1;
-//                 clone.querySelector('.song-name').textContent = song.title;
-//                 clone.querySelector('.song-artist').textContent = Array.isArray(song.artist) ? song.artist.join('/') : song.artist;
-
-//                 const row = clone.querySelector('.song-row');
-                
-//                 // --- 这里是点击逻辑，它只使用 this._localCurrentSongs ---
-//                 row.onclick = () => {
-//                     console.log(`[Playlist] 播放当前歌单中的: ${song.title}`);
-//                     if (window.Player) {
-//                         // 传入当前点击的歌，以及【本歌单】的完整列表
-//                         // 这样播放器就会载入这个歌单，而不会影响首页点击“立即播放”载入的列表
-//                         Player.play(song, this._localCurrentSongs);
-//                     }
-//                 };
-
-//                 fragment.appendChild(clone);
-//             });
-//             container.appendChild(fragment);
-//         }
-//     };
-
-//     window.PageHandlers = window.PageHandlers || {};
-//     window.PageHandlers.playlist = (params) => PlaylistView.init(params);
-// })();
-
-
-
-
 (function() {
     const PlaylistView = {
         currentId: null,
         _localCurrentSongs: [],         // 存储当前界面的歌曲数据
         isBatchMode: false,             // 是否处于批量操作模式
         selectedSongIds: new Set(),     // 存储选中的歌曲 ID
+        isCollected: false,             // 记录当前歌单收藏状态
 
         async init(params) {
             this.currentId = params?.id || 'default';
@@ -110,6 +40,9 @@
                 
                 // 渲染列表
                 this.render(container, template, this._localCurrentSongs);
+
+                // 初始化收藏按钮状态
+                this.initCollectStatus();
             } catch (err) {
                 console.error("[Playlist] 加载失败:", err);
                 container.innerHTML = '<tr><td colspan="7" class="p-10 text-center text-slate-500">获取歌曲列表失败</td></tr>';
@@ -442,6 +375,51 @@
 
         // },
 
+        //收藏到歌单_逻辑
+        async initCollectStatus() {
+            const collectBtn = document.getElementById('btn-collect-playlist');
+            if (!collectBtn) return;
+
+            //  从后端获取当前歌单是否已被收藏
+            this.isCollected = await API.checkPlaylistCollected(this.currentId);
+            this.updateCollectUI();
+
+            //  绑定点击事件
+            collectBtn.onclick = async () => {
+                const nextStatus = !this.isCollected;
+                
+                // 乐观更新 UI
+                this.isCollected = nextStatus;
+                this.updateCollectUI();
+
+                // 同步后端
+                const result = await API.toggleCollectPlaylist(this.currentId, nextStatus);
+                if (!result.success) {
+                    // 如果失败则回滚
+                    this.isCollected = !nextStatus;
+                    this.updateCollectUI();
+                    alert("操作失败，请重试");
+                }
+            };
+        },
+
+        updateCollectUI() {
+            const btn = document.getElementById('btn-collect-playlist');
+            if (!btn) return;
+            const icon = btn.querySelector('i');
+            const text = btn.querySelector('span');
+
+            if (this.isCollected) {
+                icon.className = 'fa-solid fa-bookmark text-indigo-400';
+                text.textContent = '已收藏';
+                btn.classList.add('bg-white/5');
+            } else {
+                icon.className = 'fa-regular fa-bookmark';
+                text.textContent = '收藏歌单';
+                btn.classList.remove('bg-white/5');
+            }
+        },
+    
         // 批量操作_逻辑
 
         // 切换模式开关

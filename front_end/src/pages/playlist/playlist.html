@@ -68,10 +68,16 @@
             <span class="text-sm font-medium">添加到播放列表</span>
         </button>
 
-        <button class="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition" 
+        <!-- <button class="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition" 
             title="收藏歌单">
             <i class="fa-regular fa-folder-open"></i>
             <span class="text-sm font-medium">收藏歌单</span>
+        </button> -->
+
+        <button id="btn-collect-playlist" 
+            class="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition" 
+            title="收藏歌单">
+            <i class="fa-regular fa-bookmark"></i> <span class="text-sm font-medium">收藏歌单</span>
         </button>
 
         <button onclick="CurrentPlaylist.toggleBatchMode()" 

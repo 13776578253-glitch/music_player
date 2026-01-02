@@ -79,6 +79,9 @@
             const container = document.getElementById('collected-playlists-grid');
             if (!container) return;
 
+            // 每次进入界面都会重新 fetch 接口 //my/my_songlists_2?user_id=...
+            const data = await API.getMyCollectedPlaylists(this.userId);
+
             try {
                 const data = await API.getMyCollectedPlaylists(this.userId);
                 const list = data.playlists || [];

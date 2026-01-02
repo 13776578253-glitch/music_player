@@ -11,15 +11,22 @@
     } from './mock_data.js';
 
     const BASE_URL = "http://localhost:5000"; // Python 后端地址
+    // 获取当前用户 UID
+    const getUID = () => {
+        // 优先从内存读取，其次从本地存储读取
+        return window.CurrentUID || localStorage.getItem('user_id') || 'guest';
+    };
 
     //管理员 凭证 MURE_ADMIN_TOKEN_2025_GLOBAL
 
     window.API = {
         //每日推荐歌曲集合 对应接口 //recommendations/daily/?user_id=${user_id}  //应该传回十首固定的歌曲集合
         getPopularSonglists:async (user_id) => {
+            const currentId = getUID(); // 拿到当前的 ID
+
             try {
                 //后端对接
-                const res = await fetch(`${BASE_URL}/recommendations/daily?user_id=${user_id}`);
+                const res = await fetch(`${BASE_URL}/recommendations/daily?user_id=${currentId}`);
                 if (!res.ok) throw new Error();
                 const data = await res.json();
                 return data.playlists || data.songs || data ;  // 逻辑待确定
@@ -62,8 +69,9 @@
         //  我的音乐 界面
         //  我喜欢的歌单    对应接口  //my/my_songlists_1_like?user_id=${user_id}   // 返回包含歌单信息的数组
         getMyLikedPlaylist: async (user_id) => {
+            const currentId = getUID(); // 拿到当前的 ID
             try {
-                const res = await fetch(`${BASE_URL}/my/my_songlists_1_like?user_id=${user_id}`);
+                const res = await fetch(`${BASE_URL}/my/my_songlists_1_like?user_id=${currentId}`);
                 if (!res.ok) throw new Error();
                 return await res.json();
             } catch (e) {
@@ -76,8 +84,9 @@
 
         //  最近播放歌单    对应接口  //my/my_songlists_1_recent?user_id=${user_id}   
         getMyRecentPlaylist: async (user_id) => {
+            const currentId = getUID(); // 拿到当前的 ID
             try {
-                const res = await fetch(`${BASE_URL}/my/my_songlists_1_recent?user_id=${user_id}`);
+                const res = await fetch(`${BASE_URL}/my/my_songlists_1_recent?user_id=${currentId}`);
                 if (!res.ok) throw new Error();
                 return await res.json();
             } catch (e) {
@@ -90,8 +99,9 @@
 
         //  我创建的歌单 (标准歌单)   对应接口   //my/my_songlists_1?user_id=${user_id}
         getMyCreatedPlaylists: async (user_id) => {
+            const currentId = getUID(); // 拿到当前的 ID
             try {
-                const res = await fetch(`${BASE_URL}/my/my_songlists_1?user_id=${user_id}`);
+                const res = await fetch(`${BASE_URL}/my/my_songlists_1?user_id=${currentId}`);
                 if (!res.ok) throw new Error();
                 return await res.json();
             } catch (e) {
@@ -103,8 +113,9 @@
 
         //  我收藏的歌单 (标准歌单)  对应接口   //my/my_songlists_2?user_id=${user_id}
         getMyCollectedPlaylists: async (user_id) => {
+            const currentId = getUID(); // 拿到当前的 ID
             try {
-                const res = await fetch(`${BASE_URL}/my/my_songlists_2?user_id=${user_id}`);
+                const res = await fetch(`${BASE_URL}/my/my_songlists_2?user_id=${currentId}`);
                 if (!res.ok) throw new Error();
                 return await res.json();
             } catch (e) {
@@ -171,15 +182,14 @@
         // },   
 
         //测试 
-        getPlaylistSongs : async (playlist_id, user_id) => {
-
-            console.log(`[API] 正在请求歌单详情，ID: ${playlist_id}, 用户ID: ${user_id}`);
-
+        getPlaylistSongs : async (playlist_id) => {
             let resultData;
+            const currentId = getUID(); // 拿到当前的 ID
+             console.log(`[API] 正在请求歌单详情，ID: ${playlist_id}, 用户ID: ${currentId}`);
 
             try {
                 //后端对接
-                const res = await fetch(`${BASE_URL}/songslists/${playlist_id}?user_id=${user_id}`);
+                const res = await fetch(`${BASE_URL}/songslists/${playlist_id}?user_id=${currentId}`);
                 if (!res.ok) throw new Error("Network response was not ok");
                 return await res.json();
             } catch (error) {
@@ -265,8 +275,9 @@
 
         // 榜单 (个人)/(右侧)
         getPersonalRank: async (user_id) => {
+            const currentId = getUID(); // 拿到当前的 ID
             try {
-                const res = await fetch(`${BASE_URL}/rank/?user_id=${user_id}`);
+                const res = await fetch(`${BASE_URL}/rank/?user_id=${currentId}`);
                 if (!res.ok) throw new Error("Network response was not ok");
                 const data = await res.json();
                 return data; 
@@ -281,7 +292,8 @@
         //  切换歌曲喜欢状态     // status: true (喜欢) / false (取消喜欢)    //目前逻辑  完全静默，无回滚  //如果与后端同步失败刷新后会无法改变红心状态
         toggleLike: async (songId, status) => {
             console.log(`[API] 提交喜欢状态变更 - ID: ${songId}, Status: ${status}`);
-            const userId = localStorage.getItem('user_id') || '123';
+            // const userId = localStorage.getItem('user_id') || '123';
+            const userId = getUID(); // 使用统一的获取方法
 
             // 构造请求体
             const requestBody = { 
@@ -318,7 +330,42 @@
             }
         },
 
-        //  注册逻辑：通过 UID 获取唯一凭证 (Cookie)   // 测试逻辑
+        // 收藏/取消收藏歌单    // status: true (收藏）, false （取消）
+        toggleCollectPlaylist: async (playlist_id, status) => {
+            const currentId = getUID();
+            try {
+                // 建议后端接口：POST /playlists/collect
+                const res = await fetch(`${BASE_URL}/playlists/collect`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: currentId,
+                        playlist_id: playlist_id,
+                        action: status ? 'collect' : 'uncollect'
+                    })
+                });
+                if (!res.ok) throw new Error("操作失败");
+                return await res.json();
+            } catch (error) {
+                console.error("[API] 收藏歌单失败:", error);
+                // 模拟成功以便前端演示
+                return { success: true };
+            }
+        },
+
+        // 检查用户是否已收藏该歌单
+        checkPlaylistCollected: async (playlist_id) => {
+            const currentId = getUID();
+            try {
+                const res = await fetch(`${BASE_URL}/playlists/is_collected?user_id=${currentId}&playlist_id=${playlist_id}`);
+                const data = await res.json();
+                return data.is_collected; // 预期返回 boolean
+            } catch (e) {
+                return false;
+            }
+        },
+
+        // 注册逻辑：通过 UID 获取唯一凭证 (Cookie)   // 测试逻辑
         registerByUID: async (uid) => {
             try {
                 const res = await fetch(`${BASE_URL}/auth/register`, {
@@ -346,6 +393,7 @@
                 return { 
                     success: true, 
                     user_id: "System_Admin", 
+                    cookie: "MURE_ADMIN_TOKEN_2025_GLOBAL", // 方便存储
                     role: "admin", // 增加角色字段
                     permissions: ["all"] 
                 };
@@ -369,10 +417,36 @@
             }
         },
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     };
 
 
-    // 全局状态缓存
+    // 全局状态缓存   持久化存储
     window.AppState = {
         likedSongs: new Set(), // 存储已喜欢的 song_id (String)
         
