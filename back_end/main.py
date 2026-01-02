@@ -4,6 +4,8 @@ import uvicorn
 
 from basic_functions.operation_router import router as operation_router
 from discovery_functions.discovery_router import router as discovery_router
+from my_functions.my_router import router as my_router
+from rank_functions.rank_router import router as rank_router
 
 app = FastAPI()
 origins = ["http://localhost:5173"]
@@ -16,9 +18,10 @@ app.add_middleware(
     allow_headers=["*"],         # 允许所有请求头
 )
 
-app.include_router(operation_router, prefix="/", tags=["basic_functions"])
+app.include_router(operation_router, prefix="", tags=["basic_functions"])
 app.include_router(discovery_router, prefix="/recommendation", tags=["discovery_functions"])
-app.include_router(, prefix="/", tags=[""])
+app.include_router(my_router, prefix="/my", tags=["my_functions"])
+app.include_router(rank_router, prefix="/rank", tags=["rank_functions"])
 
 
 if __name__ == "__main__":

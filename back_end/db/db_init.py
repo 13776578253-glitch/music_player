@@ -12,7 +12,7 @@ async def init_all_tables():
     await db_operations.PlaylistSongTable.create_table()
     await db_operations.PlayEventTable.create_table()
     await db_operations.SongStatsTable.create_table()
-    await db_operations.UserModelTable.create_table()
+    await db_operations.ModelTable.create_table()
     logger.info("所有数据库表初始化完成！")
 
 # 10
@@ -466,6 +466,13 @@ async def init_rigorous_play_events():
     
     # 插入数据
     for event in events:
+        await db_operations.PlayEventTable.add_play_event(
+            event['user_id'],
+            event['song_id'],
+            'play',
+            event['position'],
+            event['duration']
+        )
         await db_operations.PlayEventTable.add_play_event(
             event['user_id'],
             event['song_id'],

@@ -7,25 +7,29 @@ from decision import decision_tree
 
 logger = logging.getLogger("discovery_functions")
 
-# async def get_popular_discovery_information(user_id):
-#     loved_songs = await db_operations.Analytics.user_is_loved(user_id)
-#     songs = await db_operations.Analytics.get_most_played_song()
-
-#     last_songs = await db_operations.Analytics.if_is_loved(loved_songs, songs)
-#     # songs.sort(key=lambda x: x["position"])
-#     data = {
-#         'songs': last_songs
-#     }
-
-#     logger.info(f"热门推荐信息已提取[get_popular_discovery_information]")
-#     return data
-
 async def get_popular_daily_information(user_id):
+    loved_songs = await db_operations.Analytics.user_is_loved(user_id)
     predict_data = await TreeOperation.predict_data(user_id)
     songs = await db_operations.SongTable.get_songs_by_ids(list(predict_data))
-    print(songs)
+    songs_data = db_operations.Analytics.if_is_loved(loved_songs, songs)
+    
+    data = {
+        'songs': songs_data
+    }
     logger.info(f"每日推荐信息已提取[get_popular_daily_information]")
-    return 
+    return data
+
+async def get_popular_discovery_information(k=10):
+    playlists = await db_operations.PlaylistTable.get_playlists()
+    if len(playlists) <= k: return playlists
+    random_playlists = random.sample(playlists, k)
+
+    data = {
+        'count': len(random_playlists),
+        'playlists': random_playlists
+    }
+    logger.info(f"热门歌单信息已提取[get_popular_discovery_information]")
+    return data
 
 
 
@@ -329,7 +333,7 @@ class TreeOperation:
         # )
         # # 步骤2：fit()方法中直接传入sample_weight=W_train（核心：启用权重模式）
         # ensemble_reg.fit(X_train, Y_train, sample_weight=W_train)
-        return ensemble_reg
+        # return ensemble_reg
         
     # 反序列化决策树
     @classmethod
@@ -365,5 +369,4 @@ if __name__ == "__main__":
     setup_logging()
 
     import asyncio
-    asyncio.run(get_popular_daily_information(1))
-
+    asyncio.run(get_popular_discovery_information())

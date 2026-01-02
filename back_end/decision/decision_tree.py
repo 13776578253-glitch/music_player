@@ -65,7 +65,7 @@ class Decision_Tree():
     def entropy(self, class_probabilities):
         summation = 0
         for p in class_probabilities:
-            if p>0:
+            if p > 0:
                 summation += -p * np.log2(p)    
         return summation
 
