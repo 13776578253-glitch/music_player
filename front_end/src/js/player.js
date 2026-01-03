@@ -837,6 +837,16 @@ const Player = {
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     },
 
+    //新增逻辑   单曲收藏
+    handleCollect() {
+        if (!this.currentSong) return;
+        
+        const sid = String(this.currentSong.id || this.currentSong.song_id);
+        // 直接调用全局，不要在 player 里写 UI 逻辑
+        window.GlobalCollect.open(sid);
+        
+    },
+
     // --- 全屏切换 (关键修复：防止透明层遮挡) ---
     toggleFullPlayer() {
         const fp = document.getElementById('full-player');

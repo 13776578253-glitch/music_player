@@ -365,6 +365,55 @@
             }
         },
 
+        // 测试功能
+        // 批量从歌单删除歌曲
+        batchDeleteSongs: async (playlist_id, song_ids) => {
+            const currentId = getUID();
+            try {
+                const res = await fetch(`${BASE_URL}/playlist/songs/batch_delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: currentId,
+                        playlist_id: playlist_id,
+                        song_ids: Array.from(song_ids) // 确保是数组
+                    })
+                });
+                if (!res.ok) throw new Error("批量删除失败");
+                return await res.json();
+            } catch (error) {
+                console.error("[API] batchDeleteSongs Error:", error);
+                return { success: false };
+            }
+        },
+
+        // 批量添加歌曲到目标歌单
+        batchAddSongsToPlaylist: async (target_playlist_id, song_ids) => {
+            const currentId = getUID();
+            try {
+                const res = await fetch(`${BASE_URL}/playlist/songs/batch_add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: currentId,
+                        target_playlist_id: target_playlist_id,
+                        song_ids: Array.from(song_ids)
+                    })
+                });
+                if (!res.ok) throw new Error("批量添加失败");
+                return await res.json();
+            } catch (error) {
+                console.error("[API] batchAddSongsToPlaylist Error:", error);
+                return { success: false };
+            }
+        },
+
+        
+
+
+
+
+
         // 注册逻辑：通过 UID 获取唯一凭证 (Cookie)   // 测试逻辑
         registerByUID: async (uid) => {
             try {
@@ -420,33 +469,10 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     };
 
 
-    // 全局状态缓存   持久化存储
+    // 全局状态缓存
     window.AppState = {
         likedSongs: new Set(), // 存储已喜欢的 song_id (String)
         

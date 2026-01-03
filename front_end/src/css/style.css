@@ -598,3 +598,120 @@ nav {
 .dark .song-checkbox {
     border: 1px solid #475569;
 }
+
+
+/* 亮色模式下，默认按钮颜色变深，避免和白底冲突 */
+.light-mode .text-slate-400 {
+    color: #64748b !important; /* 更深的灰色 */
+}
+
+/* 选中行的高亮效果 */
+.light-mode tr.selected-row {
+    background-color: rgba(99, 102, 241, 0.05) !important;
+}
+
+/* 模态框背景适配 */
+.light-mode #add-to-playlist-modal .bg-white {
+    background-color: #ffffff !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* 强制固定第一列（序号/勾选框）的宽度，防止内容切换时表格整体位移 */
+th:first-child, 
+td:first-child {
+    width: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
+    text-align: left;
+    padding-left: 1.5rem !important; /* 这里控制你说的向右移动一点 */
+}
+
+/* 确保复选框对齐 */
+.batch-checkbox {
+    cursor: pointer;
+    width: 1rem;
+    height: 1rem;
+    vertical-align: middle;
+}
+
+/* 批量操作菜单滑出动画补丁 */
+#batch-actions-menu {
+    transition: max-width 0.3s ease, opacity 0.3s ease;
+    overflow: hidden;
+}
+
+/* 强制锁定第一列的宽度 */
+.song-row td:first-child {
+    width: 64px !important;
+    min-width: 64px !important;
+    max-width: 64px !important;
+    padding-left: 0 !important; /* 让内部居中更准 */
+    padding-right: 0 !important;
+    position: relative; /* 配合 HTML 中的 absolute 布局 */
+}
+
+/* 确保勾选框在 TD 内部完美居中且不溢出 */
+.batch-col {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+
+/* --- 表格防抖动核心补丁 --- */
+
+/* 1. 强制锁定第一列宽度，TD 内所有内容共享这 64px */
+.song-row td:first-child, 
+thead th:first-child {
+    width: 64px !important;
+    min-width: 64px !important;
+    max-width: 64px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    text-align: center; /* 让内部元素居中 */
+    position: relative;
+}
+
+/* 2. 勾选框容器定位：绝对定位，不占流空间 */
+.batch-col {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- 亮色模式修复 --- */
+
+/* 1. 亮色模式下，勾选框背景设为透明，避免黑色方块 */
+.light-mode .batch-col {
+    background-color: transparent !important;
+}
+
+/* 2. 亮色模式下，滑出菜单文字颜色 */
+.light-mode #batch-actions-menu {
+    color: #475569;
+}
+.light-mode #batch-actions-menu button:hover {
+    color: #4f46e5; /* Indigo */
+    background-color: rgba(0,0,0,0.05);
+}
+
+/* 全屏播放器层级 */
+#full-player {
+    z-index: 100; /* 全屏层在100 */
+}
+
+/* 侧边栏/队列层级 (可选) */
+#play-queue-sidebar {
+    z-index: 150;
+}
+
+#add-to-playlist-modal {
+    z-index: 10000 !important; /* 必须高于所有 page-container */
+    background-color: rgba(0, 0, 0, 0.7); /* 加深蒙版颜色 */
+    backdrop-filter: blur(4px); /* 背景模糊增加高级感 */
+}

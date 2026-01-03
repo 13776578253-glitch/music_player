@@ -6,6 +6,7 @@
         isBatchMode: false,             // 是否处于批量操作模式
         selectedSongIds: new Set(),     // 存储选中的歌曲 ID
         isCollected: false,             // 记录当前歌单收藏状态
+        _tempTargetIds: null,           // 临时存储待操作的 ID 集合 (用于区分是批量还是单曲)
 
         async init(params) {
             this.currentId = params?.id || 'default';
@@ -74,6 +75,7 @@
 
             // 空状态处理
             const emptyState = document.getElementById('empty-state');
+            const row = template.content.cloneNode(true).querySelector('tr');
 
             if (songs.length === 0) {
                 if(emptyState) {
@@ -136,9 +138,48 @@
                 const likeBtn = clone.querySelector('.btn-like');
                 const likeIcon = likeBtn.querySelector('i');
 
-
                 // 测试
                 likeBtn.dataset.id = String(song.id || song.song_id);
+
+                
+                if (checkbox) {
+                    const sid = String(song.song_id || song.id);
+                    checkbox.dataset.id = sid; // 把 ID 存进 DOM 属性
+                    
+                    // 保持选中状态（如果用户选了歌又切了模式）
+                    checkbox.checked = this.selectedSongIds.has(sid);
+
+                    // 当勾选框状态改变时触发
+                    checkbox.onchange = (e) => {
+                        if (e.target.checked) {
+                            this.selectedSongIds.add(sid);
+                        } else {
+                            this.selectedSongIds.delete(sid);
+                        }
+                        // 每点一次，更新一次顶部的“已选 X 项”
+                        this.updateBatchUIState();
+                    };
+                }
+
+                // 3. 点击整行播放的逻辑（排除点击复选框的情况）
+                row.onclick = (e) => {
+                        // 如果点的是复选框本身，或者批量操作列的空白处，直接返回，交给上面的 logic 处理
+                        if (e.target.closest('.batch-col') || e.target.type === 'checkbox') return;
+
+                        // 【修复点】判断当前模式
+                        if (this.isBatchMode) {
+                            // 如果是批量模式：手动切换复选框状态
+                            if (checkbox) {
+                                checkbox.checked = !checkbox.checked; // 视觉上打钩/取消
+                                // 触发逻辑更新 (伪造一个 event 对象传过去)
+                                this.handleSelectionChange({ target: checkbox }, sid);
+                            }
+                        } else {
+                            // 如果不是批量模式：播放音乐
+                            if (window.Player) window.Player.playSong(song);
+                        }
+                    
+                };
 
                 // 初始化 UI 状态
                 // 后端传回的数据 // is_liked 字段 (boolean)  如数据里没有 is_liked，默认为 false  // 我服了
@@ -193,81 +234,7 @@
                     song.is_liked = window.AppState.isLiked(songId);
                     song.is_loved = song.is_liked ? 1 : 0;
 
-                    // const currentStatus = (song.is_liked === true || song.is_liked == 1 || song.is_loved == 1 || song.is_loved === true);
-                    // // const newStatus = !song.is_liked;
-                    // const newStatus = !currentStatus;
-
-                    // // 1. 同步数据对象（重要：Player和当前页共享此对象）
-                    // song.is_liked = newStatus;
-                    // song.is_loved = newStatus ? 1 : 0;
-
-                    // // 2. 更新当前行 UI
-                    // likeIcon.className = newStatus ? 'fa-solid fa-heart text-rose-500 animate-bounce' : 'fa-regular fa-heart text-slate-600';
-                    
-                    // // 3. 通知后端
-                    // if (window.API && API.toggleLike) API.toggleLike(songId, newStatus);
-
-                    // // 4. 同步底部播放器 UI
-                    // this.syncBottomPlayerLike(songId, newStatus);
-
-                    // // // 乐观更新 UI (不等后端返回，先变色)
-                    // // if (newStatus) {
-                    // //     likeIcon.classList.remove('fa-regular', 'text-slate-600');
-                    // //     likeIcon.classList.add('fa-solid', 'text-rose-500');
-                    // //     // 简单的动画效果
-                    // //     likeIcon.classList.add('animate-bounce'); 
-                    // //     setTimeout(() => likeIcon.classList.remove('animate-bounce'), 500);
-                    // // } else {
-                    // //     likeIcon.classList.remove('fa-solid', 'text-rose-500');
-                    // //     likeIcon.classList.add('fa-regular', 'text-slate-600');
-                    // // }
-
-                    // // // 更新本地数据模型 (状态持久存储)
-                    // // song.is_liked = newStatus;
-
-                    // // // 调用后端 API
-                    // // if (window.API) {
-                    // //     API.toggleLike(song.id || song.song_id, newStatus);
-                    // // }
-
-                    // // // 同步 Player  //  如果当前播放的正是这首歌，也要更新播放器上的爱心状态  // 待测试逻辑
-                    // // if (window.Player && Player.currentSong) {
-                    // //     const playingId = String(Player.currentSong.id || Player.currentSong.song_id);
-                    // //     const currentId = String(song.id || song.song_id);
-                        
-                    // //     if (playingId === currentId) {
-                    // //         // 如果 Player 内部有 updateLikeUI 方法，调用它
-                    // //         // 如果没有，可以直接修改 Player.currentSong.is_liked
-                    // //         Player.currentSong.is_liked = newStatus;
-                            
-                    // //         // 假设 Player 底部也有个爱心按钮 id="p-btn-like"
-                    // //         const playerLikeBtn = document.getElementById('p-btn-like');
-                    // //         const playerLikeIcon = playerLikeBtn?.querySelector('i');
-                    // //         if (playerLikeIcon) {
-                    // //             if (newStatus) {
-                    // //                 playerLikeIcon.classList.remove('fa-regular');
-                    // //                 playerLikeIcon.classList.add('fa-solid', 'text-rose-500');
-                    // //             } else {
-                    // //                 playerLikeIcon.classList.remove('fa-solid', 'text-rose-500');
-                    // //                 playerLikeIcon.classList.add('fa-regular');
-                    // //             }
-                    // //         }
-                    // //     }
-                    // // }
-
                 };
-
-                // const row = clone.querySelector('.song-row');
-                
-                // // 点击逻辑，只使用 this._localCurrentSongs ---
-                // row.onclick = () => {
-                //     console.log(`[Playlist] 播放当前歌单中的: ${song.title}`);
-                //     if (window.Player) {
-                //         // 传入当前点击的歌，以及此歌单的完整列表
-                //         // 播放器就会载入这个歌单
-                //         Player.play(song, this._localCurrentSongs);
-                //     }
-                // };
 
                 // 测试逻辑 待修改
                 const clickArea = clone.querySelector('.title-click-area');
@@ -332,6 +299,18 @@
             container.appendChild(fragment);
 
             // 渲染后，根据当前模式显示/隐藏 checkbox 列
+            this.updateBatchUIState();
+        },
+
+        // 处理选中逻辑并刷新 UI    // 测试
+        handleItemSelection(id, isSelected) {
+            const sid = String(id);
+            if (isSelected) {
+                this.selectedSongIds.add(sid);
+            } else {
+                this.selectedSongIds.delete(sid);
+            }
+            // 调用你之前写的更新数字的方法
             this.updateBatchUIState();
         },
 
@@ -423,53 +402,199 @@
         // 批量操作_逻辑
 
         // 切换模式开关
+        // toggleBatchMode() {
+        //     this.isBatchMode = !this.isBatchMode;
+
+        //     const menu = document.getElementById('batch-actions-menu');
+        //     const toggleBtn = document.getElementById('btn-batch-toggle');
+        //     const toggleBtnText = toggleBtn.querySelector('span');
+        //     const checkboxes = document.querySelectorAll('.batch-col');
+        //     const normalCols = document.querySelectorAll('.normal-col');
+
+        //     // const btn = document.getElementById('btn-batch-toggle');
+            
+        //     if (this.isBatchMode) {
+        //         // 展开菜单：设置一个足够的宽度（或者用 max-width 动画）
+        //         menu.style.width = "160px"; // 根据按钮数量调整
+        //         menu.classList.remove('opacity-0');
+        //         menu.classList.add('opacity-100');
+                
+        //         // 改变主按钮样式
+        //         toggleBtnText.textContent = "完成";
+        //         toggleBtn.classList.add('text-indigo-600', 'font-bold');
+                
+        //         // 显示列选择框
+        //         checkboxes.forEach(el => el.classList.remove('hidden'));
+        //         normalCols.forEach(el => el.classList.add('hidden'));
+        //     } else {
+        //         // 收起菜单
+        //         menu.style.width = "0";
+        //         menu.classList.remove('opacity-100');
+        //         menu.classList.add('opacity-0');
+                
+        //         // 还原主按钮
+        //         toggleBtnText.textContent = "批量操作";
+        //         toggleBtn.classList.remove('text-indigo-600', 'font-bold');
+                
+        //         // 隐藏列选择框
+        //         checkboxes.forEach(el => el.classList.add('hidden'));
+        //         normalCols.forEach(el => el.classList.remove('hidden'));
+                
+        //         this.selectedSongIds.clear();
+        //         this.updateBatchUIState();
+        //     }
+
+        //     // if (this.isBatchMode) {
+        //     //     btn.classList.add('text-indigo-400', 'bg-white/10');
+        //     // } else {
+        //     //     btn.classList.remove('text-indigo-400', 'bg-white/10');
+        //     //     this.selectedSongIds.clear(); // 退出时清空选择
+        //     //     this.updateSelectionCount();
+        //     // }
+
+        //     // this.updateBatchUIState();
+        // },
+
         toggleBatchMode() {
             this.isBatchMode = !this.isBatchMode;
-            const btn = document.getElementById('btn-batch-toggle');
+
+            const toggleBtn = document.getElementById('btn-batch-toggle');
             
-            if (this.isBatchMode) {
-                btn.classList.add('text-indigo-400', 'bg-white/10');
-            } else {
-                btn.classList.remove('text-indigo-400', 'bg-white/10');
-                this.selectedSongIds.clear(); // 退出时清空选择
-                this.updateSelectionCount();
+            // 切换按钮样式（视觉反馈）
+            if (toggleBtn) {
+                const btnText = toggleBtn.querySelector('span');
+                if (this.isBatchMode) {
+                    if(btnText) btnText.textContent = "完成";
+                    toggleBtn.classList.add('text-indigo-500', 'font-bold');
+                } else {
+                    if(btnText) btnText.textContent = "批量操作";
+                    toggleBtn.classList.remove('text-indigo-500', 'font-bold');
+                    // 退出模式时清空选择
+                    this.selectedSongIds.clear(); 
+                }
             }
 
+            // 调用核心 UI 更新函数
             this.updateBatchUIState();
         },
 
-        // 更新 UI 显示 (Checkbox 列和底部 Bar)
+        
+
+        // UI 显隐控制   // 测试
         // updateBatchUIState() {
         //     const checkboxes = document.querySelectorAll('.batch-col');
         //     const bottomBar = document.getElementById('batch-action-bar');
-        //     const mainContainer = document.querySelector('.p-8'); // 主容器，需要 padding-bottom 防止挡住   //!!
+        //     const normalCols = document.querySelectorAll('.normal-col');
+
+        //     // 获取新的顶部滑出菜单容器和计数器
+        //     const batchMenu = document.getElementById('batch-actions-menu');
+        //     const batchCount = document.getElementById('batch-count');
 
         //     if (this.isBatchMode) {
-        //         checkboxes.forEach(el => el.classList.remove('hidden'));
-        //         bottomBar.classList.remove('translate-y-32'); // 升起
+        //         normalCols.forEach(el => el.classList.add('hidden'));
+        //         indexNums.forEach(el => el.classList.add('hidden'));   //
+
+        //         checkboxes.forEach(el => {
+        //             el.classList.remove('hidden');
+        //             // el.style.display = 'table-cell'; // 确保在 Table 中正确显示
+        //             // el.style.paddingLeft = '1.5rem';
+        //         });
+        //         // normalCols.forEach(el => el.classList.add('hidden'));
+
+        //         // --- 2. 激活顶部滑出菜单 (核心修改) ---
+        //         if (batchMenu) {
+        //             // 这里对应 CSS 中的过渡效果
+        //             batchMenu.style.width = "200px"; // 根据按钮数量调整宽度
+        //             batchMenu.classList.remove('opacity-0');
+        //             batchMenu.classList.add('opacity-100');
+        //         }
+
+        //         // --- 3. 更新已选数字 ---
+        //         if (batchCount) {
+        //             batchCount.textContent = `${this.selectedSongIds.size} 已选`;
+        //         }
+
+        //         // bottomBar.style.transform = 'translate(-50%, 0)'; // 假设横向居中
+        //         // bottomBar.classList.remove('translate-y-32');
+        //         // bottomBar.classList.remove('translate-y-48');
+        //         // bottomBar.classList.add('translate-y-0');
+
+                
         //     } else {
-        //         checkboxes.forEach(el => el.classList.add('hidden'));
-        //         bottomBar.classList.add('translate-y-32'); // 降下
+        //         normalCols.forEach(el => el.classList.remove('hidden'));
+        //         checkboxes.forEach(el => el.classList.add('hidden'));  //测试
+
+        //         // bottomBar.classList.add('translate-y-32');
+        //         // bottomBar.classList.remove('translate-y-0');
+        //         // bottomBar.classList.add('translate-y-48');
+
+        //         // --- 2. 隐藏顶部滑出菜单 ---
+        //         if (batchMenu) {
+        //             batchMenu.style.width = "0";
+        //             batchMenu.classList.remove('opacity-100');
+        //             batchMenu.classList.add('opacity-0');
+        //         }
+
+        //         // 延迟隐藏列，等动画做完
+        //         setTimeout(() => {
+        //             if(!this.isBatchMode) {
+        //                 checkboxes.forEach(el => el.classList.add('hidden'));
+        //             }
+        //         }, 300);
         //     }
         // },
 
         updateBatchUIState() {
-            const checkboxes = document.querySelectorAll('.batch-col');
-            const bottomBar = document.getElementById('batch-action-bar');
+            // 1. 获取所有相关 DOM 元素
+            const batchMenu = document.getElementById('batch-actions-menu');
+            const batchCount = document.getElementById('batch-count');
             
+            // 获取列表内的元素 (注意：必须使用 querySelectorAll 实时获取)
+            const checkboxes = document.querySelectorAll('.batch-col');
+            const indexNums = document.querySelectorAll('.index-num'); 
+            
+            // 获取表头元素 (如果你有表头的话，也需要切换)
+            const headerNormal = document.querySelector('thead .normal-col');
+            const headerBatch = document.querySelector('thead .batch-col');
+
             if (this.isBatchMode) {
+                // --- 开启模式 ---
+                
+                // 1. 列表行：隐藏数字，显示勾选框
+                indexNums.forEach(el => el.classList.add('hidden'));
                 checkboxes.forEach(el => el.classList.remove('hidden'));
-                // 向上滑入显示
-                bottomBar.classList.remove('translate-y-48');
-                bottomBar.classList.add('translate-y-0');
+                
+                // 2. 表头：切换 # 号为 全选框
+                if (headerNormal) headerNormal.classList.add('hidden');
+                if (headerBatch) headerBatch.classList.remove('hidden');
+
+                // 3. 顶部菜单：滑出动画
+                if (batchMenu) {
+                    batchMenu.style.width = "220px"; // 给足够宽度显示按钮
+                    batchMenu.classList.remove('opacity-0');
+                    batchMenu.classList.add('opacity-100');
+                }
+                
+                // 4. 更新计数
+                if (batchCount) batchCount.textContent = `${this.selectedSongIds.size} 已选`;
+
             } else {
-                // 向下滑出隐藏
-                bottomBar.classList.remove('translate-y-0');
-                bottomBar.classList.add('translate-y-48');
-                // 延迟隐藏列，等动画做完
-                setTimeout(() => {
-                    if(!this.isBatchMode) checkboxes.forEach(el => el.classList.add('hidden'));
-                }, 300);
+                // --- 关闭模式 ---
+                
+                // 1. 列表行：显示数字，隐藏勾选框
+                indexNums.forEach(el => el.classList.remove('hidden'));
+                checkboxes.forEach(el => el.classList.add('hidden'));
+                
+                // 2. 表头还原
+                if (headerNormal) headerNormal.classList.remove('hidden');
+                if (headerBatch) headerBatch.classList.add('hidden');
+
+                // 3. 顶部菜单：收起
+                if (batchMenu) {
+                    batchMenu.style.width = "0";
+                    batchMenu.classList.remove('opacity-100');
+                    batchMenu.classList.add('opacity-0');
+                }
             }
         },
 
@@ -481,23 +606,56 @@
             } else {
                 this.selectedSongIds.delete(sid);
             }
-            this.updateSelectionCount();
+            // this.updateSelectionCount();
+            this.updateBatchUIState();
         },
 
         // 全选
+        // toggleSelectAll(sourceCheckbox) {
+        //     const checkboxes = document.querySelectorAll('.song-checkbox');
+        //     checkboxes.forEach(cb => {
+        //         cb.checked = sourceCheckbox.checked;
+        //         const id = cb.dataset.id;
+        //         if (sourceCheckbox.checked) {
+        //             this.selectedSongIds.add(String(id));
+        //         } else {
+        //             this.selectedSongIds.clear();
+        //         }
+        //     });
+        //     this.updateSelectionCount();
+        // },
+
+        // 全选
         toggleSelectAll(sourceCheckbox) {
-            const checkboxes = document.querySelectorAll('.song-checkbox');
-            checkboxes.forEach(cb => {
-                cb.checked = sourceCheckbox.checked;
-                const id = cb.dataset.id;
-                if (sourceCheckbox.checked) {
-                    this.selectedSongIds.add(String(id));
-                } else {
-                    this.selectedSongIds.clear();
+            // 1. 获取全选框的当前状态 (true/false)
+            const isChecked = sourceCheckbox.checked;
+            
+            // 2. 获取所有歌曲列表里的复选框 (排除全选框自己)
+            const itemCheckboxes = document.querySelectorAll('#song-list-body .song-checkbox');
+            
+            // 3. 数据处理
+            if (!isChecked) {
+                // 如果是取消全选，直接清空集合，最快
+                this.selectedSongIds.clear();
+            }
+            
+            // 4. 遍历视觉更新和数据添加
+            itemCheckboxes.forEach(cb => {
+                // 让小勾勾亮起来/灭掉
+                cb.checked = isChecked;
+                
+                // 数据同步
+                const sid = String(cb.dataset.id);
+                if (isChecked && sid) {
+                    this.selectedSongIds.add(sid);
                 }
             });
-            this.updateSelectionCount();
+
+            // 5. 【至关重要】更新顶部“已选 X 项”的文字
+            this.updateBatchUIState();
         },
+
+
 
         // 更新选中数量显示
         updateSelectionCount() {
@@ -590,49 +748,86 @@
         },
 
         // 批量删除    //测试逻辑  需要验证  // 重点！
-        batchDelete() {
+        async batchDelete() {
             if (this.selectedSongIds.size === 0) return alert("请先选择歌曲");
 
             if (!confirm(`确定要从歌单中删除选中的 ${this.selectedSongIds.size} 首歌曲吗？`)) return;
 
-            // // 前端过滤模拟删除
-            // const oldLength = this._localCurrentSongs.length;
-            // this._localCurrentSongs = this._localCurrentSongs.filter(song => {
-            //     return !this.selectedSongIds.has(String(song.id)); // 或者是 song_id，视数据而定
-            // });
+            // 调用后端
+            const result = await API.batchDeleteSongs(this.currentId, this.selectedSongIds);
 
-            // // 重新渲染
-            // const container = document.getElementById('song-list-body');
-            // const template = document.getElementById('song-row-template');
-            // this.render(container, template, this._localCurrentSongs);
-            
-            // // 更新头部计数
-            // document.getElementById('pl-desc').textContent = `${this._localCurrentSongs.length} 首歌曲`;
-            
-            // // 退出批量模式或清空选择
-            // this.selectedSongIds.clear();
-            // this.updateSelectionCount();
-            
-            // 调用后端 API 真正删除
-            // await API.deleteSongsFromPlaylist(this.currentId, Array.from(this.selectedSongIds));
+            if (result.success || result.status === 'success') {
+                // 前端过滤掉已删除的歌
+                this._localCurrentSongs = this._localCurrentSongs.filter(song => {
+                    const sid = String(song.id || song.song_id);
+                    return !this.selectedSongIds.has(sid);
+                });
+
+                // 重新渲染列表并更新计数
+                const container = document.getElementById('song-list-body');
+                const template = document.getElementById('song-row-template');
+                this.render(container, template, this._localCurrentSongs);
+                
+                document.getElementById('pl-desc').textContent = `${this._localCurrentSongs.length} 首歌曲`;
+                
+                this.exitBatchMode();
+                alert("删除成功");
+            } else {
+                alert("服务器删除失败，请稍后重试");
+            }
+
         },
 
         //  收藏到其他歌单    //测试逻辑  需要验证  // 重点！
-        
-        openAddToPlaylistModal() {
-            if (this.selectedSongIds.size === 0) return alert("请先选择歌曲");
+        openAddToPlaylistModal(singleSongId = null) {
+
+            // if (singleSongId && (typeof singleSongId === 'string'|| typeof singleSongId === 'number')) {
+            //     // 情况A: 来自播放器的单曲收藏
+            //     this._tempTargetIds = new Set([String(singleSongId)]);
+            // } else {
+            //     // 情况B: 来自列表的批量操作
+
+            //     if (!this._tempTargetIds ||this.selectedSongIds.size === 0) {
+            //         return alert("请先选择歌曲");
+            //     }
+            //     window.GlobalCollect.open(this.selectedSongIds);
+            //     this._tempTargetIds = this.selectedSongIds;
+            // }
+
             
-            const modal = document.getElementById('add-to-playlist-modal');
-            modal.classList.remove('hidden');
-            // 动画 transition 小延时
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modal.querySelector('#modal-content').classList.remove('scale-95');
-                modal.querySelector('#modal-content').classList.add('scale-100');
-            }, 10);
+
+            // const modal = document.getElementById('add-to-playlist-modal');
+            // // modal.classList.remove('hidden');
+            // // // 动画 transition 小延时
+            // // setTimeout(() => {
+            // //     modal.classList.remove('opacity-0');
+            // //     modal.querySelector('#modal-content').classList.remove('scale-95');
+            // //     modal.querySelector('#modal-content').classList.add('scale-100');
+            // // }, 10);
+
+            // if (modal) {
+            //     modal.classList.remove('hidden');
+            //     setTimeout(() => {
+            //         modal.classList.remove('opacity-0');
+            //         const content = modal.querySelector('#modal-content');
+            //         if(content) {
+            //             content.classList.remove('scale-95');
+            //             content.classList.add('scale-100');
+            //         }
+            //     }, 10);
+                
+            //     // 加载我的歌单列表
+            //     this.loadMyPlaylistsToModal();
+            // }
             
-            // 加载我的歌单列表 (模拟)
-            this.loadMyPlaylistsToModal();
+            if (singleSongId) {
+                // 行内按钮单曲收藏
+                window.GlobalCollect.open(String(singleSongId));
+            } else {
+                // 顶部批量收藏
+                if (this.selectedSongIds.size === 0) return alert("请先勾选歌曲");
+                window.GlobalCollect.open(this.selectedSongIds);
+            }
         },
 
         closeModal() {
@@ -675,22 +870,58 @@
             }
         },
 
-        confirmAddToPlaylist(targetPlaylistId) {
-            // 执行 API 调用
-            console.log(`将 ${this.selectedSongIds.size} 首歌添加到歌单 ${targetPlaylistId}`);
+        // 添加到歌单   // 测试
+        async confirmAddToPlaylist(targetPlaylistId) {
+            const idsToProcess = this._tempTargetIds || this.selectedSongIds;
+
+            if (!idsToProcess || this.selectedSongIds.size === 0) return;
+
+            const result = await API.batchAddSongsToPlaylist(targetPlaylistId, this.selectedSongIds);
+    
+            if (result.success) {
+                this.closeModal();
+
+                // this.exitBatchMode();
+                // 只有当操作的是“批量选择”的集合时，才退出批量模式
+                // 如果是播放器传来的单曲 ID，不要关闭列表的批量模式
+                if (idsToProcess === this.selectedSongIds) {
+                    this.exitBatchMode();
+                }
+
+                alert(`成功将 ${this.selectedSongIds.size} 首歌收藏到歌单`);
+
+                // 清空临时状态
+                this._tempTargetIds = null;
+            } else {
+                alert("收藏失败，请检查网络");
+            }
             
-            // 模拟成功
-            this.closeModal();
-            this.exitBatchMode();
-            alert("已成功添加歌曲到目标歌单！");
         },
 
         exitBatchMode() {
+            // this.isBatchMode = false;
+            // const btn = document.getElementById('btn-batch-toggle');
+            // if(btn) btn.classList.remove('text-indigo-400', 'bg-white/10');
+            // this.selectedSongIds.clear();
+            // this.updateBatchUIState();
+
             this.isBatchMode = false;
+            // 适配新的按钮 ID: btn-batch-toggle
             const btn = document.getElementById('btn-batch-toggle');
-            if(btn) btn.classList.remove('text-indigo-400', 'bg-white/10');
+            if (btn) {
+                // 移除激活样式
+                btn.classList.remove('text-indigo-600', 'font-bold');
+            }
+            
+            const menu = document.getElementById('batch-actions-menu');
+            if (menu) {
+                menu.style.width = "0";
+                menu.classList.add('opacity-0');
+            }
+
             this.selectedSongIds.clear();
             this.updateBatchUIState();
+
         }
     };
 
