@@ -1,8 +1,5 @@
 import numpy as np
 from collections import Counter
-import matplotlib.pyplot as plt
-import networkx as nx
-from networkx.drawing.nx_agraph import graphviz_layout
 
 # 树节点
 class Tree_node():
@@ -204,7 +201,7 @@ class Decision_Tree():
             return p.value
             
         while p:
-            index = np.searchsorted(p.value, x[p.index], side='right')  # 分箱，side='right' 保证当 x == breaks[i] 时算到右侧区间
+            index = np.searchsorted(p.value, x[p.index], side='right')  # 分箱，side='right'保证当x == breaks[i]时算到右侧区间
             if p.children[index].index is not None:
                 p = p.children[index]
             else:

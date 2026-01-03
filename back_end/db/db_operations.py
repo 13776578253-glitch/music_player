@@ -156,6 +156,30 @@ class SongTable:
             logger.error(f"批量查询歌曲失败：{e}")
             raise
 
+    # 查询所有歌曲指定数据_avl
+    @classmethod
+    async def get_songs_column(cls, columns=["id", "title", "artist"]):
+        sql = f"SELECT {', '.join(columns)} FROM songs"
+
+        try:
+            async with db_context() as conn:
+                cursor = await conn.execute(sql)
+                rows = await cursor.fetchall()
+
+            result = []
+            for row in rows:
+                row = list(row)
+                if "artist" in columns:
+                    idx = columns.index("artist")
+                    row[idx] = json.loads(row[idx]) if row[idx] else []
+                result.append(tuple(row))
+
+            logger.info(f"查询所有歌曲指定数据成功")
+            return result
+        except aiosqlite.Error as e:
+            logger.error(f"查询所有歌曲指定数据失败：{e}")
+            raise
+
     # 更新数据
     @classmethod
     async def update_song(cls, song_id, new_data, conn):
@@ -917,7 +941,7 @@ class PlaylistSongTable:
             logger.error(f"移除歌单歌曲失败：{e}")
             raise
 
-# 用户决策树表
+# 树表
 class ModelTable:
     CREATE_QUERY = """
     CREATE TABLE IF NOT EXISTS model (
@@ -943,7 +967,7 @@ class ModelTable:
 
     # 保存/更新模型
     @classmethod
-    async def save_model(cls, model_id, model_type, model_data, event_cursor):
+    async def save_model(cls, model_id, model_type, model_data, event_cursor=0):
         sql = """INSERT OR REPLACE INTO model (id, model_type, model_data, event_cursor) VALUES (?, ?, ?, ?)"""
         try:
             async with db_context() as conn:
@@ -1167,6 +1191,32 @@ class Analytics:
             logger.error(f"get_user_history_play_events提取信息失败：{e}")
             raise
 
+    # 批量查询数据并按播放次数排序
+    @classmethod
+    async def order_song_by_count(cls, song_ids):
+        placeholders = ",".join(["?"] * len(song_ids))
+        sql = f"""
+        SELECT s.id, s.id AS song_id, s.title, s.artist, s.album, s.lyrics, s.lyricist, 
+        s.composer, s.language, s.genre, s.record_company, s.duration, s.file_path, 
+        s.url, s.is_deleted, s.created_at, COALESCE(ss.play_count, 0) AS play_count
+        FROM songs s
+        LEFT JOIN song_stats ss ON s.id = ss.song_id
+        WHERE s.id IN ({placeholders}) AND s.is_deleted = 0
+        ORDER BY play_count DESC;
+        """
+
+        try:
+            async with db_context() as conn:
+                cursor = await conn.execute(sql, song_ids)
+                rows = await cursor.fetchall()
+                songs = cls.tuple_to_list_s(rows)
+                logger.info("order_song_by_count成功提取信息")
+                return songs
+
+        except aiosqlite.Error as e:
+            logger.error(f"order_song_by_count提取信息失败：{e}")
+            raise
+
 
     # 生成正样本候选与强负的user_song聚合行-训练所有用户的样本行
     @classmethod
@@ -1270,7 +1320,7 @@ class Analytics:
 
     # 查找用户的聚合信息用于预测
     @classmethod
-    async def get_one_user_song_aggregation(cls, user_id):
+    async def get_one_user_song_aggregation(cls, user_id, date=60):
         sql = """
         SELECT 
             s.id AS song_id, s.genre AS song_genre, s.language AS song_language, s.duration AS song_duration,
@@ -1278,13 +1328,13 @@ class Analytics:
             ss.complete_count song_complete_count
         FROM songs s
         LEFT JOIN song_stats ss ON s.id = ss.song_id
-        LEFT JOIN play_events p ON s.id = p.song_id AND p.user_id = ?
+        LEFT JOIN play_events p ON s.id = p.song_id AND p.user_id = ? AND p.created_at >= DATE('now', ?)
         WHERE p.song_id IS NULL
         """
 
         try:
             async with db_context() as conn:
-                cursor = await conn.execute(sql, (user_id,))
+                cursor = await conn.execute(sql, (user_id, date))
                 rows = await cursor.fetchall()
                 data = cls.tuple_to_list(rows)
                 logger.info("get_one_user_song_aggregation成功提取信息")

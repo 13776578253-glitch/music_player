@@ -3,6 +3,8 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from .playlist_song_operation import get_playlist_songs_information
+from .search_operation import get_searh_information
+
 logger = logging.getLogger("basic_functions")
 
 # /

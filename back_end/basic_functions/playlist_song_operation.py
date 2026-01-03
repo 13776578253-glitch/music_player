@@ -1,8 +1,8 @@
-import json, logging
+import logging
 
 from db import db_operations
 
-logger = logging.getLogger("basic_functions")
+logger = logging.getLogger("basic_functions[pl]")
 
 # 通过歌单id查询歌曲信息
 async def get_playlist_songs_information(playlist_id: str | int, user_id: str | int):
