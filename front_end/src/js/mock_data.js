@@ -351,46 +351,89 @@ export const list_Playlist_c_1 = {
         id: 1,
         count: 4, 
         playlists: [
-        { 
-            playlist_id: 50, 
-            title: "大手子致敬", 
-            creater_id: 10,
-            type: "a",
-            url: "./assets/cover/cover_playlist/test1.jpg",
-            collect_count: 10,
-            play_count: 10,
-            song_count: 1
-        },
-        { 
-            playlist_id: 51, 
-            title: "致敬大手子", 
-            creater_id: 10,
-            type: "a",
-            url: "./assets/cover/cover_playlist/test2.jpg",
-            collect_count: 10,
-            play_count: 10,
-            song_count: 1
-        },
-        { 
-            playlist_id: 52, 
-            title: "大手致敬子", 
-            creater_id: 10,
-            type: "a",
-            url: "./assets/cover/cover_playlist/test3.jpg",
-            collect_count: 10,
-            play_count: 10,
-            song_count: 1
-        },
-        { 
-            playlist_id: 53, 
-            title: "大子致敬手", 
-            creater_id: 10,
-            type: "a",
-            url: "./assets/cover/cover_playlist/test4.jpg",
-            collect_count: 10,
-            play_count: 10,
-            song_count: 1
-        }
-    ]
-
+            { 
+                playlist_id: 50, 
+                title: "大手子致敬", 
+                creater_id: 10,
+                type: "a",
+                url: "./assets/cover/cover_playlist/test1.jpg",
+                collect_count: 10,
+                play_count: 10,
+                song_count: 1
+            },
+            { 
+                playlist_id: 51, 
+                title: "致敬大手子", 
+                creater_id: 10,
+                type: "a",
+                url: "./assets/cover/cover_playlist/test2.jpg",
+                collect_count: 10,
+                play_count: 10,
+                song_count: 1
+            },
+            { 
+                playlist_id: 52, 
+                title: "大手致敬子", 
+                creater_id: 10,
+                type: "a",
+                url: "./assets/cover/cover_playlist/test3.jpg",
+                collect_count: 10,
+                play_count: 10,
+                song_count: 1
+            },
+            { 
+                playlist_id: 53, 
+                title: "大子致敬手", 
+                creater_id: 10,
+                type: "a",
+                url: "./assets/cover/cover_playlist/test4.jpg",
+                collect_count: 10,
+                play_count: 10,
+                song_count: 1
+            }
+        ],
 };
+
+// 搜索 测试
+export const _List_SONGS_Search = [
+    {
+        id: "201",
+        song_id: "201",
+        title: "wys",
+        artist: ["man"],
+        album: "man",
+        lyricist: "",
+        composer: "",
+        language: "",
+        genre: "",
+        record_company: "",
+        duration: "3:43",
+        filepath: "./assets/music/daily/test1.mp3",
+        url: "./assets/cover/cover_song/test1.jpg",
+        lyrics: "歌词第一句\n歌词第二句",
+        is_deleted:"",
+        created_at:"",
+        is_loved: ""
+    },
+    {
+        id: "202",
+        song_id: "202",
+        title: "wys！！",
+        artist: ["man"],
+        album: "man",
+        lyricist: "",
+        composer: "",
+        language: "",
+        genre: "",
+        record_company: "",
+        duration: "3:38",
+        filepath: "./assets/music/daily/test2.mp3",
+        url: "./assets/cover/cover_song/test2.jpg",
+        lyrics: "第一句\n第二句",
+        is_deleted:"",
+        created_at:"",
+        is_loved: ""
+    },
+
+
+];

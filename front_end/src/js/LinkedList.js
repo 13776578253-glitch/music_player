@@ -14,6 +14,11 @@ class DoublyCircularLinkedList {
         this.size = 0;
     }
 
+    // 判断是否为空
+    isEmpty() {
+        return this.head === null;
+    }
+
     // 添加歌曲到链表尾部
     append(data) {
         const newNode = new Node(data);
@@ -51,5 +56,43 @@ class DoublyCircularLinkedList {
         if (!this.current) 
             return null;
         return this.current.data;
+    }
+
+    // 测试
+    // 查找节点 (根据 song_id 或 id)
+    find(id) {
+        if (!this.head) return null;
+        let node = this.head;
+        const searchId = String(id);
+        do {
+            if (String(node.data.song_id) === searchId || String(node.data.id) === searchId) {
+                return node;
+            }
+            node = node.next;
+        } while (node !== this.head);
+        return null;
+    }
+
+    //  在指定 ID 的节点后插入新歌曲
+    insertAfter(targetId, newData) {
+        const newNode = new Node(newData);
+        if (!this.head) {
+            this.append(newData);
+            return;
+        }
+
+        const prevNode = this.find(targetId);
+        if (!prevNode) {
+            this.append(newData); // 如果没找到目标，加到队尾
+            return;
+        }
+
+        // 核心链表插入逻辑
+        newNode.next = prevNode.next;
+        newNode.prev = prevNode;
+        prevNode.next.prev = newNode;
+        prevNode.next = newNode;
+        
+        this.size++;
     }
 }

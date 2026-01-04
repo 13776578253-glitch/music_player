@@ -8,7 +8,8 @@ const PlayMode = {
 const Player = {
     audio: new Audio(),
     playlist: null, // 链表实例
-    // playlist: new DoublyCircularLinkedList(),
+    playlist: new DoublyCircularLinkedList(),
+    
     mode: PlayMode.LOOP,
     isPlaying: false,
     currentSong: null,
@@ -867,6 +868,63 @@ const Player = {
         // 直接调用全局，不要在 player 里写 UI 逻辑
         window.GlobalCollect.open(sid);
         
+    },
+
+    // 测试  //搜索
+    // 处理搜索结果点击
+    addSearchResultAndPlay(songData) {
+        if (!this.playlist) {
+            console.warn('[Player] 播放列表未初始化，正在自动创建...');
+            // 这里的 DoublyCircularLinkedList 对应你 index.html 引入的文件
+            if (typeof DoublyCircularLinkedList !== 'undefined') {
+                this.playlist = new DoublyCircularLinkedList();
+            } else {
+                console.error('找不到 LinkedList 构造函数');
+                return;
+            }
+        }
+
+        console.log('[Player] 插入搜索歌曲:', songData.title);
+
+        // 1. 将 API 数据格式化为播放器需要的格式 (如果需要)
+        // 假设 LinkedList 需要的数据结构和 songData 一致
+        
+        // 2. 如果当前列表为空，直接初始化列表
+        if (this.playlist.isEmpty() || !this.currentSong) {
+            console.log('[Player] 当前无播放歌曲，直接开始播放新歌');   // 测试
+
+            // 如果列表为空，添加进去
+            if(this.playlist.isEmpty()) {
+                this.playlist.append(songData);
+            } else {
+                // 列表不为空但没在播放（比如手动停止了），插到开头
+                this.playlist.insertAfter(null, songData); 
+            }
+
+            this.loadSong(songData);
+            this.play();
+        } else {
+            // 3. 正常插入逻辑：插在当前歌曲之后，然后切歌
+            console.log('[Player] 插入到当前播放歌曲之后');
+            
+            const currentId = this.currentSong.id || this.currentSong.song_id;
+            const currentNode = this.playlist.find(currentId);
+            
+            if (currentNode) {
+                this.playlist.insertAfter(currentId, songData);
+                // 插入成功后，调用 playNext 就会切到这首新歌
+                this.playNext();
+            } else {
+                // 备选方案：如果找不到当前节点，直接插到末尾并播放
+                this.playlist.append(songData);
+                this.loadSong(songData);
+                this.play();
+            }
+        }
+
+        if (this.renderQueue) {
+            this.renderQueue();
+        }
     },
 
     // --- 全屏切换 (关键修复：防止透明层遮挡) ---

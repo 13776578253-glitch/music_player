@@ -175,11 +175,60 @@
     
         <div class="flex-1"></div>
         <div class="flex items-center gap-4">
-            <div class="relative w-64">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                <input type="text" placeholder="搜索音乐、歌手..." 
-                    class="dynamic-input w-full rounded-full py-1.5 pl-9 pr-4 text-xs focus:outline-none focus:border-indigo-500/50 transition-all shadow-sm">
+
+            <!-- <div class="relative w-[450px] z-[100]" id="search-wrapper">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                
+                <input type="text" 
+                    id="search-input"
+                    placeholder="搜索音乐、歌手..." 
+                    class="w-full bg-slate-800/40 border border-white/5 text-slate-200 text-sm rounded-xl py-2.5 pl-11 pr-4 
+                            focus:outline-none focus:border-indigo-500/50 focus:bg-slate-800/80 transition-all shadow-inner
+                            placeholder:text-slate-600">
+
+                <div id="search-dropdown" 
+                    class="hidden absolute top-[calc(100%+8px)] left-0 w-full bg-slate-900/98 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden transition-all"
+                    style="min-height: 100px; max-height: 480px;">
+                    
+                    <div id="search-loading" class="hidden py-8 text-center text-slate-500 text-xs tracking-widest">
+                        <i class="fa-solid fa-spinner fa-spin mr-2 text-indigo-500"></i>正在寻找旋律...
+                    </div>
+
+                    <div id="search-empty" class="hidden py-8 text-center text-slate-500 text-xs tracking-widest">
+                        <i class="fa-solid fa- ओटी-simple-smile mb-2 block text-lg"></i>没有找到相关曲目
+                    </div>
+
+                    <div id="search-results-list" class="flex flex-col overflow-y-auto custom-scrollbar" style="max-height: 400px;">
+                        </div>
+                </div>
+            </div> -->
+
+            <div class="relative w-[450px] z-[100]" id="search-wrapper">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                
+                <input type="text" 
+                    id="search-input"
+                    placeholder="搜索音乐、歌手..." 
+                    class="w-full bg-[#1e293b] border border-white/10 text-slate-200 text-sm rounded-lg py-3 pl-11 pr-4 
+                            focus:outline-none focus:border-indigo-500 focus:bg-[#26334d] transition-all shadow-lg
+                            placeholder:text-slate-600">
+
+                <div id="search-dropdown" 
+                    class="hidden absolute top-[calc(100%+4px)] left-0 w-full bg-[#0f172a] border border-white/10 rounded-lg shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)] overflow-hidden transition-all"
+                    style="z-index: 101;">
+                    
+                    <div id="search-results-list" class="flex flex-col overflow-y-auto custom-scrollbar" style="max-height: 450px;">
+                        </div>
+
+                    <div id="search-loading" class="hidden py-10 text-center text-slate-500 text-xs">
+                        <i class="fa-solid fa-spinner fa-spin mr-2"></i>正在加载...
+                    </div>
+                    <div id="search-empty" class="hidden py-10 text-center text-slate-500 text-xs">
+                        未找到相关歌曲
+                    </div>
+                </div>
             </div>
+
             <button onclick="toggleSettings()" 
                     class="dynamic-button-primary w-8 h-8 rounded-full flex items-center justify-center border border-white/10 hover:scale-110 transition text-white shadow-md">
                 <i class="fa-solid fa-user text-[10px]"></i>
@@ -411,9 +460,10 @@
 
     <script src="./src/pages/setting.js"></script>
     <script src="./src/js/LinkedList.js"></script>
-    <script type="module" src="./src/js/api.js"></script>
+    <script src="./src/js/api.js" type="module"></script>
     <script src="./src/js/tracker.js"></script>    
-    <script src="./src/js/player.js"></script> 
+    <script src="./src/js/player.js"></script>
+    <script src="./src/js/search.js"></script> 
     <script src="./src/js/router.js"></script>
     
     <script>
