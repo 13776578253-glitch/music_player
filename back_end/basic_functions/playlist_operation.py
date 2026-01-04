@@ -2,7 +2,7 @@ import logging
 
 from db import db_operations
 
-logger = logging.getLogger("basic_functions[pl]")
+logger = logging.getLogger("basic_functions[p]")
 
 # 通过歌单id查询歌曲信息
 async def get_playlist_songs_information(playlist_id, user_id):
@@ -21,7 +21,7 @@ async def get_playlist_songs_information(playlist_id, user_id):
     logger.info(f"歌单-歌曲信息已提取[get_playlist_songs_information]")
     return data
 
-async def get_playlist_collect_information(playlists_collect):
+async def post_playlist_collect_information(playlists_collect):
     user_id = playlists_collect['user_id']
     playlist_id = playlists_collect['playlist_id']
     action = playlists_collect['action']
@@ -37,7 +37,7 @@ async def get_playlist_collect_information(playlists_collect):
         logger.warning(f"用户{user_id}对歌单{playlist_id}操作失败[get_playlist_collect_information]")
         return { "success": False, "message": "操作失败" }
     
-async def get_playlists_is_collected(playlist_id, user_id):
+async def get_playlists_is_collected_information(playlist_id, user_id):
     is_collected = await db_operations.UserPlaylistTable.get_playlists_if_collected(playlist_id, user_id)
     logger.info(f"歌单收藏状态信息已提取[get_playlists_is_collected]")
     
@@ -54,4 +54,4 @@ if __name__ == "__main__":
     playlists_collect = {"user_id": "12",
     "playlist_id": "50",
     "action": "uncollect"}
-    asyncio.run(get_playlist_collect_information(playlists_collect))
+    asyncio.run(post_playlist_collect_information(playlists_collect))

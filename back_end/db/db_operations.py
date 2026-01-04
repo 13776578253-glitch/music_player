@@ -375,6 +375,14 @@ class UserTable:
         else:
             cursor = await conn.execute(sql, (id,))
             return await cursor.fetchone() is not None
+        
+    @classmethod
+    async def exists_re(cls, cookie):
+        sql = "SELECT id FROM users WHERE cookie = ? LIMIT 1"
+        async with db_context() as conn:
+            cursor = await conn.execute(sql, (cookie,))
+            user_id = await cursor.fetchone()
+            return user_id
 
     # 新增用户
     @classmethod
@@ -388,6 +396,21 @@ class UserTable:
             logger.info(f"新增用户成功，ID：{user_id}")
             await PlaylistTable.add_playlist(user_id, '喜欢', 'loved')
             return user_id
+        except aiosqlite.Error as e:
+            logger.error(f"新增用户失败：{e}")
+            raise
+
+    # 新增用户re
+    @classmethod
+    async def add_user_re(cls, uid, cookie):
+        sql = "INSERT INTO users (id, username, cookie) VALUES (?, ?, ?)"
+        try:
+            async with db_context() as conn:
+                cursor = await conn.cursor()
+                await cursor.execute(sql, (uid, uid, cookie))
+            logger.info(f"新增用户成功，ID：{uid}")
+            await PlaylistTable.add_playlist(uid, '喜欢', 'loved')
+            return True
         except aiosqlite.Error as e:
             logger.error(f"新增用户失败：{e}")
             raise
