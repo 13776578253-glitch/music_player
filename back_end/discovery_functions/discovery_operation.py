@@ -1,6 +1,7 @@
 import json, logging, random, os, pickle
 import numpy as np
 import pandas as pd
+from fastapi import HTTPException
 
 from db import db_operations
 from decision import decision_tree
@@ -323,7 +324,7 @@ class TreeOperation:
         tree.fit(X_train, Y_train, W_train)
         blob_tree = cls.to_blob(tree)
 
-        await db_operations.ModelTable.save_model(decision_tree_id, 'decision_tree', blob_tree, max_id['max_id'])
+        await db_operations.ModelTable.save_model(decision_tree_id, 'decision_tree', blob_tree, event_cursor=max_id['max_id'])
         logger.info("已训练决策树并存储")
         # from sklearn.ensemble import RandomForestRegressor
         # ensemble_reg = RandomForestRegressor(
@@ -344,9 +345,12 @@ class TreeOperation:
     # 预测数据
     @classmethod
     async def predict_data(cls, user_id, top_n=10):
-
         tree_data = await db_operations.ModelTable.get_model_by_id(1) 
         tree_model = cls.blob_return(tree_data['model_data'])
+        
+        if tree_model is None:
+            logger.error("未找到决策树数据")
+            raise HTTPException(status_code=400, detail='未找到数据')
         
         predict_data, predict_song_id = await TrainData.build_predict_data(user_id)
         probability_list = tree_model.predict(predict_data)
@@ -369,4 +373,4 @@ if __name__ == "__main__":
     setup_logging()
 
     import asyncio
-    asyncio.run(get_popular_discovery_information())
+    asyncio.run(TreeOperation.train_decision_tree())
