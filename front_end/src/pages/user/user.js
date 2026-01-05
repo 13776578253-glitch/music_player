@@ -216,28 +216,43 @@
 
         // 处理新建歌单
         async handleCreate() {
-            const input = document.getElementById('manage-input-title');
+            // const input = document.getElementById('manage-input-title');
+            const titleInput = document.getElementById('manage-input-title');
+            const coverInput = document.getElementById('manage-input-cover'); // 新增封面输入框
+
             const title = input.value.trim();
+            const coverUrl = coverInput.value.trim(); // 获取封面链接
+
             if (!title) return alert("请输入歌单名称");
 
             // 1. 调用 API
-            const res = await API.createPlaylist(title);
+            // const res = await API.createPlaylist(title);
+            const res = await API.createPlaylist(title, "", coverUrl);  // 调用 API，传入 title 和 coverUrl
             
             if (res && res.success) {
-                // 2. 更新本地缓存
+                //  更新本地缓存
                 this.dataCache.created.push(res.playlist);
                 
-                // 3. 更新主界面网格 (追加 HTML)
+                //  更新主界面网格 (追加 HTML)
+                // const grid = document.getElementById('created-playlists-grid');
+                // if (grid) {
+                //     grid.insertAdjacentHTML('beforeend', this.createPlaylistCard(res.playlist, 'created'));
+                // }
+
                 const grid = document.getElementById('created-playlists-grid');
                 if (grid) {
-                    grid.insertAdjacentHTML('beforeend', this.createPlaylistCard(res.playlist, 'created'));
+                    const html = this.createPlaylistCard(res.playlist, 'created');
+                    // 保持与 loadCreatedPlaylists 一致的类名处理
+                    const dynamicHtml = html.replace('playlist-card', 'playlist-card js-dynamic-card');
+                    grid.insertAdjacentHTML('beforeend', dynamicHtml);
                 }
 
                 // 4. 更新管理列表 (刷新当前弹窗列表)
                 this.renderManageLists();
 
                 // 5. 清空输入
-                input.value = '';
+                titleInput.value = '';
+                coverInput.value = '';
             }
         },
 

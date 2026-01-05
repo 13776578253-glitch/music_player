@@ -401,14 +401,20 @@
         },
 
         // 创建歌单
-        createPlaylist: async (title, description = "") => {
+        createPlaylist: async (title, description = "", coverUrl = "") => {
             const currentId = getUID();
-            console.log(`[API] 创建歌单: ${title}`);
+            console.log(`[API] 创建歌单: ${title}, 封面: ${coverUrl}`);
+
             try {
                 const res = await fetch(`${BASE_URL}/my/create_playlist`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: currentId, title, description })
+                    body: JSON.stringify({ 
+                        user_id: currentId, 
+                        title, 
+                        description,
+                        url: coverUrl  // 向后端发送封面链接
+                    })
                 });
                 if (!res.ok) throw new Error("创建失败");
                 return await res.json();
@@ -421,7 +427,7 @@
                         playlist_id: 'new_' + Date.now(), 
                         title: title, 
                         song_count: 0,
-                        cover: 'src/img/default_cover.jpg' // 假设有个默认封面
+                        url: coverUrl || 'src/assets/default_cover.jpg'
                     } 
                 };
             }

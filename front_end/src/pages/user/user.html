@@ -73,24 +73,37 @@
                     
                     <section>
                         <h4 class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest mb-3">新建歌单</h4>
-                        <div class="flex gap-2">
+                        <!-- <div class="flex gap-2">
                             <input id="manage-input-title" type="text" placeholder="输入歌单名称..." 
                                 class="flex-1 bg-slate-950 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none transition-colors">
                             <button onclick="UserView.handleCreate()" 
                                 class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 rounded-lg text-sm font-medium transition-all shadow-lg shadow-indigo-500/20 whitespace-nowrap">
                                 新建
                             </button>
+                        </div> -->
+                        <div class="space-y-3"> <input id="manage-input-title" type="text" placeholder="输入歌单名称..." 
+                            class="w-full bg-slate-950 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none transition-colors">
+                        
+                            <div class="flex gap-2">
+                                <input id="manage-input-cover" type="text" placeholder="输入封面图片 URL (可选)..." 
+                                    class="flex-1 bg-slate-950 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none transition-colors">
+                                <button onclick="UserView.handleCreate()" 
+                                    class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 rounded-lg text-sm font-medium transition-all shadow-lg shadow-indigo-500/20 whitespace-nowrap">
+                                    新建
+                                </button>
+                            </div>
                         </div>
+
                     </section>
 
                     <section>
-                        <h4 class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-3">我创建的歌单 (删除)</h4>
+                        <h4 class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-3">我创建的歌单</h4>
                         <div id="manage-list-created" class="space-y-2 min-h-[50px]">
                             </div>
                     </section>
 
                     <section>
-                        <h4 class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-3">我收藏的歌单 (取消收藏)</h4>
+                        <h4 class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-3">我收藏的歌单</h4>
                         <div id="manage-list-collected" class="space-y-2 min-h-[50px]">
                             </div>
                     </section>
