@@ -26,7 +26,7 @@
         </div>
     </div>
 
-    <div class="flex items-center gap-2 mb-8 px-2">
+    <!-- <div class="flex items-center gap-2 mb-8 px-2">
         <button onclick="CurrentPlaylist.playAll()" 
             class="flex items-center gap-2 px-6 py-2 bg-white hover:bg-slate-100 text-slate-900 rounded-full transition-all active:scale-95 shadow-sm">
             <i class="fa-solid fa-play text-xs"></i>
@@ -69,15 +69,59 @@
                 <i class="fa-solid fa-list-check text-xs"></i>
                 <span class="text-sm font-medium">批量操作</span>
             </button>
+        </div>  
+
+        <div class="p-8 pb-32 relative">
+            <div class="absolute top-6 left-6 z-10">
+                <button onclick="PlaylistView.goBack()" 
+                    class="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/40 text-white border border-white/10 backdrop-blur-md transition-all group">
+                    <i class="fa-solid fa-chevron-left group-hover:-translate-x-0.5 transition-transform"></i>
+                </button>
+            </div>
         </div>
         
-        <!-- <button onclick="CurrentPlaylist.toggleBatchMode()" 
-            id="btn-batch-toggle"
-            class="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition ml-auto">
-            <i class="fa-solid fa-list-check text-xs"></i>
-            <span class="text-sm font-medium">批量操作</span>
-        </button> -->
-    </div>
+
+    </div> -->
+        
+    <div class="flex items-center gap-2 mb-8 px-2">
+        <button onclick="PlaylistView.goBack()" 
+            class="flex items-center justify-center w-9 h-9 mr-2 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white rounded-full transition-all active:scale-95">
+            <i class="fa-solid fa-chevron-left text-sm"></i>
+        </button>
+
+        <button onclick="CurrentPlaylist.playAll()" 
+            class="flex items-center gap-2 px-6 py-2 bg-white hover:bg-slate-100 text-slate-900 rounded-full transition-all active:scale-95 shadow-sm">
+            <i class="fa-solid fa-play text-xs"></i>
+            <span class="text-sm font-bold">立即播放</span>
+        </button>
+
+        <button onclick="CurrentPlaylist.addAllToQueue()" 
+            class="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition" 
+            title="添加到当前播放列表">
+            <i class="fa-solid fa-plus"></i>
+            <span class="text-sm font-medium">添加到播放列表</span>
+        </button>
+
+        <button id="btn-collect-playlist" 
+            class="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-full transition" 
+            title="收藏歌单">
+            <i class="fa-regular fa-bookmark"></i> <span class="text-sm font-medium">收藏歌单</span>
+        </button>
+
+        <div class="ml-auto flex items-center bg-slate-100 dark:bg-white/5 rounded-full p-1 border border-slate-200 dark:border-white/5 transition-all">
+            <div id="batch-actions-menu" class="flex items-center overflow-hidden w-0 opacity-0 transition-all duration-300 ease-in-out whitespace-nowrap">
+                <span id="batch-count" class="px-3 text-xs font-bold text-indigo-600 dark:text-indigo-400">0 已选</span>
+                <div class="h-4 w-[1px] bg-slate-300 dark:bg-white/10 mx-1"></div>
+                <button onclick="CurrentPlaylist.openAddToPlaylistModal()" class="p-2 text-slate-600 dark:text-slate-400 hover:text-pink-500 transition-colors"><i class="fa-regular fa-heart"> 收藏</i></button>
+                <button onclick="CurrentPlaylist.batchDelete()" class="p-2 text-slate-600 dark:text-slate-400 hover:text-red-500 transition-colors mr-1"><i class="fa-regular fa-trash-can"> 删除</i></button>
+            </div>
+            <button onclick="CurrentPlaylist.toggleBatchMode()" id="btn-batch-toggle" class="flex items-center gap-2 px-4 py-1.5 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white transition-all rounded-full">
+                <i class="fa-solid fa-list-check text-xs"></i>
+                <span class="text-sm font-medium">批量操作</span>
+            </button>
+        </div>
+    </div>   
+    
 
     <div class="glass-container rounded-2xl overflow-hidden transition-all duration-500">
         <table class="w-full text-left border-collapse">

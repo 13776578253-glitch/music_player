@@ -12,6 +12,15 @@ async function loadPage(pageName, params = {}) {
     const container = document.getElementById('dynamic-content');
     window.currentPageParams = params;
 
+    // 获取当前正在显示的页面（即跳转前的旧页面）
+    const oldPage = window.currentActivePage; 
+    // 如果旧页面存在，且不是歌单页自己跳歌单页，就把它存为“来源”
+    if (oldPage && oldPage !== 'playlist' && pageName === 'playlist') {
+        localStorage.setItem('playlist_source_page', oldPage);
+    }
+    // 更新当前页面标记
+    window.currentActivePage = pageName;
+
     container.innerHTML = `<div class="flex justify-center items-center h-64 text-indigo-400">
         <i class="fa-solid fa-circle-notch fa-spin text-3xl"></i>
     </div>`;
@@ -38,6 +47,8 @@ async function loadPage(pageName, params = {}) {
             }
             retryCount++;
         }, 100); 
+
+        // if (window.AppNavigation) window.AppNavigation.push(pageId);
 
     } catch (err) {
         console.error("加载失败:", err);

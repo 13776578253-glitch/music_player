@@ -401,7 +401,7 @@
         },
 
         // 创建歌单
-        createPlaylist: async (title, description = "", coverUrl = "") => {
+        createPlaylist: async (title, description = "", coverUrl = "", type = "public") => {
             const currentId = getUID();
             console.log(`[API] 创建歌单: ${title}, 封面: ${coverUrl}`);
 
@@ -411,9 +411,9 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         user_id: currentId, 
-                        title, 
-                        description,
-                        url: coverUrl  // 向后端发送封面链接
+                        title: title, 
+                        url: coverUrl,  // 向后端发送封面链接
+                        type: type
                     })
                 });
                 if (!res.ok) throw new Error("创建失败");
@@ -427,7 +427,9 @@
                         playlist_id: 'new_' + Date.now(), 
                         title: title, 
                         song_count: 0,
-                        url: coverUrl || 'src/assets/default_cover.jpg'
+                        url: coverUrl || 'src/assets/default_cover.jpg',
+                        creater_id: currentId,
+                        type: type
                     } 
                 };
             }
@@ -610,6 +612,23 @@
         },
 
         // localStorage.setItem('MUSE_LIKED_IDS', JSON.stringify([...this.likedSongs]))
+    };
+
+    // 记录页面访问历史
+    window.AppNavigation = {
+        history: [],
+        push(pageId) {
+            // 如果新页面和最后一个页面相同，不重复记录
+            if (this.history[this.history.length - 1] === pageId) return;
+            this.history.push(pageId);
+            // 最多保留 10 条记录
+            if (this.history.length > 10) this.history.shift();
+        },
+        getPrevious() {
+            if (this.history.length < 2) return 'home'; // 默认回首页
+            this.history.pop(); // 弹出当前页
+            return this.history.pop(); // 弹出并返回上一页
+        }
     };
 
     // window.API = API   // 测试

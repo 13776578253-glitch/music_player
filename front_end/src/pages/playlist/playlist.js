@@ -627,21 +627,21 @@
 
         // 全选
         toggleSelectAll(sourceCheckbox) {
-            // 1. 获取全选框的当前状态 (true/false)
+            //  获取全选框的当前状态 (true/false)
             const isChecked = sourceCheckbox.checked;
             
-            // 2. 获取所有歌曲列表里的复选框 (排除全选框自己)
+            //  获取所有歌曲列表里的复选框 (排除全选框自己)
             const itemCheckboxes = document.querySelectorAll('#song-list-body .song-checkbox');
             
-            // 3. 数据处理
+            //  数据处理
             if (!isChecked) {
                 // 如果是取消全选，直接清空集合，最快
                 this.selectedSongIds.clear();
             }
             
-            // 4. 遍历视觉更新和数据添加
+            // 遍历视觉更新和数据添加
             itemCheckboxes.forEach(cb => {
-                // 让小勾勾亮起来/灭掉
+                
                 cb.checked = isChecked;
                 
                 // 数据同步
@@ -651,7 +651,7 @@
                 }
             });
 
-            // 5. 【至关重要】更新顶部“已选 X 项”的文字
+            // 更新顶部“已选 X 项”的文字
             this.updateBatchUIState();
         },
 
@@ -922,7 +922,19 @@
             this.selectedSongIds.clear();
             this.updateBatchUIState();
 
-        }
+        },
+
+        goBack() {
+            // 读取刚才在 loadPage 里存下的来源
+            const sourcePage = localStorage.getItem('playlist_source_page') || 'home';
+            console.log("[Playlist] 正在返回来源页:", sourcePage);
+
+            if (typeof window.loadPage === 'function') {
+                window.loadPage(sourcePage);
+            } else {
+                window.location.hash = `#${sourcePage}`;
+            }
+        }   
     };
 
     window.CurrentPlaylist = PlaylistView;
@@ -930,5 +942,9 @@
 
     window.PageHandlers = window.PageHandlers || {};
     window.PageHandlers.playlist = (params) => PlaylistView.init(params);
+
+    //测试
+    window.PlaylistView = PlaylistView; 
+    window.CurrentPlaylist = PlaylistView;
     
 })();

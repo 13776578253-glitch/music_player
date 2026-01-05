@@ -214,30 +214,44 @@
             }
         },
 
+        // 切换公开/私人状态的 UI
+        setType(type) {
+            const typeInput = document.getElementById('manage-input-type');
+            const btnPublic = document.getElementById('type-public');
+            const btnPrivate = document.getElementById('type-private');
+            
+            typeInput.value = type;
+            
+            if (type === 'public') {
+                btnPublic.className = "flex-1 py-1.5 text-xs font-medium rounded-lg transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-500/20";
+                btnPrivate.className = "flex-1 py-1.5 text-xs font-medium rounded-lg transition-all text-slate-400 hover:bg-white/5";
+            } else {
+                btnPublic.className = "flex-1 py-1.5 text-xs font-medium rounded-lg transition-all text-slate-400 hover:bg-white/5";
+                btnPrivate.className = "flex-1 py-1.5 text-xs font-medium rounded-lg transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-500/20";
+            }
+        },
+
         // 处理新建歌单
         async handleCreate() {
             // const input = document.getElementById('manage-input-title');
             const titleInput = document.getElementById('manage-input-title');
             const coverInput = document.getElementById('manage-input-cover'); // 新增封面输入框
+            const typeInput = document.getElementById('manage-input-type');
 
             const title = input.value.trim();
             const coverUrl = coverInput.value.trim(); // 获取封面链接
+            const type = typeInput.value; // 获取类型
 
             if (!title) return alert("请输入歌单名称");
 
             // 1. 调用 API
             // const res = await API.createPlaylist(title);
-            const res = await API.createPlaylist(title, "", coverUrl);  // 调用 API，传入 title 和 coverUrl
+            const res = await API.createPlaylist(title, "", coverUrl, type);  // 调用 API，传入 title 和 coverUrl
             
             if (res && res.success) {
                 //  更新本地缓存
                 this.dataCache.created.push(res.playlist);
-                
-                //  更新主界面网格 (追加 HTML)
-                // const grid = document.getElementById('created-playlists-grid');
-                // if (grid) {
-                //     grid.insertAdjacentHTML('beforeend', this.createPlaylistCard(res.playlist, 'created'));
-                // }
+                this.renderManageLists();
 
                 const grid = document.getElementById('created-playlists-grid');
                 if (grid) {
@@ -253,6 +267,8 @@
                 // 5. 清空输入
                 titleInput.value = '';
                 coverInput.value = '';
+                this.setType('public'); // 重置为公开
+                alert("歌单创建成功");
             }
         },
 
@@ -283,6 +299,8 @@
                 API.uncollectPlaylist(id);
             }
         },
+
+
 
     };
 
