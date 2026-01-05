@@ -111,26 +111,6 @@ function checkLoginStatus() {
     }
 }
 
-// function checkLoginStatus() {
-//     const activeCookie = localStorage.getItem('active_cookie');
-//     const label = document.getElementById('current-session-label');
-//     const box = document.getElementById('login-status-box');
-//     const cookieInput = document.getElementById('cookie-input');
-
-//     if (activeCookie) {
-//         label.innerText = "已登录 (SESSION ACTIVE)";
-//         label.classList.replace('text-red-400', 'text-emerald-400');
-//         label.classList.replace('bg-red-500/10', 'bg-emerald-500/10');
-//         box.classList.add('border-emerald-500/20');
-//         cookieInput.value = activeCookie; // 回填
-//     } else {
-//         label.innerText = "未登录";
-//         label.classList.replace('text-emerald-400', 'text-red-400');
-//         label.classList.replace('bg-emerald-500/10', 'bg-red-500/10');
-//         box.classList.remove('border-emerald-500/20');
-//     }
-// }
-
 function toggleSettings() {
     const modal = document.getElementById('user-settings-modal');
     const panel = document.getElementById('settings-panel');
