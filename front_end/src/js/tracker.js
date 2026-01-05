@@ -15,6 +15,7 @@ const BehaviorTracker = {
         //初始化会话对象
         this.currentSession = {
             song_id: String(song.song_id || song.id),
+            from_playlist_id: song.from_playlist_id || 'unknown',    //关键逻辑  歌曲从哪首歌传入歌曲   //反向定位到歌单id  //用于歌单行为记录
             duration: song.duration || 0,   // 如果后端没给 duration，会在 loadedmetadata 更新
             startTime: Date.now(),          // 开始时间
             accumulatedTime: 0,             // 真实 累计播放秒数 
@@ -56,6 +57,10 @@ const BehaviorTracker = {
                 if (window.API && window.API.recordListeningHistory) {
                     window.API.recordListeningHistory(this.currentSession.song_id);
                 }
+                //  关键  歌单播放量 上报
+                if (this.currentSession.from_playlist_id !== 'unknown') {
+                    window.API.reportPlaylistPlay(this.currentSession.from_playlist_id);
+                }
             }
         }
 
@@ -93,6 +98,7 @@ const BehaviorTracker = {
         const payload = {
             user_id: window.CurrentUID || localStorage.getItem('user_id'),  // 需要确保能拿到 UID
             song_id: s.song_id,
+            playlist_id: s.from_playlist_id,                                // 关键   上报 歌单 id
             duration: window.Player.audio.duration || 0,                    // 从 Audio 对象实时获取
             played_time: totalPlayed,                                       // 获取真实时长
             end_type: reason,                                               // 'skip', 'complete', 'quit'

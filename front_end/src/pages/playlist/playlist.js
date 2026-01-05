@@ -105,6 +105,8 @@
                 const clone = template.content.cloneNode(true);
                 const songId = String(song.id || song.song_id);
                 const tr = clone.querySelector('tr');     // 测试
+
+                song.from_playlist_id = this.currentId;   // 关键逻辑  把当前歌单内歌曲所在歌单传给 监视器
                 
                 // 填充数据
                 //  Checkbox (批量操作)
@@ -161,7 +163,7 @@
                     };
                 }
 
-                // 3. 点击整行播放的逻辑（排除点击复选框的情况）
+                //  点击整行播放的逻辑（排除点击复选框的情况）
                 row.onclick = (e) => {
                         // 如果点的是复选框本身，或者批量操作列的空白处，直接返回，交给上面的 logic 处理
                         if (e.target.closest('.batch-col') || e.target.type === 'checkbox') return;
@@ -219,7 +221,7 @@
 
                     const songId = String(song.id || song.song_id);
 
-                    // 3. 【核心修改】直接调用 Player 封装好的逻辑
+                    // 3【核心修改】直接调用 Player 封装好的逻辑
                     // Player.toggleLike 内部已经处理了：更新 AppState + 刷新全页面 UI + 同步后端
                     if (window.Player && typeof window.Player.toggleLike === 'function') {
                         await window.Player.toggleLike(songId);
@@ -230,7 +232,7 @@
                         if (window.API) API.toggleLike(songId, nextStatus);
                     }
                     
-                    // 4. (可选) 同步当前列表内的数据对象，确保数据一致
+                    // 同步当前列表内的数据对象，确保数据一致
                     song.is_liked = window.AppState.isLiked(songId);
                     song.is_loved = song.is_liked ? 1 : 0;
 
@@ -247,7 +249,7 @@
                     }
                     
                     // 正常模式：播放
-                    console.log(`[Playlist] 播放: ${song.title}`);
+                    console.log(`[Playlist] 播放: ${song.title}，来源歌单: ${song.from_playlist_id}`);
 
                     if (this.isBatchMode) return;
 
@@ -278,6 +280,7 @@
                         if (Player.playlist && Player.playlist.setCurrentById(songId)) {
                             // 已经在队列里了，我们直接调用一个内部加载方法，或者简化版的 play
                             Player.currentSong = Player.playlist.current.data;
+                            Player.currentSong.from_playlist_id = song.from_playlist_id;  // 关键逻辑  确保把最新的 from_playlist_id 也更新进去
                             Player.loadSong(Player.currentSong);
                             Player.renderQueue(); 
                         } else {
@@ -675,9 +678,16 @@
             }
 
             if (window.Player) {
-                // 传入第一首歌，和整个列表
+                // 使用 map 创建一个新数组，给每首歌都注入当前歌单的 ID
+                const taggedSongs = this._localCurrentSongs.map(song => ({
+                    ...song,
+                    from_playlist_id: this.currentId // 确保这里的 this 指向 PlaylistView
+                }));
+                // 传入带标签的第一首歌，和整个带标签的列表
                 // player.js 重建链表
-                Player.play(this._localCurrentSongs[0], this._localCurrentSongs);
+                Player.play(taggedSongs[0], taggedSongs);
+
+                console.log(`[Playlist] 已为 ${taggedSongs.length} 首歌注入歌单来源: ${this.currentId}`);
             }
         },
 

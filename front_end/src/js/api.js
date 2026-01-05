@@ -586,9 +586,28 @@
             }
         },
 
+        // 用户听歌所处歌单行为逻辑 上报
+        reportPlaylistPlay: async (playlistId) => {
+            if (!playlistId || playlistId === 'unknown') return;
+            
+            try {
+                await fetch(`${BASE_URL}/analytics/playlist_play`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        playlist_id: playlistId,
+                        action: 'play_count_increment', 
+                        timestamp: Date.now()
+                    })
+                });
+                console.log(`[Analytics] 歌单 ${playlistId} 播放量+1`);
+            } catch (e) {
+                console.error("[Analytics] 歌单上报失败", e);
+            }
+        },
+
     };
-
-
+    
     // 全局状态缓存
     window.AppState = {
         likedSongs: new Set(), // 存储已喜欢的 song_id (String)
