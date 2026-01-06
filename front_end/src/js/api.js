@@ -59,34 +59,42 @@
          // @param {AbortSignal} signal 用于取消请求的信号
         searchSongs: async (keyword, signal) => {
             
-            const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));  // 模拟网络延迟
+            // const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+            if (!keyword || keyword.trim() === '') return [];  
             
             try {
-                // 模拟后端请求
-                // const res = await fetch(`${BASE_URL}/search?q=${keyword}`, { signal });
                 
-                // 这里使用 Mock 数据演示
-                // 如果 signal 被 abort，这里虽然已经进入逻辑，但在 fetch 中会自动抛出 AbortError
-                if (signal?.aborted) {
-                    throw new DOMException('Aborted', 'AbortError');
+                const url = new URL(`${BASE_URL}/search`);
+                url.searchParams.append('q', keyword); // 添加 query 参数 ?q=xxx
+
+                console.log(`[API] 正在搜索: ${keyword}`);
+
+                //  发起请求
+                const res = await fetch(url, { signal });
+                if (!res.ok) {
+                    throw new Error(`Search failed: ${res.status}`);
                 }
 
-                await delay(300); // 模拟 300ms 延迟
+                const data = await res.json();
+                return data.songs || [];
+                
+            } catch (error) {
+                if (error.name === 'AbortError'){
+                    throw error;
+                }
+                
+                console.error("[API] 搜索请求失败:", error);
+                // return[];
 
-                // 简单的本地过滤模拟后端搜索
-                if (!keyword || keyword.trim() === '') return [];
+                //mock 测试数据
+                console.warn("后端不可用，切换至本地模拟搜索...");
                 
                 const lowerKw = keyword.toLowerCase();
-                const results = _List_SONGS_Search.filter(s => 
+                return _List_SONGS_Search.filter(s => 
                     s.title.toLowerCase().includes(lowerKw) || 
                     (s.artist && s.artist.some(a => a.toLowerCase().includes(lowerKw)))
                 );
-
-                return results;
-
-            } catch (error) {
-                // 如果是取消请求，向上抛出，由调用者处理
-                throw error;
+                
             }
         },
 
