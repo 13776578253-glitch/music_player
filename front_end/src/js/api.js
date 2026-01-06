@@ -11,7 +11,7 @@
 
     } from './mock_data.js';
 
-    const BASE_URL = "http://localhost:5000"; // Python 后端地址
+    const BASE_URL = "http://localhost:8000"; // Python 后端地址
     // 获取当前用户 UID
     const getUID = () => {
         // 优先从内存读取，其次从本地存储读取
@@ -21,13 +21,13 @@
     //管理员 凭证 MURE_ADMIN_TOKEN_2025_GLOBAL
 
     window.API = {
-        //每日推荐歌曲集合 对应接口 //recommendations/daily/?user_id=${user_id}  //应该传回十首固定的歌曲集合
+        //每日推荐歌曲集合 对应接口 //recommendation/daily/?user_id=${user_id}  //应该传回十首固定的歌曲集合
         getPopularSonglists:async (user_id) => {
             const currentId = getUID(); // 拿到当前的 ID
 
             try {
                 //后端对接
-                const res = await fetch(`${BASE_URL}/recommendations/daily?user_id=${currentId}`);
+                const res = await fetch(`${BASE_URL}/recommendation/daily?user_id=${currentId}`);
                 if (!res.ok) throw new Error();
                 const data = await res.json();
                 return data.playlists || data.songs || data ;  // 逻辑待确定
@@ -42,7 +42,7 @@
         getPopularPlaylists: async () => {
             try {
                 //后端对接
-                const res = await fetch(`${BASE_URL}/recommendations/popular`);
+                const res = await fetch(`${BASE_URL}/recommendation/popular`);
                 if (!res.ok) throw new Error();
                 const data = await res.json();
                 return data.playlists;
