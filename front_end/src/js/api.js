@@ -88,7 +88,7 @@
 
                 //mock 测试数据
                 console.warn("后端不可用，切换至本地模拟搜索...");
-                
+
                 const lowerKw = keyword.toLowerCase();
                 return _List_SONGS_Search.filter(s => 
                     s.title.toLowerCase().includes(lowerKw) || 
@@ -309,26 +309,26 @@
         },
 
         // 记录用户听歌历史  // 用于"最近播放"列表
-        recordListeningHistory: async (songId) => {
-            const currentId = getUID();
-            console.log(`[History] 歌曲 ${songId} 播放达标(>5s)，加入历史记录`);
+        // recordListeningHistory: async (songId) => {
+        //     const currentId = getUID();
+        //     console.log(`[History] 歌曲 ${songId} 播放达标(>5s)，加入历史记录`);
 
-            try {
-                // 假设后端接口是 /my/history/add
-                // 你需要根据你实际的后端路由修改 url
-                await fetch(`${BASE_URL}/my/history/add`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: currentId,
-                        song_id: songId,
-                        timestamp: Date.now()
-                    })
-                });
-            } catch (e) {
-                console.warn("[History] 历史记录同步失败", e);
-            }
-        },
+        //     try {
+        //         // 假设后端接口是 /my/history/add
+        //         // 你需要根据你实际的后端路由修改 url
+        //         await fetch(`${BASE_URL}/my/history/add`, {
+        //             method: 'POST',
+        //             headers: { 'Content-Type': 'application/json' },
+        //             body: JSON.stringify({
+        //                 user_id: currentId,
+        //                 song_id: songId,
+        //                 // timestamp: Date.now()
+        //             })
+        //         });
+        //     } catch (e) {
+        //         console.warn("[History] 历史记录同步失败", e);
+        //     }
+        // },
 
         // 收藏/取消收藏歌单    // status: true (收藏）, false （取消）
         toggleCollectPlaylist: async (playlist_id, status) => {
@@ -531,7 +531,7 @@
          * duration: number,      // 歌曲总长
          * played_time: number,   // 实际播放时长(秒)
          * end_type: string,    // 'complete'(播完) | 'skip'(切歌) | 'quit'(退出)
-         * timestamp: number,
+         * // timestamp: number,
          * position：number
          * }
          */
@@ -597,6 +597,8 @@
         // 用户听歌所处歌单行为逻辑 上报
         reportPlaylistPlay: async (playlistId) => {
             if (!playlistId || playlistId === 'unknown') return;
+
+            const currentId = getUID();
             
             try {
                 await fetch(`${BASE_URL}/analytics/playlist_play`, {
@@ -604,8 +606,9 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         playlist_id: playlistId,
-                        action: 'play_count_increment', 
-                        timestamp: Date.now()
+                        user_id: currentId
+                        // action: 'play_count_increment', 
+                        // timestamp: Date.now()
                     })
                 });
                 console.log(`[Analytics] 歌单 ${playlistId} 播放量+1`);

@@ -102,7 +102,7 @@ const BehaviorTracker = {
             duration: window.Player.audio.duration || 0,                    // 从 Audio 对象实时获取
             played_time: totalPlayed,                                       // 获取真实时长
             end_type: reason,                                               // 'skip', 'complete', 'quit'
-            timestamp: Date.now(),                                          // 现实时间：何时听 (何异味）
+            // timestamp: Date.now(),                                          // 现实时间：何时听 (何异味）
             position: Math.floor(window.Player.audio.currentTime)           // 歌曲进度：听到哪
         };
 
