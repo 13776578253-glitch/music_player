@@ -118,10 +118,8 @@ const BehaviorTracker = {
     end(reason) {
         if (!this.currentSession) return;
 
-        
         let f_Reason = reason || 'pause';
 
-        
         if (f_Reason === 'quit') {
             f_Reason = 'pause';
         }
