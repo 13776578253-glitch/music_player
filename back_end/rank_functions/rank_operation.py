@@ -5,13 +5,11 @@ from db import db_operations
 logger = logging.getLogger("rank_functions")
 
 # 全局歌曲排行
-async def get_rank_information_public(user_id: str | int):
+async def get_rank_information_public():
     songs = await db_operations.Analytics.get_most_played_song()
-    loved_songs = await db_operations.Analytics.user_is_loved(user_id)
-    songs_data = db_operations.Analytics.if_is_loved(loved_songs, songs)
 
     data = {
-        'songs': songs_data
+        'songs': songs
     }
     logger.info(f"歌曲排行信息已提取[get_playlist_songs_information]")
     return data

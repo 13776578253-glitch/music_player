@@ -473,8 +473,8 @@ class PlayEventTable:
         user_id INTEGER NOT NULL,
         song_id INTEGER NOT NULL,
         event_type TEXT NOT NULL,
-        position INTEGER DEFAULT 0,
-        duration INTEGER DEFAULT 0,
+        position REAL DEFAULT 0,
+        duration REAL DEFAULT 0,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE
@@ -494,8 +494,8 @@ class PlayEventTable:
             raise
 
     @classmethod
-    async def if_update_song_stats(cls, song_id, event_type):
-        await SongStatsTable.update_song_stats(song_id, 'play_count')
+    async def if_update_song_stats(cls, song_id, event_type, if_play_count):
+        if if_play_count: await SongStatsTable.update_song_stats(song_id, 'play_count')
         if event_type == 'skip':
             await SongStatsTable.update_song_stats(song_id, 'skip_count')
         elif event_type == 'complete':
@@ -518,7 +518,7 @@ class PlayEventTable:
 
     # 新增播放行为日志
     @classmethod
-    async def add_play_event(cls, user_id, song_id, event_type, position, duration):
+    async def add_play_event(cls, user_id, song_id, event_type, position, duration, if_play_count=True):
         valid_stats = ['play', 'pause', 'stop', 'skip', 'complete']
         if event_type not in valid_stats:
             logger.error(f"无效的新增播放日志类型：{event_type}，可选类型：{valid_stats}")
@@ -531,7 +531,7 @@ class PlayEventTable:
                 await cursor.execute(sql, (user_id, song_id, event_type, position, duration))
                 event_id = cursor.lastrowid
             logger.info(f"新增播放日志{event_type}成功，ID：{event_id}")
-            await cls.if_update_song_stats(song_id, event_type)
+            await cls.if_update_song_stats(song_id, event_type, if_play_count)
             return event_id
         except aiosqlite.Error as e:
             logger.error(f"新增播放日志失败：{e}")
@@ -690,7 +690,7 @@ class PlaylistTable:
     async def get_playlist_by_id(cls, playlist_id):
         sql = "SELECT * FROM playlists WHERE id = ?"
         try:
-            if not cls.exists(playlist_id): raise ValueError('歌单id不存在')
+            if not await cls.exists(playlist_id): raise ValueError('歌单id不存在')
             async with db_context() as conn:
                 cursor = await conn.cursor()
                 await cursor.execute(sql, (playlist_id,))
@@ -732,13 +732,13 @@ class PlaylistTable:
         
         sql = f"UPDATE playlists SET play_count = {count_type} + ? WHERE id = ?"
         try:
-            if not cls.exists(playlist_id): raise ValueError('歌单id不存在')
+            if not await cls.exists(playlist_id): raise ValueError('歌单id不存在')
             if conn is None:
                 async with db_context() as conn:
                     cursor = await conn.cursor()
                     await cursor.execute(sql, (add_count, playlist_id))
             else:
-                await conn.execute(sql, (count_type, add_count, playlist_id))
+                await conn.execute(sql, (add_count, playlist_id))
             logger.info(f"歌单{playlist_id}增加{add_count}")
             return True
         except aiosqlite.Error as e:
@@ -750,7 +750,7 @@ class PlaylistTable:
     async def delete_playlist(cls, playlist_id):
         sql = "DELETE FROM playlists WHERE id = ?"
         try:
-            if not cls.exists(playlist_id): raise ValueError('歌单id不存在')
+            if not await cls.exists(playlist_id): raise ValueError('歌单id不存在')
             async with db_context() as conn:
                 cursor = await conn.cursor()
                 await cursor.execute(sql, (playlist_id,))
@@ -786,6 +786,14 @@ class UserPlaylistTable:
             logger.error(f"table[user_playlists]创建失败：{e}")
             raise
 
+    @classmethod
+    async def exists(cls, user_id, playlist_id):
+        sql = "SELECT 1 FROM user_playlists WHERE user_id = ? AND playlist_id = ? LIMIT 1"
+
+        async with db_context() as conn:
+            cursor = await conn.execute(sql, (user_id, playlist_id))
+            return await cursor.fetchone() is not None
+
     # 获取最大position值
     @classmethod
     async def get_max_position(cls, user_id):
@@ -805,6 +813,10 @@ class UserPlaylistTable:
     # 关联用户与歌单
     @classmethod
     async def add_user_playlist(cls, user_id, playlist_id, position=None):
+        if not await PlaylistTable.exists(playlist_id):
+            logger.warning(f"歌单{playlist_id}不存在")
+            return False
+
         try:
             if position is None:
                 max_pos = await cls.get_max_position(user_id)
@@ -851,21 +863,13 @@ class UserPlaylistTable:
     # 查询用户是否收藏了歌单
     @classmethod
     async def get_playlists_if_collected(cls, playlist_id, user_id):
-        sql = """
-        SELECT EXISTS(
-            SELECT 1 
-            FROM user_playlists 
-            WHERE user_id = ? AND playlist_id = ?
-        );
-        """
-
         try:
-            async with db_context() as conn:
-                cursor = await conn.cursor()
-                await cursor.execute(sql, (playlist_id, user_id))
-                exists = await cursor.fetchone()
-                logger.info(f"成功查询用户的是否收藏歌单")
-                return exists[0]
+            if not await cls.exists(user_id, playlist_id):
+                logger.info(f"成功查询用户收藏状态")
+                return False
+            else:
+                logger.info(f"成功查询用户收藏状态")
+                return True
         except aiosqlite.Error as e:
             logger.error(f"查询用户是否收藏歌单失败：{e}")
             raise
@@ -891,6 +895,11 @@ class UserPlaylistTable:
     @classmethod
     async def delete_user_playlist(cls, user_id, playlist_id):
         sql = "DELETE FROM user_playlists WHERE user_id = ? AND playlist_id = ?"
+
+        if not await PlaylistTable.exists(playlist_id):
+            logger.warning(f"歌单{playlist_id}不存在")
+            return False
+        
         try:
             async with db_context() as conn:
                 cursor = await conn.cursor()
