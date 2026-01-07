@@ -188,6 +188,8 @@ window.home_page = {
         // 渲染前清空容器（除了模板本身）
         container.innerHTML = '';
 
+        console.log("[Home] 准备渲染的数据:", data);
+
         data.forEach(item => {
             const clone = template.content.cloneNode(true);
 

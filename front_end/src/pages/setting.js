@@ -60,6 +60,7 @@ async function handleCookieLogin() {
             // 核心：保存凭证和解析出来的真实 user_id
             localStorage.setItem('cookie', inputCookie);
             localStorage.setItem('user_id', result.user_id); 
+            window.CurrentUID = result.user_id;
             
             checkLoginStatus();
             alert(`欢迎回来，UID: ${result.user_id}`);
