@@ -102,41 +102,41 @@
     // };
 
     
-    const dataWasher = (data) => {
-        if (!data) return data;
+    // const dataWasher = (data) => {
+    //     if (!data) return data;
 
-        // 处理数组 (例如 songs 列表)
-        if (Array.isArray(data)) {
-            return data.map(item => dataWasher(item));
-        }
+    //     // 处理数组 (例如 songs 列表)
+    //     if (Array.isArray(data)) {
+    //         return data.map(item => dataWasher(item));
+    //     }
 
-        // 处理对象
-        if (typeof data === 'object') {
-            // 创建副本，避免修改原始引用
-            const washed = { ...data };
+    //     // 处理对象
+    //     if (typeof data === 'object') {
+    //         // 创建副本，避免修改原始引用
+    //         const washed = { ...data };
 
-            // 核心逻辑：检查 url 字段
-            // 无论是歌单的 url 还是歌曲的 url，只要字段名是 url 且无效，就赋随机图
-            if (washed.hasOwnProperty('url')) {
-                if (!washed.url || washed.url.trim() === "" || washed.url === "未知链接") {
-                    // 使用 seed 保证同一 ID 拿到同一张随机图，300x300 分辨率
-                    washed.url = `https://picsum.photos/seed/${washed.id || Math.random()}/300/300`;
-                }
-            }
+    //         // 核心逻辑：检查 url 字段
+    //         // 无论是歌单的 url 还是歌曲的 url，只要字段名是 url 且无效，就赋随机图
+    //         if (washed.hasOwnProperty('url')) {
+    //             if (!washed.url || washed.url.trim() === "" || washed.url === "未知链接") {
+    //                 // 使用 seed 保证同一 ID 拿到同一张随机图，300x300 分辨率
+    //                 washed.url = `https://picsum.photos/seed/${washed.id || Math.random()}/300/300`;
+    //             }
+    //         }
 
-            // 递归清洗子级 (如歌单对象里的 songs 数组)
-            if (washed.songs && Array.isArray(washed.songs)) {
-                washed.songs = dataWasher(washed.songs);
-            }
-            if (washed.playlists && Array.isArray(washed.playlists)) {
-                washed.playlists = dataWasher(washed.playlists);
-            }
+    //         // 递归清洗子级 (如歌单对象里的 songs 数组)
+    //         if (washed.songs && Array.isArray(washed.songs)) {
+    //             washed.songs = dataWasher(washed.songs);
+    //         }
+    //         if (washed.playlists && Array.isArray(washed.playlists)) {
+    //             washed.playlists = dataWasher(washed.playlists);
+    //         }
 
-            return washed;
-        }
+    //         return washed;
+    //     }
 
-        return data;
-    };
+    //     return data;
+    // };
 
     //管理员 凭证 MURE_ADMIN_TOKEN_2025_GLOBAL
 
