@@ -31,15 +31,43 @@
             const recentCount = document.getElementById('info-recent-count');
 
             // 加载 [我喜欢的音乐] ---
+            // try {
+            //     const likedData = await API.getMyLikedPlaylist(this.userId);
+            //     if (likedData && likedData.playlists && likedData.playlists.length > 0) {
+            //         const pl = likedData.playlists[0];
+            //         // 更新 UI
+            //         if (likedCount) likedCount.textContent = `${pl.song_count || 0} 首歌曲`;
+            //         // 绑定点击：跳转到 playlist 页，传递 ID (通常是 11)
+            //         if (likedCard) {
+            //             likedCard.onclick = () => loadPage('playlist', { id: pl.playlist_id });
+            //         }
+            //     }
+            // } catch (e) { console.error("加载我喜欢的音乐列表失败", e); }
+
+            // 加载 [我喜欢的音乐] ---
             try {
                 const likedData = await API.getMyLikedPlaylist(this.userId);
-                if (likedData && likedData.playlists && likedData.playlists.length > 0) {
-                    const pl = likedData.playlists[0];
+                // console.log('[User] likedData:', likedData);
+                if (likedData && likedData.playlists) {
+                    const pl = likedData.playlists;
                     // 更新 UI
                     if (likedCount) likedCount.textContent = `${pl.song_count || 0} 首歌曲`;
-                    // 绑定点击：跳转到 playlist 页，传递 ID (通常是 11)
+                    // 缓存并绑定简单的 onclick（覆盖任何旧处理器）
+                    this.dataCache.liked = pl;
                     if (likedCard) {
-                        likedCard.onclick = () => loadPage('playlist', { id: pl.playlist_id });
+                        likedCard.onclick = () => {
+                            console.log('[User] 点击 我喜欢的：跳转到歌单 id=', pl.playlist_id);
+                            loadPage('playlist', { id: pl.playlist_id });
+                        };
+                    }
+                } else {
+                    // 清空缓存并绑定提示
+                    this.dataCache.liked = null;
+                    if (likedCard) {
+                        likedCard.onclick = () => {
+                            console.warn('[User] 点击 我喜欢的音乐，但未找到歌单数据');
+                            alert('暂无我喜欢的歌单');
+                        };
                     }
                 }
             } catch (e) { console.error("加载我喜欢的音乐列表失败", e); }
@@ -47,14 +75,30 @@
             // 加载 [最近播放] ---
             try {
                 const recentData = await API.getMyRecentPlaylist(this.userId);
-                if (recentData && recentData.playlists && recentData.playlists.length > 0) {
-                    const pl = recentData.playlists[0];
-                    if (recentCount) recentCount.textContent = `${pl.song_count || 0} 首歌曲`;
-                    // 绑定点击：跳转到 playlist 页，传递 ID (通常是 12)
-                    // 测试
-                    if (recentCard) {
-                        recentCard.onclick = () => loadPage('playlist', { id: pl.playlist_id });
+                console.log('[User] recentData:', recentData);
+
+                if (recentData && recentData.songs) {
+                    // 更新 UI 上的歌曲数量
+                    if (recentCount) {
+                        recentCount.textContent = `${recentData.count || recentData.songs.length} 首歌曲`;
                     }
+
+                    // 缓存数据
+                    this.dataCache.recent = recentData;
+
+                    // 设置点击事件
+                    if (recentCard) {
+                        recentCard.onclick = () => {
+                            console.log('[User] 点击最近播放卡片');
+                            
+                            // 或者传固定 ID 'recent'，让 getPlaylistSongs 去处理
+                            loadPage('playlist', { id: 'recent'}); 
+                        };
+                    }
+
+                    // 同步歌曲的喜欢状态到全局 AppState
+                    window.AppState.syncLikedStatus(recentData.songs); //
+                    
                 }
             } catch (e) { console.error("加载最近播放列表失败", e); }
         },

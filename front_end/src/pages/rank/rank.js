@@ -31,7 +31,7 @@ function createRankRow(song, index, type) {
             <div class="ml-4 flex-1 flex items-center min-w-0 gap-4">
                 <div class="flex flex-col flex-1 min-w-0">
                     <div class="text-sm font-semibold text-slate-200 truncate group-hover:text-white transition-colors">
-                        ${song.name}
+                        ${song.title}
                     </div>
                     <div class="text-xs text-slate-500 truncate mt-0.5">
                         ${artistDisplay}
