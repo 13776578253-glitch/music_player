@@ -374,3 +374,4 @@ if __name__ == "__main__":
 
     import asyncio
     asyncio.run(TreeOperation.train_decision_tree())
+# python3 -m discovery_functions.discovery_operation

@@ -7,6 +7,24 @@ from db import db_operations
 
 logger = logging.getLogger("basic_functions[se]")
 
+# 模糊搜索
+async def get_searh_information(content):
+    result = await TreeOperation.search_avl_tree(content)
+    if not result: return False
+    if result['songs']  is None and result['artists'] is None: return False
+
+    if result['artists'] is not None:
+        for i in result['artists']:
+            i['title'] = i['title'] + '-' + "/".join(i['artist'])
+
+    data = {
+        'songs': merge_two_lists(result['songs'], result['artists'])
+    }
+
+    logger.info(f"搜索信息已提取[get_searh_information]")
+    return data
+
+
 def merge_two_lists(list_a, list_b):
     """
     合并两个可能为 None 的列表，生成最多10个元素的新列表
@@ -40,22 +58,6 @@ def merge_two_lists(list_a, list_b):
     final_result = merged_preliminary[:10]
     
     return final_result
-
-# 模糊搜索
-async def get_searh_information(content):
-    result = await TreeOperation.search_avl_tree(content)
-    if not result: return False
-
-    for i in result['artists']:
-        i['title'] = i['title'] + '-' + "/".join(i['artist'])
-
-    data = {
-        'songs': merge_two_lists(result['songs'], result['artists'])
-    }
-
-    logger.info(f"搜索信息已提取[get_searh_information]")
-    return data
-
 
 
 class TreeOperation:
@@ -127,7 +129,7 @@ class TreeOperation:
             result.extend(song_data)
 
         return result[:10]
-    
+        
     # 搜索数据
     @classmethod
     async def search_avl_tree(cls, content):
@@ -160,6 +162,21 @@ class TreeOperation:
         # print(result)
         return result # 1.songs显示歌名+歌手 2.点开artists:此功能未开放 3.匹配主要是歌曲/歌手(startswith) 4.artists歌手+歌名 5.按热度排序
     
+    # 打印树
+    @classmethod
+    async def print_tree(cls):
+        song_tree_data = await db_operations.ModelTable.get_model_by_id(2) 
+        artist_tree_data = await db_operations.ModelTable.get_model_by_id(3)
+        song_tree_model = cls.blob_return(song_tree_data['model_data'])
+        artist_tree_model = cls.blob_return(artist_tree_data['model_data'])
+
+        if song_tree_model is None or artist_tree_model is None:
+            logger.error("未找到avl树数据")
+            raise HTTPException(status_code=400, detail='未找到数据')
+        
+        song_tree_model.display()
+        artist_tree_model.display()
+    
 
 
 if __name__ == "__main__":
@@ -169,4 +186,5 @@ if __name__ == "__main__":
     setup_logging()
 
     import asyncio
-    asyncio.run(TreeOperation.train_avl_tree()) # TreeOperation.search_avl_tree('理')
+    asyncio.run(TreeOperation.train_avl_tree()) # TreeOperation.train_avl_tree() # TreeOperation.search_avl_tree('彷徨') # TreeOperation.print_tree()
+# python3 -m basic_functions.search_operation

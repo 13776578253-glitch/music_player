@@ -38,20 +38,20 @@ async def post_analytics_batch_report_information(input_data):
         duration = log['played_time']
         event_type = log['end_type']
         position = log['position']
-        song_duration = log['duration']
+        song_duration = int(log['duration'])
 
         result = await db_operations.PlayEventTable.add_play_event(user_id, song_id, event_type, position, duration, if_play_count=False)
-        result.append(result)
+        results.append(result)
 
     fall_value = [idx for idx, elem in enumerate(results) if elem is False or elem is None]
     if fall_value != []:
         logger.warning(f"第{fall_value}个播放行为保存失败，共{len(fall_value)}个")
     if len(fall_value) == len(logs):
         logger.error("用户播放行为上报失败")
-        return {"success": False, "message": "成功处理0条日志数据"}
+        return {"success": False, "message": "成功处理 0 条日志数据"}
 
     logger.info(f"用户播放行为已上报")
-    return {"success": True, "message": f"成功处理{len(logs) - len(fall_value)}条日志数据"}
+    return {"success": True, "message": f"成功处理 {len(logs) - len(fall_value)} 条日志数据"}
 
 
 

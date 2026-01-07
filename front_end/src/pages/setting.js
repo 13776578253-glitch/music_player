@@ -3,8 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     checkLoginStatus();
 });
 
-// 用户输入 UID，后端生成并返回唯一凭证
-async function fetchNewCookie() {
+// 用户输入 UID，生成唯一凭证
+async function fetchNewCookie(event) {
     const uidInput = document.getElementById('uid-input');
     const uid = uidInput.value.trim();
 
@@ -13,33 +13,30 @@ async function fetchNewCookie() {
         return;
     }
 
+    // 处理按钮状态
+    const btn = event?.target || document.getElementById('btn-get-uid'); 
+    if(btn) btn.disabled = true;
+
     const salt = "salt_2025";
     const generatedCookie = "MF_" + btoa(uid + salt).substring(0, 16);
-
-    // // 界面反馈：禁用按钮防止重复点击
-    // const btn = event?.target; 
-    // if(btn) btn.disabled = true;
 
     try {
         const result = await window.API.registerByUID(uid, generatedCookie);
         if (result.success) {
-            // 将拿到的“Cookie”填入下方的登录框
             document.getElementById('cookie-input').value = generatedCookie;
-            const confirmSave = confirm(`凭证生成成功！\n\n您的专属 Cookie 为：${generatedCookie}\n\n该凭证已自动填入登录框。请务必妥善保存此字符串`);
-
-            if (confirmSave) {
-                navigator.clipboard.writeText(generatedCookie);
-                alert("已复制到剪贴板");
-            }
-            // console.log(`UID: ${uid} -> Cookie: ${generatedCookie}`);
+            // const confirmSave = confirm(`凭证生成成功！\n\n您的专属 Cookie 为：${generatedCookie}\n\n该凭证已自动填入登录框。请务必妥善保存此字符串`);
+            
+            alert(`凭证生成成功！\n\n您的专属凭证为：${generatedCookie}\n\n请务必妥善保存。`);
+            // if (confirmSave) {
+            //     navigator.clipboard.writeText(generatedCookie);
+            //     alert("已复制到剪贴板");
+            // }
         }
     } catch (error) {
-        // 捕获后端传回的“用户已存在”错误
         alert("错误: " + error.message);
     } finally {
         if(btn) btn.disabled = false;
     }
-    
 }
 
 
@@ -58,7 +55,7 @@ async function handleCookieLogin() {
         
         if (result.success) {
             // 核心：保存凭证和解析出来的真实 user_id
-            localStorage.setItem('cookie', inputCookie);
+            localStorage.setItem('active_cookie', inputCookie);
             localStorage.setItem('user_id', result.user_id); 
             
             checkLoginStatus();

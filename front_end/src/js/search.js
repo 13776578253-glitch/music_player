@@ -126,17 +126,30 @@ const SearchModule = {
         });
     },
 
+    // // 处理点击歌曲
+    // handleSongClick(song) {
+    //     console.log('选中歌曲:', song.title);
+        
+    //     if (window.Player) {
+    //         // 调用 Player 中新增的方法
+    //         window.Player.addSearchResultAndPlay(song);
+            
+    //         // 关闭搜索框
+    //         this.showDropdown(false);
+    //         this.input.value = ''; // 可选：清空输入
+    //     }
+    // },
+
     // 处理点击歌曲
     handleSongClick(song) {
         console.log('选中歌曲:', song.title);
         
         if (window.Player) {
-            // 调用 Player 中新增的方法
-            window.Player.addSearchResultAndPlay(song);
+            // 使用 .call 强制将 player.js 内部的 this 指向 window.Player
+            window.Player.addSearchResultAndPlay.call(window.Player, song);
             
-            // 关闭搜索框
             this.showDropdown(false);
-            this.input.value = ''; // 可选：清空输入
+            this.input.value = ''; 
         }
     },
 

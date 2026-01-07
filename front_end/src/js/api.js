@@ -178,7 +178,8 @@
             try {
                 const res = await fetch(`${BASE_URL}/my/my_songlists_1_recent?user_id=${currentId}`);
                 if (!res.ok) throw new Error();
-                return await res.json();
+                const data = await res.json();
+                return dataWasher(data);
             } catch (e) {
                 console.warn("[API] 获取[最近播放]失败，使用测试数据");
                 // ID 12 
@@ -539,7 +540,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        uid: user_id, 
+                        uid: uid, 
                         cookie: cookie
                     })
                 });

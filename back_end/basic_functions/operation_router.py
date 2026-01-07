@@ -27,11 +27,10 @@ class LikeToggle(BaseModel):
     
 class PlayLogItem(BaseModel):
     song_id: str
-    duration: int
+    duration: float
     played_time: float
-    end_type: Literal["complete", "skip", "pause", "error"]
+    end_type: Literal["complete", "skip", "pause", "error", "play"]
     position: float
-    timestamp: int
 class AnalyticsBatchReport(BaseModel):
     user_id: str
     logs: List[PlayLogItem]
@@ -42,7 +41,8 @@ class AnalyticsPlaylistPlay(BaseModel):
 
 class AuthRegister(BaseModel):
     uid: Union[str, int]
-
+    cookie: Union[str, int]
+    
 class AuthLogin(BaseModel):
     cookie: Union[str, int]
 

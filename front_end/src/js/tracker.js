@@ -21,7 +21,10 @@ const BehaviorTracker = {
             accumulatedTime: 0,             // 真实 累计播放秒数 
             lastTickTime: null,             // 上一次 计时点 的时间戳
             isDragging: false,              // 标记用户行为   //是否正在拖动进度条
-            hasRecordedHistory: false       // 锁：标记这首歌是否已经上报过“历史记录”
+            // hasRecordedHistory: false,   // 锁：标记这首歌是否已经上报过“历史记录”
+            hasRecordedPlayEvent: false,    // 锁：标记是否已发送过 'play' 事件上报
+            hasRecordedPlayListEvent: false,//锁：标记是否已经向歌单上传过歌单播放量记录
+
         };
         console.log("[Tracker] 开始统计:", this.currentSession.song_id);
     },
@@ -47,20 +50,31 @@ const BehaviorTracker = {
         if (delta > 0 && delta < 2.0) {
             this.currentSession.accumulatedTime += delta;
             // console.log("当前累计时长:", this.currentSession.accumulatedTime); // 测试
+
             // 核心监听代码：实时检测是否达标   // 还没上报过历史 (Lock is false) / 累计时长 >= 5秒
-            if (!this.currentSession.hasRecordedHistory && this.currentSession.accumulatedTime >= 5) {
-                
+            if (!this.currentSession.hasRecordedPlayEvent &&  this.currentSession.accumulatedTime >= 5) {
+
                 //  立刻上锁，防止下一次 tick 重复触发
-                this.currentSession.hasRecordedHistory = true;
+                this.currentSession.hasRecordedPlayEvent = true;
+                
+                
+
+                
+
+                this.reportInstantEvent('play');
 
                 //  调用 API
-                if (window.API && window.API.recordListeningHistory) {
-                    window.API.recordListeningHistory(this.currentSession.song_id);
-                }
+                // if (window.API && window.API.recordListeningHistory) {
+                //     window.API.recordListeningHistory(this.currentSession.song_id);
+                // }
+
                 //  关键  歌单播放量 上报
-                if (this.currentSession.from_playlist_id !== 'unknown') {
+                if (this.currentSession.from_playlist_id !== 'unknown' && !this.currentSession.hasRecordedPlayListEvent) {
                     window.API.reportPlaylistPlay(this.currentSession.from_playlist_id);
+                    this.currentSession.hasRecordedPlayListEvent = true;
+
                 }
+                console.log("[Tracker] 播放满 5s，完成事件与歌单计数上报");
             }
         }
 
@@ -87,23 +101,50 @@ const BehaviorTracker = {
         }
     },
 
+    // 专门处理即时触发的上报（不结束会话）
+    reportInstantEvent(type) {
+        if (!this.currentSession) return;
+        
+        const s = this.currentSession;
+        const payload = {
+            //user_id: window.CurrentUID || localStorage.getItem('user_id'),
+            song_id: s.song_id,
+            //playlist_id: s.from_playlist_id,
+            duration: window.Player.audio.duration || 0,
+            played_time: s.accumulatedTime,
+            end_type: type, // 这里会传入 'play'
+            position: Math.floor(window.Player.audio.currentTime || 0),
+            // timestamp: Date.now()
+        };
+
+        if (window.API && window.API.reportUserBehavior) {
+            window.API.reportUserBehavior(payload);
+        }
+    },
+
     // 结算并上报
     end(reason) {
         if (!this.currentSession) return;
+
+        let f_Reason = reason || 'pause';
+
+        if (f_Reason === 'quit') {
+            f_Reason = 'pause';
+        }
 
         const s = this.currentSession;
         const totalPlayed = s.accumulatedTime;
 
         // 构造 payload  // 发送给服务器的json 数据
         const payload = {
-            user_id: window.CurrentUID || localStorage.getItem('user_id'),  // 需要确保能拿到 UID
+            // user_id: window.CurrentUID || localStorage.getItem('user_id'),  // 需要确保能拿到 UID
             song_id: s.song_id,
-            playlist_id: s.from_playlist_id,                                // 关键   上报 歌单 id
+            // playlist_id: s.from_playlist_id,                                // 关键   上报 歌单 id
             duration: window.Player.audio.duration || 0,                    // 从 Audio 对象实时获取
             played_time: totalPlayed,                                       // 获取真实时长
-            end_type: reason,                                               // 'skip', 'complete', 'quit'
-            // timestamp: Date.now(),                                          // 现实时间：何时听 (何异味）
-            position: Math.floor(window.Player.audio.currentTime)           // 歌曲进度：听到哪
+            end_type: f_Reason,                                               // 'skip', 'complete', 'pause'
+            position: Math.floor(window.Player.audio.currentTime || 0)           // 歌曲进度：听到哪
+            // timestamp: Date.now(),                                       // 现实时间：何时听 (何异味）
         };
 
         // 发送给 API 层
@@ -113,3 +154,11 @@ const BehaviorTracker = {
         this.currentSession = null;
     }
 };
+
+// 当用户刷新页面或关闭浏览器时，触发 tracker.end('quit')
+window.addEventListener('beforeunload', () => {
+    if (BehaviorTracker.currentSession) {
+        // 这里传入 'quit'，会被上面的 end 方法自动转为 'pause'
+        BehaviorTracker.end('quit');
+    }
+});

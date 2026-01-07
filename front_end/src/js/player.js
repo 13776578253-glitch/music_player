@@ -258,7 +258,7 @@ const Player = {
 
         this.audio.pause();
 
-        const audioSrc = song.filepath || song.url || "";
+        const audioSrc = song.file_path || "";
         if (!audioSrc) {
             console.Error(`歌曲《${song.title}》缺少音频路径`);
             return;
@@ -870,12 +870,78 @@ const Player = {
         
     },
 
-    // 测试  //搜索
+    // // 处理搜索结果点击
+    // addSearchResultAndPlay(songData) {
+    //     if (!this.playlist) {
+    //         console.warn('[Player] 播放列表未初始化，正在自动创建...');
+            
+    //         if (typeof DoublyCircularLinkedList !== 'undefined') {
+    //             this.playlist = new DoublyCircularLinkedList();
+    //         } else {
+    //             console.error('找不到 LinkedList 构造函数');
+    //             return;
+    //         }
+    //     }
+
+    //     // 去重逻辑
+    //     const newSongId = songData.id || songData.song_id;
+    //     const existingNode = this.playlist.find(newSongId);
+
+    //     if (existingNode) {
+    //         console.log('[Player] 歌曲已在播放列表中，直接跳转播放:', songData.title);
+    //         // 如果歌曲已存在，不需要重新插入，直接加载并播放
+    //         this.loadSong(existingNode.data || existingNode); 
+    //         this.play();
+            
+    //         // 更新 UI 
+    //         if (this.renderQueue) this.renderQueue();
+    //         return; 
+    //     }
+
+    //     console.log('[Player] 插入搜索歌曲:', songData.title);
+        
+    //     // 如果当前列表为空，直接初始化列表
+    //     if (this.playlist.isEmpty() || !this.currentSong) {
+    //         console.log('[Player] 当前无播放歌曲，直接开始播放新歌');   
+
+    //         this.playlist.append(songData);
+    //         this.loadSong(songData);
+    //         this.play();
+    //     } else {  // 正在播放，插在当前歌曲之后并切歌
+    //         console.log('[Player] 插入到当前播放歌曲之后');
+            
+    //         const currentId = this.currentSong.id || this.currentSong.song_id;
+    //         const currentNode = this.playlist.find(currentId);
+            
+    //         if (currentNode) {
+    //             this.playlist.insertAfter(currentId, songData);
+                
+    //             // 确保 this 指向正确
+    //             if (typeof this.playNext === 'function') {
+    //                 this.playNext();
+    //             } else {
+    //                 console.warn('[Player] 找不到 playNext 函数，尝试手动加载');
+    //                 this.loadSong(songData);
+    //                 this.play();
+    //             }
+    //         } else {
+    //             // 备选：如果找不到当前节点，直接插到末尾
+    //             this.playlist.append(songData);
+    //             this.loadSong(songData);
+    //             this.play();
+    //         }
+    //     }
+
+    //     if (this.renderQueue) {
+    //         this.renderQueue();
+    //     }
+    // },
+
     // 处理搜索结果点击
     addSearchResultAndPlay(songData) {
         if (!this.playlist) {
             console.warn('[Player] 播放列表未初始化，正在自动创建...');
-            // 这里的 DoublyCircularLinkedList 对应你 index.html 引入的文件
+            
             if (typeof DoublyCircularLinkedList !== 'undefined') {
                 this.playlist = new DoublyCircularLinkedList();
             } else {
@@ -884,27 +950,31 @@ const Player = {
             }
         }
 
+        // 去重逻辑
+        const newSongId = songData.id || songData.song_id;
+        const existingNode = this.playlist.find(newSongId);
+
+        if (existingNode) {
+            console.log('[Player] 歌曲已在播放列表中，直接跳转播放:', songData.title);
+            // 如果歌曲已存在，不需要重新插入，直接加载并播放
+            this.loadSong(existingNode.data || existingNode); 
+            this.play(songData);
+            
+            // 更新 UI 
+            if (this.renderQueue) this.renderQueue();
+            return; 
+        }
+
         console.log('[Player] 插入搜索歌曲:', songData.title);
-
-        // 1. 将 API 数据格式化为播放器需要的格式 (如果需要)
-        // 假设 LinkedList 需要的数据结构和 songData 一致
         
-        // 2. 如果当前列表为空，直接初始化列表
+        // 如果当前列表为空，直接初始化列表
         if (this.playlist.isEmpty() || !this.currentSong) {
-            console.log('[Player] 当前无播放歌曲，直接开始播放新歌');   // 测试
+            console.log('[Player] 当前无播放歌曲，直接开始播放新歌');   
 
-            // 如果列表为空，添加进去
-            if(this.playlist.isEmpty()) {
-                this.playlist.append(songData);
-            } else {
-                // 列表不为空但没在播放（比如手动停止了），插到开头
-                this.playlist.insertAfter(null, songData); 
-            }
-
+            this.playlist.append(songData);
             this.loadSong(songData);
-            this.play();
-        } else {
-            // 3. 正常插入逻辑：插在当前歌曲之后，然后切歌
+            this.play(songData);
+        } else {  // 正在播放，插在当前歌曲之后并切歌
             console.log('[Player] 插入到当前播放歌曲之后');
             
             const currentId = this.currentSong.id || this.currentSong.song_id;
@@ -912,13 +982,20 @@ const Player = {
             
             if (currentNode) {
                 this.playlist.insertAfter(currentId, songData);
-                // 插入成功后，调用 playNext 就会切到这首新歌
-                this.playNext();
+                
+                // 确保 this 指向正确
+                if (typeof this.next === 'function') {
+                    this.next();
+                } else {
+                    console.warn('[Player] 找不到 Next 函数，尝试手动加载');
+                    this.loadSong(songData);
+                    this.play(songData);
+                }
             } else {
-                // 备选方案：如果找不到当前节点，直接插到末尾并播放
+                // 备选：如果找不到当前节点，直接插到末尾
                 this.playlist.append(songData);
                 this.loadSong(songData);
-                this.play();
+                this.play(songData);
             }
         }
 
