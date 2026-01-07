@@ -11,6 +11,9 @@
         async init(params) {
             this.currentId = params?.id || 'default';
 
+            console.log("是谁在调用我？得到的参数是：", params);
+            console.trace();
+
             const container = document.getElementById('song-list-body');
             const template = document.getElementById('song-row-template');
 

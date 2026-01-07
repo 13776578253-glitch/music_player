@@ -44,6 +44,20 @@
             }
 
             // 加载 [我喜欢的音乐] ---
+            // try {
+            //     const likedData = await API.getMyLikedPlaylist(this.userId);
+            //     if (likedData && likedData.playlists && likedData.playlists.length > 0) {
+            //         const pl = likedData.playlists[0];
+            //         // 更新 UI
+            //         if (likedCount) likedCount.textContent = `${pl.song_count || 0} 首歌曲`;
+            //         // 绑定点击：跳转到 playlist 页，传递 ID (通常是 11)
+            //         if (likedCard) {
+            //             likedCard.onclick = () => loadPage('playlist', { id: pl.playlist_id });
+            //         }
+            //     }
+            // } catch (e) { console.error("加载我喜欢的音乐列表失败", e); }
+
+            // 加载 [我喜欢的音乐] ---
             try {
                 const likedData = await API.getMyLikedPlaylist(this.userId);
                 // console.log('[User] likedData:', likedData);
