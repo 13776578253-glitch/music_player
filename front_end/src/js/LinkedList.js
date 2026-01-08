@@ -42,7 +42,7 @@ class DoublyCircularLinkedList {
             return null;
         let node = this.head;
         do {
-            if (node.data.song_id === id || node.data.id === id) { // 兼容字段
+            if (node.data.song_id === id || node.data.id === id || String(node.data.song_id) === id || String(node.data.id) === id) { // 兼容字段
                 this.current = node;
                 return node;
             }

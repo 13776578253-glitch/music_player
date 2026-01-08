@@ -295,7 +295,7 @@
             const coverInput = document.getElementById('manage-input-cover'); // 新增封面输入框
             const typeInput = document.getElementById('manage-input-type');
 
-            const title = input.value.trim();
+            const title = titleInput.value.trim();
             const coverUrl = coverInput.value.trim(); // 获取封面链接
             const type = typeInput.value; // 获取类型
 

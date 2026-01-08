@@ -51,7 +51,7 @@ async def post_create_playlist(information: CreatePlaylist):
     logger.info(f"已创建歌单[post_create_playlist]")
     return data
 
-@router.post("/delete_playlist")
+@router.delete("/delete_playlist")
 async def post_delete_playlist(information: DeletePlaylist):
     input_information = information.model_dump()
     data = await post_delete_playlist_information(input_information)

@@ -56,8 +56,17 @@ const BehaviorTracker = {
 
                 //  立刻上锁，防止下一次 tick 重复触发
                 this.currentSession.hasRecordedPlayEvent = true;
-            
+                
+                
+
+                
+
                 this.reportInstantEvent('play');
+
+                //  调用 API
+                // if (window.API && window.API.recordListeningHistory) {
+                //     window.API.recordListeningHistory(this.currentSession.song_id);
+                // }
 
                 //  关键  歌单播放量 上报
                 if (this.currentSession.from_playlist_id !== 'unknown' && !this.currentSession.hasRecordedPlayListEvent) {
@@ -128,14 +137,14 @@ const BehaviorTracker = {
 
         // 构造 payload  // 发送给服务器的json 数据
         const payload = {
-            user_id: window.CurrentUID || localStorage.getItem('user_id'),  // 需要确保能拿到 UID
+            // user_id: window.CurrentUID || localStorage.getItem('user_id'),  // 需要确保能拿到 UID
             song_id: s.song_id,
-            playlist_id: s.from_playlist_id,                                // 关键   上报 歌单 id
+            // playlist_id: s.from_playlist_id,                                // 关键   上报 歌单 id
             duration: window.Player.audio.duration || 0,                    // 从 Audio 对象实时获取
             played_time: totalPlayed,                                       // 获取真实时长
             end_type: f_Reason,                                               // 'skip', 'complete', 'pause'
+            position: Math.floor(window.Player.audio.currentTime || 0)           // 歌曲进度：听到哪
             // timestamp: Date.now(),                                       // 现实时间：何时听 (何异味）
-            position: Math.floor(window.Player.audio.currentTime)           // 歌曲进度：听到哪
         };
 
         // 发送给 API 层

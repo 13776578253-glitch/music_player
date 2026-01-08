@@ -10,8 +10,8 @@ async def post_auth_register_information(auth_register):
     cookie = auth_register['cookie']
 
     is_exist = await db_operations.UserTable.exists(uid)
-    if not is_exist: 
-        logger.warning(f"用户{uid}不存在")
+    if is_exist: 
+        logger.warning(f"用户{uid}已存在")
         return { "success": False }
     
     result = await db_operations.UserTable.add_user_re(uid, cookie)

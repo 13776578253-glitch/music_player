@@ -1,4 +1,5 @@
-import json, logging
+import logging
+from datetime import datetime
 
 from db import db_operations
 
@@ -20,6 +21,12 @@ async def get_history_songs_information(user_id):
     loved_songs = await db_operations.Analytics.user_is_loved(user_id)
     songs = await db_operations.Analytics.get_user_history_play_events(user_id)
     songs_data = db_operations.Analytics.if_is_loved(loved_songs, songs)
+
+    songs_data.sort(
+    key=lambda x: datetime.strptime(x['last_played_at'], '%Y-%m-%d %H:%M:%S'),
+    reverse=True  # 降序
+    )
+
     logger.info(f"歌曲信息已提取[get_history_songs_information]")
 
     data = {
