@@ -14,7 +14,7 @@ export const _List_SONGS_1 = [
             genre: "",  //流派
             record_company: "",  //唱片公司
             duration: "3:43",  //时长
-            filepath: "./assets/music/daily/test1.mp3",   // 音乐地址
+            file_path: "./assets/music/daily/test1.mp3",   // 音乐地址
             url: "./assets/cover/cover_song/test1.jpg",   // 封面图地址
             lyrics: "歌词第一句\n歌词第二句",  //歌词
             is_deleted:"",  
@@ -33,7 +33,7 @@ export const _List_SONGS_1 = [
             genre: "",  //流派
             record_company: "",  //唱片公司
             duration: "3:38",  //时长
-            filepath: "./assets/music/daily/test2.mp3",   // 音乐地址
+            file_path: "./assets/music/daily/test2.mp3",   // 音乐地址
             url: "./assets/cover/cover_song/test2.jpg",   // 封面图地址
             lyrics: "第一句\n第二句",  //歌词
             is_deleted:"",  
@@ -56,7 +56,7 @@ export const _List_SONGS_2_l = [
             genre: "",  //流派
             record_company: "",  //唱片公司
             duration: "4:00",  //时长
-            filepath: "./assets/music/rank/public/test2.mp3",   // 音乐地址
+            file_path: "./assets/music/rank/public/test2.mp3",   // 音乐地址
             url: "./assets/cover/cover_song/test3.jpg",   // 封面图地址
             lyrics: "第一句动次打次\n歌词第二句动词",  //歌词
             is_deleted:"",  
@@ -75,7 +75,7 @@ export const _List_SONGS_2_l = [
             genre: "",  //流派
             record_company: "",  //唱片公司
             duration: "2:03",  //时长
-            filepath: "./assets/music/rank/public/test3.mp3",   // 音乐地址
+            file_path: "./assets/music/rank/public/test3.mp3",   // 音乐地址
             url: "./assets/cover/cover_song/test4.jpg",   // 封面图地址
             lyrics: "第一句大词动词\n第二句大词",  //歌词
             is_deleted:"",  
@@ -99,7 +99,7 @@ export const _List_SONGS_2_r = [
             genre: "",  //流派
             record_company: "",  //唱片公司
             duration: "4:00",  //时长
-            filepath: "./assets/music/rank/users/test2.mp3",   // 音乐地址
+            file_path: "./assets/music/rank/users/test2.mp3",   // 音乐地址
             url: "./assets/cover/cover_song/test5.jpg",   // 封面图地址
             lyrics: "歌\n词",  //歌词
             is_deleted:"",  
@@ -118,7 +118,7 @@ export const _List_SONGS_2_r = [
             genre: "",  //流派
             record_company: "",  //唱片公司
             duration: "2:03",  //时长
-            filepath: "./assets/music/rank/users/test3.mp3",   // 音乐地址
+            file_path: "./assets/music/rank/users/test3.mp3",   // 音乐地址
             url: "./assets/cover/cover_song/test1.jpg",   // 封面图地址
             lyrics: "manba\nout",  //歌词
             is_deleted:"",  
@@ -142,7 +142,7 @@ export const _List_SONGS_Commen_1 = [
             genre: "",  //流派
             record_company: "",  //唱片公司
             duration: "3:43",  //时长
-            filepath: "./assets/music/popular/test1.mp3",   // 音乐地址
+            file_path: "./assets/music/popular/test1.mp3",   // 音乐地址
             url: "./assets/cover/cover_song/test1.jpg",   // 封面图地址
             lyrics: "歌词第一句\n歌词第二句",  //歌词
             is_deleted:"",  
@@ -161,7 +161,7 @@ export const _List_SONGS_Commen_1 = [
             genre: "",  //流派
             record_company: "",  //唱片公司
             duration: "3:38",  //时长
-            filepath: "./assets/music/popular/test2.mp3",   // 音乐地址
+            file_path: "./assets/music/popular/test2.mp3",   // 音乐地址
             url: "./assets/cover/cover_song/test2.jpg",   // 封面图地址
             lyrics: "第一句\n第二句",  //歌词
             is_deleted:"",  
@@ -184,7 +184,7 @@ export const _List_SONGS_Commen_2 = [
             genre: "",  //流派
             record_company: "",  //唱片公司
             duration: "3:43",  //时长
-            filepath: "./assets/music/daily/test1.mp3",   // 音乐地址
+            file_path: "./assets/music/daily/test1.mp3",   // 音乐地址
             url: "./assets/cover/cover_song/test1.jpg",   // 封面图地址
             lyrics: "歌词第一句\n歌词第二句",  //歌词
             is_deleted:"",  
@@ -203,7 +203,7 @@ export const _List_SONGS_Commen_2 = [
             genre: "",  //流派
             record_company: "",  //唱片公司
             duration: "3:38",  //时长
-            filepath: "./assets/music/daily/test2.mp3",   // 音乐地址
+            file_path: "./assets/music/daily/test2.mp3",   // 音乐地址
             url: "./assets/cover/cover_song/test2.jpg",   // 封面图地址
             lyrics: "第一句\n第二句",  //歌词
             is_deleted:"",  
@@ -226,7 +226,7 @@ export const _List_SONGS_Commen_5 = [
             genre: "",  //流派
             record_company: "",  //唱片公司
             duration: "3:43",  //时长
-            filepath: "./assets/music/daily/test1.mp3",   // 音乐地址
+            file_path: "./assets/music/daily/test1.mp3",   // 音乐地址
             url: "./assets/cover/cover_song/test1.jpg",   // 封面图地址
             lyrics: "歌词第一句\n歌词第二句",  //歌词
             is_deleted:"",  
@@ -245,7 +245,7 @@ export const _List_SONGS_Commen_5 = [
             genre: "",  //流派
             record_company: "",  //唱片公司
             duration: "3:38",  //时长
-            filepath: "./assets/music/daily/test2.mp3",   // 音乐地址
+            file_path: "./assets/music/daily/test2.mp3",   // 音乐地址
             url: "./assets/cover/cover_song/test2.jpg",   // 封面图地址
             lyrics: "第一句\n第二句",  //歌词
             is_deleted:"",  
@@ -268,7 +268,7 @@ export const _List_SONGS_Commen_6 = [
             genre: "",  //流派
             record_company: "",  //唱片公司
             duration: "3:43",  //时长
-            filepath: "./assets/music/daily/test1.mp3",   // 音乐地址
+            file_path: "./assets/music/daily/test1.mp3",   // 音乐地址
             url: "./assets/cover/cover_song/test1.jpg",   // 封面图地址
             lyrics: "歌词第一句\n歌词第二句",  //歌词
             is_deleted:"",  
@@ -287,7 +287,7 @@ export const _List_SONGS_Commen_6 = [
             genre: "",  //流派
             record_company: "",  //唱片公司
             duration: "3:38",  //时长
-            filepath: "./assets/music/daily/test2.mp3",   // 音乐地址
+            file_path: "./assets/music/daily/test2.mp3",   // 音乐地址
             url: "./assets/cover/cover_song/test2.jpg",   // 封面图地址
             lyrics: "第一句\n第二句",  //歌词
             is_deleted:"",  
@@ -408,7 +408,7 @@ export const _List_SONGS_Search = [
         genre: "",
         record_company: "",
         duration: "3:43",
-        filepath: "./assets/music/daily/test1.mp3",
+        file_path: "./assets/music/daily/test1.mp3",
         url: "./assets/cover/cover_song/test1.jpg",
         lyrics: "歌词第一句\n歌词第二句",
         is_deleted:"",
@@ -427,7 +427,7 @@ export const _List_SONGS_Search = [
         genre: "",
         record_company: "",
         duration: "3:38",
-        filepath: "./assets/music/daily/test2.mp3",
+        file_path: "./assets/music/daily/test2.mp3",
         url: "./assets/cover/cover_song/test2.jpg",
         lyrics: "第一句\n第二句",
         is_deleted:"",

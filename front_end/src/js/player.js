@@ -260,7 +260,7 @@ const Player = {
 
         const audioSrc = song.file_path || "";
         if (!audioSrc) {
-            console.Error(`歌曲《${song.title}》缺少音频路径`);
+            console.error(`歌曲《${song.title}》缺少音频路径`);
             return;
         }
         try {
@@ -324,6 +324,8 @@ const Player = {
 
         this.isSwitching = true;
         setTimeout(() => { this.isSwitching = false; }, 300);
+
+        console.log("[Player.next] 播放下一首");
 
         switch (this.mode) {
             case PlayMode.ONE:
