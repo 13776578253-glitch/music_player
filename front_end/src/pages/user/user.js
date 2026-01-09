@@ -88,7 +88,7 @@
             // 加载 [最近播放] ---
             try {
                 const recentData = await API.getMyRecentPlaylist(this.userId);
-                console.log('[User] recentData:', recentData);
+                // console.log('[User] recentData:', recentData);
 
                 if (recentData && recentData.songs) {
                     // 更新 UI 上的歌曲数量

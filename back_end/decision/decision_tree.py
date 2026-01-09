@@ -219,26 +219,24 @@ class Decision_Tree():
             
         return result
 
-    # 计算正确率
+    # 计算正确率(MSE)
     def accuracy(self, X, Y):
         if self.is_none(): return
-        num = len(Y)
-        percent = 0
-        for i in range(num):
-            percent += abs(self.predict([X[i]]) - Y[i]) / Y[i]
-        return 1 - (percent / num)
+        
+        num_classes = 10
+        total_loss = 0
+        eps = 1e-15  # 防止 log(0) 导致溢出
+        
+        for i in range(len(Y)):
+            y_pred_val = int(self.predict([X[i]])[0])
+            y_true_val = int(Y[i])
+            
+            prob = 0.99 if y_pred_val == y_true_val else (0.01 / (num_classes - 1)) # 构造一个简单的概率分布
+            total_loss += -np.log(prob + eps) # 交叉熵公式：-sum(y_true * log(y_pred))
+            
+        return total_loss / len(Y)
 
-
-def test1():
-    X_train = np.array([[0, 0], [0, 1], [0, 2], [1, 0], [1, 2], [2, 1], [2, 2]])
-    Y_train = np.array([0, 0, 1, 1, 1, 0, 1])
-    W_train = np.array([1, 1, 1, 1, 1, 1, 1])
-    a = Decision_Tree(MIN_SAMPLES_SPLIT=1, MIN_SAMPLES_LEAF=1)
-    a.fit(X_train, Y_train, W_train)
-    a.print_tree()
-
-    new_samples = np.array([[1, 1], [0, 1], [2, 0]])
-    a.predict(new_samples)
 
 if __name__ == "__main__":
-    test1()
+    # test1()
+    pass

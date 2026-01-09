@@ -1,11 +1,101 @@
-import logging
+import logging, time
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn import tree
 
 from decision import decision_tree
 from .discovery_operation import TrainData
 
 logger = logging.getLogger("discovery_functions_test")
+
+def all_accuracy(tree, X, Y):
+        num_classes = 10
+        total_loss = 0
+        eps = 1e-15  # 防止 log(0) 导致溢出
+        
+        for i in range(len(Y)):
+            y_pred_val = int(tree.predict([X[i]])[0])
+            y_true_val = int(Y[i])
+            
+            prob = 0.99 if y_pred_val == y_true_val else (0.01 / (num_classes - 1)) # 构造一个简单的概率分布
+            total_loss += -np.log(prob + eps) # 交叉熵公式：-sum(y_true * log(y_pred))
+            
+        return total_loss / len(Y)
+
+def test_complexity_and_accuracy(tree_model, X_train, y_train, w_train):
+    # 1. 测试训练时间随样本量 N 的变化 (体现 O(N))
+    n_sizes = [100, 500, 1000, 2000]
+    train_times = []
+    
+    print(f"{'Samples (N)':<12} | {'Train Time (s)':<15} | {'Accuracy':<10}")
+    print("-" * 45)
+    
+    for n in n_sizes:
+        subset_X = X_train[:n]
+        subset_y = y_train[:n]
+        subset_W = w_train[:n]
+        
+        start = time.time()
+        tree_model.fit(subset_X, subset_y, subset_W)
+        end = time.time()
+        
+        train_times.append(end - start)
+        acc = tree_model.accuracy(subset_X, subset_y)
+        print(f"{n:<12} | {end-start:<15.4f} | {acc:<10.2%}")
+
+    # 2. 绘制耗时曲线图
+    plt.figure(figsize=(10, 5))
+    plt.plot(n_sizes, train_times, 'o-', color='blue', label='Training complexity')
+    plt.title("Empirical Time Complexity: Training Time vs Sample Size")
+    plt.xlabel("Number of Samples (N)")
+    plt.ylabel("Time (seconds)")
+    plt.grid(True)
+    plt.show()
+
+def complexity_test():
+    # 模拟 MNIST 数据: D=784, 10类标签
+    D = 784
+    n_samples_list = [500, 1000, 2000, 4000] # 不同的样本量 N
+    train_times = []
+    predict_times = []
+
+    print(f"{'Samples (N)':<15} | {'Train Time (s)':<15} | {'Predict Time (s)':<15}")
+    print("-" * 50)
+
+    for N in n_samples_list:
+        # 生成随机二值化模拟数据
+        X_fake = np.random.randint(0, 2, (N, D))
+        y_fake = np.random.randint(0, 10, N)
+        w_fake = [1] * N
+        
+        dt = decision_tree.Decision_Tree(max_depth=4)
+        
+        # 测试训练耗时
+        start_train = time.time()
+        dt.fit(X_fake, y_fake, w_fake)
+        end_train = time.time()
+        train_times.append(end_train - start_train)
+        
+        # 测试预测耗时 (测试 100 个样本)
+        X_test = np.random.randint(0, 2, (100, D))
+        start_pred = time.time()
+        dt.predict(X_test)
+        end_pred = time.time()
+        predict_times.append(end_pred - start_pred)
+        
+        print(f"{N:<15} | {train_times[-1]:<15.4f} | {predict_times[-1]:<15.4f}")
+
+    # 绘制复杂度曲线
+    plt.figure(figsize=(10, 5))
+    plt.plot(n_samples_list, train_times, marker='o', label='Training Time')
+    plt.title("Empirical Time Complexity (Fixed D=784, d=4)")
+    plt.xlabel("Number of Samples (N)")
+    plt.ylabel("Time (seconds)")
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
 
 async def test():
     X_test = [
@@ -56,8 +146,9 @@ async def test():
 
 
 async def tree_test():
-    import time
-    from sklearn import tree
+    new_samples = np.array([[0, 1, 20, 18, 181, 2, 2009], [2, 0, 15, 20, 150, 0, 2004]])
+    print(f'预测数据：{new_samples}')
+    print('-----------------------------')
 
     fn = 'discovery_functions/penguins.csv'
     data = pd.read_csv(fn)
@@ -76,39 +167,41 @@ async def tree_test():
     Y_train1 =Y[:290]
     X_predict = X[290:]
     Y_predict = Y[290:]
-    b = decision_tree.Decision_Tree(max_depth=10, min_entropy=6)
+
+    de_tree = decision_tree.Decision_Tree(max_depth=10, min_entropy=6)
+    # test_complexity_and_accuracy(de_tree, X_train1, Y_train1, W_train1)
     time1 = time.time()
-    b.fit(X_train1, Y_train1, W_train1)
+    de_tree.fit(X_train1, Y_train1, W_train1)
     time2 = time.time()
     print(f'训练用时：{time2 - time1}')
-    b.print_tree()
-    new_samples = np.array([[0, 1, 20, 18, 181, 2, 2009], [2, 0, 15, 20, 150, 0, 2004]])
-    print(b.predict(new_samples), b.find_max_depth())
+    # de_tree.print_tree()
+    print(f'预测为：{de_tree.predict(new_samples)}') # , de_tree.find_max_depth()
     
     time1 = time.time()
-    a1 = b.accuracy(X_predict, Y_predict)
+    # a1 = de_tree.accuracy(X_predict, Y_predict)
+    a1 = all_accuracy(de_tree, X_predict, Y_predict)
     time2 = time.time()
     print(f'正确率：{a1}, 用时：{time2 - time1}')
+
+    print('-----------------------------')
     
     clf = tree.DecisionTreeClassifier()
     time1 = time.time()
     clf = clf.fit(X_train1, Y_train1)
     time2 = time.time()
     print(f'训练用时：{time2 - time1}')
-    print(clf.predict(new_samples))
-    def duima(num):
-        percent = 0
-        for i in range(num):
-            percent += abs(clf.predict([X_predict[i]]) - Y_predict[i]) / Y_predict[i]
-        return (percent / num)
+    print(f'预测为：{clf.predict(new_samples)}')
+
     time1 = time.time()
-    a2 = duima(40)
+    a2 = all_accuracy(clf, X_predict, Y_predict)
     time2 = time.time()
-    print(f'正确率：{1 - a2}, 用时：{time2 - time1}')
+    print(f'正确率：{a2}, 用时：{time2 - time1}')
+
+    complexity_test()
 
 if __name__ == "__main__":
     from core.logger import setup_logging
     setup_logging()
 
     import asyncio
-    asyncio.run(test())
+    asyncio.run(tree_test())
